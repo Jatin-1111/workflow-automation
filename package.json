@@ -12,7 +12,8 @@
     "db:logs": "docker compose --env-file .env.local logs -f mongo",
     "db:indexes": "tsx --env-file=.env.local scripts/db-indexes.ts",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
-    "test": "tsx --test \"src/**/*.test.ts\""
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "walkthrough": "tsx --env-file=.env.local scripts/proposal-walkthrough.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

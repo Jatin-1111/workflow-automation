@@ -12,6 +12,17 @@ import type { FieldValue } from './instance'
 import type { CompletionRule } from './workflow'
 import type { Priority, TaskStatus } from './status'
 
+/**
+ * A file attached to this task. The `FileRecord` is the source of truth; this
+ * reference carries the slot so the engine can check required-file rules
+ * without reaching into file storage.
+ */
+export interface TaskFileRef {
+  fileId: FileId
+  /** Template `RequiredFileDefinition.key` this upload satisfies, when any. */
+  slotKey?: string
+}
+
 export interface ChecklistItemState {
   key: string
   checked: boolean
@@ -43,7 +54,7 @@ export interface Task {
 
   fieldValues: Record<string, FieldValue>
   checklist: ChecklistItemState[]
-  fileIds: FileId[]
+  files: TaskFileRef[]
 
   activatedAt: Date
   dueAt?: Date

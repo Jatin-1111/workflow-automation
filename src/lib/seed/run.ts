@@ -16,10 +16,14 @@ import { insertProjects } from '@/lib/db/repositories/projects'
 import { insertRoles } from '@/lib/db/repositories/roles'
 import { insertTeams } from '@/lib/db/repositories/teams'
 import { countUsers, insertUsers } from '@/lib/db/repositories/users'
+import { insertWorkflowTemplates } from '@/lib/db/repositories/workflow-templates'
 import type { EntityId, EntityKind } from '@/lib/types/ids'
 import type { Department, Role, Team } from '@/lib/types/organization'
 import type { Project } from '@/lib/types/project'
 import type { User } from '@/lib/types/user'
+import type { WorkflowTemplate } from '@/lib/types/workflow'
+import { buildWorkflowTemplate } from './workflows/build'
+import { WORKFLOW_SEEDS } from './workflows'
 import { DEPARTMENT_SEEDS, ROLE_SEEDS, TEAM_SEEDS } from './organization'
 import { PROJECT_SEEDS } from './projects'
 import { USER_SEEDS } from './users'
@@ -39,6 +43,7 @@ export interface SeedSummary {
   roles: number
   users: number
   projects: number
+  workflows: number
 }
 
 /** Remove seeded data so ids restart from `00001`. */
@@ -151,11 +156,26 @@ export async function seed(options: SeedOptions): Promise<SeedSummary> {
     updatedAt: now,
   }))
 
+  // Workflow templates are ordinary data: the same shape the Workflow Builder
+  // will produce, resolved from machine keys to permanent ids (spec §34).
+  const workflowIds = await nextIds('workflowTemplate', WORKFLOW_SEEDS.length)
+  const workflows: WorkflowTemplate[] = WORKFLOW_SEEDS.map((seed, index) =>
+    buildWorkflowTemplate(seed, {
+      workflowId: workflowIds[index],
+      version: 1,
+      now,
+      roleIdByKey: roleIds,
+      projectIdByKey: projectIds,
+      departmentIdByKey: departmentIds,
+    }),
+  )
+
   await insertDepartments(departments)
   await insertTeams(teams)
   await insertRoles(roles)
   await insertUsers(users)
   await insertProjects(projects)
+  await insertWorkflowTemplates(workflows)
 
   return {
     departments: departments.length,
@@ -163,5 +183,6 @@ export async function seed(options: SeedOptions): Promise<SeedSummary> {
     roles: roles.length,
     users: users.length,
     projects: projects.length,
+    workflows: workflows.length,
   }
 }

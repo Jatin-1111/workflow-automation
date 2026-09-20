@@ -18,6 +18,8 @@ export const TIMELINE_ACTIONS = [
   'instance_created',
   'stage_activated',
   'stage_completed',
+  /** One assignee of a shared stage finished their part (spec §22). */
+  'assignee_completed',
   'task_assigned',
   'task_reassigned',
   'progress_saved',
