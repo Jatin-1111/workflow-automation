@@ -8,6 +8,7 @@
 import Link from 'next/link'
 import { LogoutButton } from '@/features/auth/logout-button'
 import { can, type Capability } from '@/lib/auth/permissions'
+import { countUnreadNotifications } from '@/lib/db/repositories/notifications'
 import type { PublicUser } from '@/lib/types/user'
 
 interface NavEntry {
@@ -21,13 +22,15 @@ interface NavEntry {
 const NAV: NavEntry[] = [
   { href: '/my-work', label: 'My Work' },
   { href: '/dashboard', label: 'Dashboard', requires: 'management.view_dashboard' },
-  { href: '/projects', label: 'Projects', requires: 'project.view_dashboard', pending: true },
+  { href: '/projects', label: 'Projects', requires: 'project.view_dashboard' },
+  { href: '/team', label: 'Team', requires: 'team.view_workload' },
+  { href: '/admin', label: 'Admin', requires: 'admin.manage_users' },
+  // The Workflow Builder is the one navigation promise this release does not
+  // keep; shown so its absence is explicit rather than silent.
   { href: '/workflows', label: 'Workflows', requires: 'admin.manage_workflows', pending: true },
-  { href: '/approvals', label: 'Approvals', pending: true },
-  { href: '/team', label: 'Team', requires: 'team.view_workload', pending: true },
 ]
 
-export function AppShell({
+export async function AppShell({
   user,
   current,
   children,
@@ -39,6 +42,7 @@ export function AppShell({
   const entries = NAV.filter(
     (entry) => !entry.requires || can(user.accessLevel, entry.requires),
   )
+  const unread = await countUnreadNotifications(user.userId)
 
   return (
     <>
@@ -52,7 +56,7 @@ export function AppShell({
                   <span
                     key={entry.href}
                     className="cursor-default text-sm text-subtle"
-                    title="Coming in a later phase"
+                    title="Not in this release"
                   >
                     {entry.label}
                   </span>
@@ -75,10 +79,28 @@ export function AppShell({
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted">
+            <Link
+              href="/notifications"
+              aria-current={current === '/notifications' ? 'page' : undefined}
+              className="flex items-center gap-1.5 text-sm text-muted transition hover:text-foreground"
+            >
+              Notifications
+              {unread > 0 ? (
+                <span className="rounded-full bg-accent px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-white">
+                  {unread}
+                </span>
+              ) : null}
+            </Link>
+
+            <Link
+              href="/profile"
+              aria-current={current === '/profile' ? 'page' : undefined}
+              className="text-sm text-muted transition hover:text-foreground"
+            >
               {user.name}
               <span className="text-subtle"> · {user.userId}</span>
-            </span>
+            </Link>
+
             <LogoutButton />
           </div>
         </div>

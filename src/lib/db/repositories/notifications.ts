@@ -28,3 +28,11 @@ export async function listNotificationsForUser(
 export async function countUnreadNotifications(recipientId: UserId): Promise<number> {
   return (await notifications()).countDocuments({ recipientId, readAt: { $exists: false } })
 }
+
+/** Scoped to one recipient so nobody can clear someone else's inbox. */
+export async function markAllNotificationsRead(recipientId: UserId): Promise<void> {
+  await (await notifications()).updateMany(
+    { recipientId, readAt: { $exists: false } },
+    { $set: { readAt: new Date() } },
+  )
+}
