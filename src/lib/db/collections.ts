@@ -14,7 +14,6 @@ export const COLLECTIONS = {
   comments: 'comments',
   notifications: 'notifications',
   timelineEvents: 'timeline_events',
-  sessions: 'sessions',
 } as const
 
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS]

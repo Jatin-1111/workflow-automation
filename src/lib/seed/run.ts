@@ -58,7 +58,6 @@ async function resetCollections(): Promise<void> {
     COLLECTIONS.comments,
     COLLECTIONS.notifications,
     COLLECTIONS.timelineEvents,
-    COLLECTIONS.sessions,
   ]
   await Promise.all(names.map((name) => db.collection(name).deleteMany({})))
 }
