@@ -42,3 +42,6 @@ next-env.d.ts
 
 # keep the committed env template
 !.env.example
+
+# uploaded files (local storage)
+/uploads
