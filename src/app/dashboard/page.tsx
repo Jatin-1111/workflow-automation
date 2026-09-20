@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
-import { SignedInHeader } from '@/features/auth/signed-in-header'
+import { AppShell } from '@/features/shell/app-shell'
 
 /**
  * Placeholder for the management dashboard (spec §16). Guarded by capability,
@@ -11,9 +11,8 @@ export default async function ManagementDashboardPage() {
   const user = await requireCapability('management.view_dashboard')
 
   return (
-    <>
-      <SignedInHeader user={user} />
-      <main className="mx-auto w-full max-w-6xl px-6 py-10">
+    <AppShell user={user} current="/dashboard">
+      <main className="mx-auto w-full max-w-7xl px-6 py-8">
         <h1 className="text-xl font-semibold tracking-tight">Management Overview</h1>
         <p className="mt-1 text-sm text-muted">
           Active workflows, approvals, overdue work and team workload arrive in
@@ -26,6 +25,6 @@ export default async function ManagementDashboardPage() {
           Go to My Work
         </Link>
       </main>
-    </>
+    </AppShell>
   )
 }

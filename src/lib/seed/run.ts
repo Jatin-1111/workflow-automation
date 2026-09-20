@@ -24,6 +24,7 @@ import type { User } from '@/lib/types/user'
 import type { WorkflowTemplate } from '@/lib/types/workflow'
 import { buildWorkflowTemplate } from './workflows/build'
 import { WORKFLOW_SEEDS } from './workflows'
+import { seedInstances } from './instances'
 import { DEPARTMENT_SEEDS, ROLE_SEEDS, TEAM_SEEDS } from './organization'
 import { PROJECT_SEEDS } from './projects'
 import { USER_SEEDS } from './users'
@@ -44,6 +45,7 @@ export interface SeedSummary {
   users: number
   projects: number
   workflows: number
+  instances: number
 }
 
 /** Remove seeded data so ids restart from `00001`. */
@@ -177,6 +179,15 @@ export async function seed(options: SeedOptions): Promise<SeedSummary> {
   await insertProjects(projects)
   await insertWorkflowTemplates(workflows)
 
+  // Demo instances are produced by running the engine against the seeded
+  // template, so the resulting tasks and timelines are genuine.
+  const instanceCount = await seedInstances({
+    template: workflows[0],
+    projectIdByKey: projectIds,
+    userIdByKey: userIds,
+    now,
+  })
+
   return {
     departments: departments.length,
     teams: teams.length,
@@ -184,5 +195,6 @@ export async function seed(options: SeedOptions): Promise<SeedSummary> {
     users: users.length,
     projects: projects.length,
     workflows: workflows.length,
+    instances: instanceCount,
   }
 }
