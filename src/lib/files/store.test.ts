@@ -110,11 +110,13 @@ describe('how Cloudinary is asked for a file', () => {
   it('asks for a signed, authenticated, raw asset', async () => {
     const url = await urlFetchedFor('business-orbit/BO-INS-00001/abc.pdf')
 
-    // Each of these is load-bearing: `upload` instead of `authenticated`, or a
-    // dropped signature, would make the asset public to anyone with the id.
-    assert.match(url, /\/raw\/authenticated\//)
-    assert.match(url, /\/s--[^/]+--\//)
-    assert.match(url, /business-orbit\/BO-INS-00001\/abc\.pdf(\?|$)/)
+    // Each of these is load-bearing: `upload` in place of `authenticated`
+    // would make the asset readable by anyone holding the id, and without the
+    // signature the request is not ours at all.
+    assert.match(url, /\/raw\/download\?/)
+    assert.match(url, /[?&]type=authenticated(&|$)/)
+    assert.match(url, /[?&]signature=[a-f0-9]+/)
+    assert.match(url, /public_id=business-orbit%2FBO-INS-00001%2Fabc\.pdf/)
   })
 
   it('reports a file the store does not have', async () => {

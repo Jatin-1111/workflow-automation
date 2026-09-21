@@ -83,6 +83,8 @@ async function storeBytes(request: StoreRequest): Promise<StoredFile> {
           public_id: publicId,
           resource_type: 'raw',
           type: 'authenticated',
+          // Ids are UUIDs, so this should never fire; it is here so a
+          // collision fails loudly instead of destroying the earlier file.
           overwrite: false,
         },
         (error, result) => {
@@ -106,14 +108,17 @@ async function storeBytes(request: StoreRequest): Promise<StoredFile> {
 async function readStoredFile(storageKey: string): Promise<Buffer> {
   const api = configured()
 
-  // Signed delivery rather than the download API: it is CDN-served, carries
-  // no api_key, and is not subject to an API rate limit. The URL is built and
-  // spent inside this request; it never reaches a browser.
-  const url = api.utils.url(storageKey, {
+  // The download API rather than a signed delivery URL. Signed delivery is
+  // the tempting one - CDN-served, no api_key - but it answers 401 for an
+  // authenticated asset on anything below the Advanced plan, where delivery
+  // needs token or cookie auth. Measured, not assumed: every delivery variant
+  // was tried against the account and only this one returns the bytes.
+  //
+  // The URL carries a signature and an expiry, and is built and spent inside
+  // this request; it never reaches a browser.
+  const url = api.utils.private_download_url(storageKey, '', {
     resource_type: 'raw',
     type: 'authenticated',
-    sign_url: true,
-    secure: true,
   })
 
   const response = await fetch(url)

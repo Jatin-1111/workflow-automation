@@ -214,6 +214,14 @@ transforms an asset, so the image pipeline buys nothing — and raw sidesteps
 both the format/public_id asymmetry images have and the account-level setting
 that blocks PDF delivery through the image pipeline.
 
+**Files are read through the download API, not a signed delivery URL.**
+Signed delivery is the tempting one — CDN-served, no api_key — but it answers
+401 for an authenticated asset on anything below the Advanced plan, where
+delivery needs token or cookie auth. Every delivery variant was tried against
+a real account; only `private_download_url` returns the bytes. If file volume
+ever makes the API endpoint a bottleneck, the honest trade is a plan that
+supports token auth, not public delivery.
+
 **Cloudinary URLs never reach a browser.** Files are read server-side and
 streamed through `/api/files/[fileId]`, which is where the viewer can actually
 be checked — it returns 404 rather than 403 to someone outside the workflow,
