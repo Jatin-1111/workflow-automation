@@ -43,9 +43,9 @@ export default async function ProfilePage() {
 
   return (
     <AppShell user={user} current="/profile">
-      <main className="mx-auto w-full max-w-4xl px-6 py-8">
+      <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
         <header className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">{user.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{user.name}</h1>
           <p className="mt-1 text-sm text-muted">
             <span className="font-mono">{user.userId}</span> · {user.email}
             {user.phone ? ` · ${user.phone}` : ''}
@@ -131,7 +131,7 @@ export default async function ProfilePage() {
                   <li key={item.taskId}>
                     <Link
                       href={`/tasks/${item.taskId}`}
-                      className="flex items-center gap-4 px-4 py-2.5 transition hover:bg-accent-soft/60"
+                      className="flex items-center gap-4 px-5 py-3 transition hover:bg-accent-soft/60"
                     >
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm">{item.stageName}</span>

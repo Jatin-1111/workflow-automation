@@ -15,8 +15,6 @@ interface NavEntry {
   href: string
   label: string
   requires?: Capability
-  /** Not yet built; shown as a signpost rather than a broken link. */
-  pending?: boolean
 }
 
 const NAV: NavEntry[] = [
@@ -45,76 +43,78 @@ export async function AppShell({
 
   return (
     <>
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <span className="text-sm font-semibold tracking-tight">Business Orbit</span>
-            <nav className="flex flex-wrap items-center gap-x-5 gap-y-1">
-              {entries.map((entry) =>
-                entry.pending ? (
-                  <span
-                    key={entry.href}
-                    className="cursor-default text-sm text-subtle"
-                    title="Not in this release"
-                  >
-                    {entry.label}
-                  </span>
-                ) : (
+      {/*
+        Two rows by design rather than by overflow: identity and search above,
+        navigation below. Cramming both onto one line is what made the header
+        wrap unpredictably as the navigation grew.
+      */}
+      <header className="sticky top-0 z-10 border-b border-border bg-surface">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3 sm:gap-4 sm:px-6">
+          <Link
+            href="/my-work"
+            className="shrink-0 text-sm font-semibold tracking-tight text-foreground"
+          >
+            Business Orbit
+          </Link>
+
+          <form method="get" action="/search" className="mx-auto hidden md:block">
+            <input
+              type="search"
+              name="q"
+              placeholder="Search or paste an ID"
+              aria-label="Search Business Orbit"
+              className="h-8 w-72 rounded-md border border-border bg-surface-sunken px-3 text-sm text-foreground transition placeholder:text-subtle hover:border-border-strong focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-ring"
+            />
+          </form>
+
+          <Link
+            href="/notifications"
+            aria-current={current === '/notifications' ? 'page' : undefined}
+            className="ml-auto flex shrink-0 items-center gap-1.5 text-sm text-muted transition hover:text-foreground md:ml-0"
+          >
+            Notifications
+            {unread > 0 ? (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-medium tabular-nums text-white">
+                {unread}
+              </span>
+            ) : null}
+          </Link>
+
+          <span aria-hidden className="hidden h-5 w-px bg-border sm:block" />
+
+          <Link
+            href="/profile"
+            aria-current={current === '/profile' ? 'page' : undefined}
+            className="hidden shrink-0 text-sm text-muted transition hover:text-foreground sm:block"
+          >
+            {user.name}
+          </Link>
+
+          <LogoutButton />
+        </div>
+
+        <nav className="mx-auto max-w-7xl px-4 sm:px-6">
+          <ul className="-mb-px flex items-center gap-1 overflow-x-auto">
+            {entries.map((entry) => {
+              const active = current === entry.href
+              return (
+                <li key={entry.href}>
                   <Link
-                    key={entry.href}
                     href={entry.href}
-                    aria-current={current === entry.href ? 'page' : undefined}
-                    className={
-                      current === entry.href
-                        ? 'text-sm font-medium text-foreground'
-                        : 'text-sm text-muted transition hover:text-foreground'
-                    }
+                    aria-current={active ? 'page' : undefined}
+                    className={`block whitespace-nowrap border-b-2 px-3 py-2 text-sm transition ${
+                      active
+                        ? 'border-accent font-medium text-foreground'
+                        : 'border-transparent text-muted hover:border-border-strong hover:text-foreground'
+                    }`}
                   >
                     {entry.label}
                   </Link>
-                ),
-              )}
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/* Search sits in the frame so it is reachable from anywhere. */}
-            <form method="get" action="/search" className="hidden sm:block">
-              <input
-                type="search"
-                name="q"
-                placeholder="Search or paste an ID"
-                aria-label="Search Business Orbit"
-                className="h-8 w-56 rounded-md border border-border bg-surface px-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
-              />
-            </form>
-
-            <Link
-              href="/notifications"
-              aria-current={current === '/notifications' ? 'page' : undefined}
-              className="flex items-center gap-1.5 text-sm text-muted transition hover:text-foreground"
-            >
-              Notifications
-              {unread > 0 ? (
-                <span className="rounded-full bg-accent px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-white">
-                  {unread}
-                </span>
-              ) : null}
-            </Link>
-
-            <Link
-              href="/profile"
-              aria-current={current === '/profile' ? 'page' : undefined}
-              className="text-sm text-muted transition hover:text-foreground"
-            >
-              {user.name}
-              {/* The id is useful at a desk and only noise on a phone. */}
-              <span className="hidden text-subtle sm:inline"> · {user.userId}</span>
-            </Link>
-
-            <LogoutButton />
-          </div>
-        </div>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
       </header>
       {children}
     </>

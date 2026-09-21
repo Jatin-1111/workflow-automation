@@ -13,27 +13,30 @@ export function StatTile({
   tone?: 'neutral' | 'alert' | 'action' | 'good'
   href?: string
 }) {
+  // A zero is not news. Only a number that matters takes on a colour, so the
+  // ones that do stand out instead of competing with seven others.
+  const emphasise = value > 0
   const valueTone =
-    tone === 'alert'
-      ? 'text-status-overdue'
-      : tone === 'action'
-        ? 'text-status-action'
-        : tone === 'good'
-          ? 'text-status-complete'
-          : 'text-foreground'
+    !emphasise || tone === 'neutral'
+      ? 'text-foreground'
+      : tone === 'alert'
+        ? 'text-status-overdue'
+        : tone === 'action'
+          ? 'text-status-action'
+          : 'text-status-complete'
 
   const body = (
     <>
-      <span className="block text-[11px] font-medium uppercase tracking-wide text-subtle">
-        {label}
-      </span>
-      <span className={`mt-1 block text-2xl font-semibold tabular-nums ${valueTone}`}>
+      <span className="block text-xs font-medium text-muted">{label}</span>
+      <span
+        className={`mt-1.5 block text-3xl font-semibold tabular-nums tracking-tight ${valueTone}`}
+      >
         {value}
       </span>
     </>
   )
 
-  const shared = 'rounded-lg border border-border bg-surface p-4'
+  const shared = 'rounded-xl border border-border bg-surface px-5 py-4'
   return href ? (
     <Link href={href} className={`${shared} block transition hover:border-border-strong`}>
       {body}

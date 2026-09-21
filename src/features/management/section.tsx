@@ -1,4 +1,11 @@
-/** A titled panel with an optional count, used across the management views. */
+/**
+ * Management panels.
+ *
+ * Thin wrappers over the shared kit, kept so the many management pages that
+ * already import them do not each need to know about the kit directly.
+ */
+
+import { Empty, Panel } from '@/features/ui/primitives'
 
 export function Section({
   title,
@@ -12,23 +19,12 @@ export function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-lg border border-border bg-surface">
-      <div className="border-b border-border px-4 py-3">
-        <h2 className="text-sm font-semibold">
-          {title}
-          {count !== undefined ? (
-            <span className="ml-2 font-normal text-subtle">{count}</span>
-          ) : null}
-        </h2>
-        {description ? (
-          <p className="mt-0.5 text-xs text-muted">{description}</p>
-        ) : null}
-      </div>
+    <Panel title={title} count={count} description={description}>
       {children}
-    </section>
+    </Panel>
   )
 }
 
 export function EmptyRow({ children }: { children: React.ReactNode }) {
-  return <p className="px-4 py-6 text-sm text-muted">{children}</p>
+  return <Empty>{children}</Empty>
 }

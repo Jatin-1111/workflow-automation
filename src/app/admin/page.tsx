@@ -45,9 +45,9 @@ export default async function AdminPage() {
 
   return (
     <AppShell user={admin} current="/admin">
-      <main className="mx-auto w-full max-w-5xl px-6 py-8">
+      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <div className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">Administration</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Administration</h1>
           <p className="mt-1 text-sm text-muted">
             People, workflow roles, and the organisation structure behind them.
           </p>
@@ -69,7 +69,7 @@ export default async function AdminPage() {
                 return (
                   <li
                     key={role.roleId}
-                    className="flex items-center gap-4 px-4 py-2.5 text-sm"
+                    className="flex items-center gap-4 px-5 py-3 text-sm"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block font-medium">{role.name}</span>
@@ -170,7 +170,7 @@ export default async function AdminPage() {
           <Section title="Structure">
             <dl className="grid gap-4 px-4 py-4 sm:grid-cols-3">
               <div>
-                <dt className="text-[11px] font-medium uppercase tracking-wide text-subtle">
+                <dt className="text-xs font-medium text-muted">
                   Departments
                 </dt>
                 <dd className="mt-1 text-sm text-muted">
@@ -178,7 +178,7 @@ export default async function AdminPage() {
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] font-medium uppercase tracking-wide text-subtle">
+                <dt className="text-xs font-medium text-muted">
                   Teams
                 </dt>
                 <dd className="mt-1 text-sm text-muted">
@@ -186,7 +186,7 @@ export default async function AdminPage() {
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] font-medium uppercase tracking-wide text-subtle">
+                <dt className="text-xs font-medium text-muted">
                   Major Projects
                 </dt>
                 <dd className="mt-1 text-sm text-muted">
@@ -205,7 +205,7 @@ export default async function AdminPage() {
               {templates.map((template) => (
                 <li
                   key={`${template.workflowId}-${template.version}`}
-                  className="flex items-center gap-4 px-4 py-2.5 text-sm"
+                  className="flex items-center gap-4 px-5 py-3 text-sm"
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block font-medium">{template.name}</span>

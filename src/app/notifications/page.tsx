@@ -20,10 +20,10 @@ export default async function NotificationsPage() {
 
   return (
     <AppShell user={user} current="/notifications">
-      <main className="mx-auto w-full max-w-3xl px-6 py-8">
+      <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Notifications</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
             <p className="mt-1 text-sm text-muted">
               {unread === 0 ? 'Nothing unread.' : `${unread} unread.`}
             </p>

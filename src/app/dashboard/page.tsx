@@ -21,9 +21,9 @@ export default async function ManagementDashboardPage() {
 
   return (
     <AppShell user={user} current="/dashboard">
-      <main className="mx-auto w-full max-w-7xl px-6 py-8">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
         <div className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">Management Overview</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Management Overview</h1>
           <p className="mt-1 text-sm text-muted">
             Business Orbit operations at {now.toLocaleTimeString('en-GB', {
               hour: '2-digit',
@@ -102,39 +102,39 @@ export default async function ManagementDashboardPage() {
             <Section title="Project status" count={overview.projects.length}>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-subtle">
-                    <th className="px-4 py-2 font-medium">Project</th>
-                    <th className="px-4 py-2 text-right font-medium">Active</th>
-                    <th className="px-4 py-2 text-right font-medium">Approvals</th>
-                    <th className="px-4 py-2 text-right font-medium">Overdue</th>
-                    <th className="px-4 py-2 text-right font-medium">Completed</th>
+                  <tr className="border-b border-border bg-surface-sunken text-left text-xs font-medium text-muted">
+                    <th className="px-5 py-2.5 font-medium">Project</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Active</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Approvals</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Overdue</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Completed</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {overview.projects.map((project) => (
                     <tr key={project.projectId}>
-                      <td className="px-4 py-2">
+                      <td className="px-5 py-3">
                         <Link
                           href={`/projects/${project.projectId}`}
-                          className="text-accent underline-offset-4 hover:underline"
+                          className="font-medium text-foreground transition hover:text-accent"
                         >
                           {project.name}
                         </Link>
                       </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
+                      <td className="px-5 py-3 text-right tabular-nums">
                         {project.activeInstances}
                       </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
+                      <td className="px-5 py-3 text-right tabular-nums">
                         {project.pendingApprovals}
                       </td>
                       <td
-                        className={`px-4 py-2 text-right tabular-nums ${
+                        className={`px-5 py-3 text-right tabular-nums ${
                           project.overdueTasks > 0 ? 'font-medium text-status-overdue' : ''
                         }`}
                       >
                         {project.overdueTasks}
                       </td>
-                      <td className="px-4 py-2 text-right tabular-nums text-muted">
+                      <td className="px-5 py-3 text-right tabular-nums text-muted">
                         {project.completedInstances}
                       </td>
                     </tr>
@@ -151,39 +151,42 @@ export default async function ManagementDashboardPage() {
             >
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-subtle">
-                    <th className="px-4 py-2 font-medium">Person</th>
-                    <th className="px-4 py-2 text-right font-medium">Active</th>
-                    <th className="px-4 py-2 text-right font-medium">Today</th>
-                    <th className="px-4 py-2 text-right font-medium">Overdue</th>
+                  <tr className="border-b border-border bg-surface-sunken text-left text-xs font-medium text-muted">
+                    <th className="px-5 py-2.5 font-medium">Person</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Active</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Today</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Overdue</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Approve</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {overview.workload.map((person) => (
                     <tr key={person.userId}>
-                      <td className="px-4 py-2">
+                      <td className="px-5 py-3">
                         <Link
                           href={`/team/${person.userId}`}
-                          className="text-accent underline-offset-4 hover:underline"
+                          className="font-medium text-foreground transition hover:text-accent"
                         >
                           {person.name}
                         </Link>
-                        {person.pendingApprovals > 0 ? (
-                          <span className="ml-2 text-xs text-status-action">
-                            {person.pendingApprovals} to approve
-                          </span>
-                        ) : null}
                       </td>
-                      <td className="px-4 py-2 text-right tabular-nums">{person.active}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">
+                      <td className="px-5 py-3 text-right tabular-nums">{person.active}</td>
+                      <td className="px-5 py-3 text-right tabular-nums">
                         {person.dueToday}
                       </td>
                       <td
-                        className={`px-4 py-2 text-right tabular-nums ${
+                        className={`px-5 py-3 text-right tabular-nums ${
                           person.overdue > 0 ? 'font-medium text-status-overdue' : 'text-muted'
                         }`}
                       >
                         {person.overdue}
+                      </td>
+                      <td
+                        className={`px-5 py-3 text-right tabular-nums ${
+                          person.pendingApprovals > 0 ? 'text-status-action' : 'text-muted'
+                        }`}
+                      >
+                        {person.pendingApprovals}
                       </td>
                     </tr>
                   ))}
@@ -202,7 +205,7 @@ export default async function ManagementDashboardPage() {
                       <li key={item.taskId}>
                         <Link
                           href={`/tasks/${item.taskId}`}
-                          className="flex items-center gap-3 px-4 py-2.5 transition hover:bg-accent-soft/60"
+                          className="flex items-center gap-3 px-5 py-3 transition hover:bg-accent-soft/60"
                         >
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm">{item.stageName}</span>

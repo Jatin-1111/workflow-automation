@@ -14,7 +14,7 @@ export function CreateWorkflowForm({ projects }: { projects: ProjectOption[] }) 
   return (
     <form action={create} className="flex flex-wrap items-end gap-3 px-4 py-3">
       <label className="flex flex-col gap-1">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-subtle">
+        <span className="text-xs font-medium text-muted">
           Name
         </span>
         <input
@@ -26,7 +26,7 @@ export function CreateWorkflowForm({ projects }: { projects: ProjectOption[] }) 
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-subtle">
+        <span className="text-xs font-medium text-muted">
           Major Project
         </span>
         <select
@@ -43,7 +43,7 @@ export function CreateWorkflowForm({ projects }: { projects: ProjectOption[] }) 
       </label>
 
       <label className="flex flex-1 flex-col gap-1">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-subtle">
+        <span className="text-xs font-medium text-muted">
           Description
         </span>
         <input

@@ -8,6 +8,7 @@
 import Link from 'next/link'
 import { BUCKET_LABELS } from '@/lib/workflow/buckets'
 import { WORK_BUCKETS, type WorkBucket } from '@/lib/types/status'
+import { buttonClass, controlClass } from '@/features/ui/primitives'
 import type { MyWork } from './queries'
 import type { MyWorkFilters } from './filters'
 
@@ -42,6 +43,9 @@ export function WorkFilters({
   work: MyWork
 }) {
   const tabs: (WorkBucket | 'all')[] = [...WORK_BUCKETS, 'all']
+  const filtered = Boolean(
+    filters.project || filters.workflow || filters.priority || filters.search,
+  )
 
   return (
     <div className="space-y-4">
@@ -55,17 +59,25 @@ export function WorkFilters({
               key={tab}
               href={hrefWith(filters, { view: tab })}
               aria-current={active ? 'page' : undefined}
-              className={`-mb-px border-b-2 px-3 py-2 text-sm transition ${
+              className={`-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition ${
                 active
                   ? 'border-accent font-medium text-foreground'
                   : 'border-transparent text-muted hover:text-foreground'
               }`}
             >
               {tab === 'all' ? 'All open' : BUCKET_LABELS[tab]}
+              {/*
+                A count is always rendered once the section has any work, so the
+                tab row keeps a steady width instead of shifting as work moves.
+              */}
               {count ? (
                 <span
-                  className={`ml-1.5 text-xs ${
-                    tab === 'overdue' && count > 0 ? 'text-status-overdue' : 'text-subtle'
+                  className={`rounded px-1.5 py-0.5 text-xs font-medium tabular-nums ${
+                    tab === 'overdue'
+                      ? 'bg-status-overdue-soft text-status-overdue'
+                      : active
+                        ? 'bg-accent-soft text-accent'
+                        : 'bg-status-neutral-soft text-muted'
                   }`}
                 >
                   {count}
@@ -76,25 +88,27 @@ export function WorkFilters({
         })}
       </nav>
 
-      <form method="get" action="/my-work" className="flex flex-wrap items-end gap-3">
+      {/* One toolbar rather than a grid of labelled controls: the controls say
+          what they are, and stacked captions above each was most of the noise. */}
+      <form
+        method="get"
+        action="/my-work"
+        className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5"
+      >
         <input type="hidden" name="view" value={filters.view} />
 
-        <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-subtle">
-            Search
-          </span>
-          <input
-            type="search"
-            name="q"
-            defaultValue={filters.search ?? ''}
-            placeholder="Client, stage, workflow…"
-            className="h-9 w-56 rounded-md border border-border bg-surface px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
-          />
-        </label>
+        <input
+          type="search"
+          name="q"
+          defaultValue={filters.search ?? ''}
+          placeholder="Search client, stage or workflow"
+          aria-label="Search my work"
+          className={`${controlClass} w-full sm:w-64`}
+        />
 
         <Select
           name="project"
-          label="Project"
+          label="All projects"
           value={filters.project}
           options={work.projects.map((project) => ({
             value: project.projectId,
@@ -104,7 +118,7 @@ export function WorkFilters({
 
         <Select
           name="workflow"
-          label="Workflow"
+          label="All workflows"
           value={filters.workflow}
           options={work.workflows.map((workflow) => ({
             value: workflow.workflowId,
@@ -114,7 +128,7 @@ export function WorkFilters({
 
         <Select
           name="priority"
-          label="Priority"
+          label="Any priority"
           value={filters.priority}
           options={[
             { value: 'urgent', label: 'Urgent' },
@@ -126,36 +140,31 @@ export function WorkFilters({
 
         <Select
           name="group"
-          label="Group by"
+          label="No grouping"
           value={filters.group === 'none' ? undefined : filters.group}
-          anyLabel="No grouping"
           options={[
-            { value: 'project', label: 'Project' },
-            { value: 'workflow', label: 'Workflow' },
-            { value: 'status', label: 'Status' },
-            { value: 'due', label: 'Due date' },
+            { value: 'project', label: 'Group by project' },
+            { value: 'workflow', label: 'Group by workflow' },
+            { value: 'status', label: 'Group by status' },
+            { value: 'due', label: 'Group by due date' },
           ]}
         />
 
         <Select
           name="sort"
-          label="Sort"
+          label="By deadline"
           value={filters.sort === 'due' ? undefined : filters.sort}
-          anyLabel="Deadline"
           options={[
-            { value: 'priority', label: 'Priority' },
-            { value: 'project', label: 'Project' },
+            { value: 'priority', label: 'By priority' },
+            { value: 'project', label: 'By project' },
           ]}
         />
 
-        <button
-          type="submit"
-          className="h-9 rounded-md border border-border-strong bg-surface px-3 text-sm font-medium transition hover:bg-accent-soft"
-        >
+        <button type="submit" className={`${buttonClass('secondary', 'sm')} ml-auto`}>
           Apply
         </button>
 
-        {filters.project || filters.workflow || filters.priority || filters.search ? (
+        {filtered ? (
           <Link
             href={hrefWith(filters, {
               project: undefined,
@@ -163,7 +172,7 @@ export function WorkFilters({
               priority: undefined,
               q: undefined,
             })}
-            className="h-9 px-1 pt-2 text-sm text-muted transition hover:text-foreground"
+            className={buttonClass('quiet', 'sm')}
           >
             Clear
           </Link>
@@ -178,31 +187,25 @@ function Select({
   label,
   value,
   options,
-  anyLabel = 'All',
 }: {
   name: string
   label: string
   value?: string
   options: { value: string; label: string }[]
-  anyLabel?: string
 }) {
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-[11px] font-medium uppercase tracking-wide text-subtle">
-        {label}
-      </span>
-      <select
-        name={name}
-        defaultValue={value ?? ''}
-        className="h-9 rounded-md border border-border bg-surface px-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
-      >
-        <option value="">{anyLabel}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <select
+      name={name}
+      defaultValue={value ?? ''}
+      aria-label={label}
+      className={`${controlClass} max-w-48`}
+    >
+      <option value="">{label}</option>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   )
 }

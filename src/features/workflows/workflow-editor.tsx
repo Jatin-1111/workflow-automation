@@ -237,9 +237,9 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-3 rounded-lg border border-border bg-surface p-4 sm:grid-cols-3">
+      <section className="grid gap-3 rounded-xl border border-border bg-surface p-4 sm:grid-cols-3">
         <label className="flex flex-col gap-1 sm:col-span-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-subtle">
+          <span className="text-xs font-medium text-muted">
             Workflow name
           </span>
           <input
@@ -251,7 +251,7 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-subtle">
+          <span className="text-xs font-medium text-muted">
             Major Project
           </span>
           <select
@@ -270,7 +270,7 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-subtle">
+          <span className="text-xs font-medium text-muted">
             Description
           </span>
           <input
@@ -295,13 +295,13 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
           </ul>
         </section>
       ) : (
-        <p className="rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-status-complete">
+        <p className="rounded-xl border border-border bg-surface px-5 py-3 text-sm text-status-complete">
           This workflow is sound and can be published.
         </p>
       )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-        <section className="rounded-lg border border-border bg-surface">
+        <section className="rounded-xl border border-border bg-surface">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h2 className="text-sm font-semibold">
               Stages <span className="font-normal text-subtle">{stages.length}</span>
@@ -391,7 +391,7 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
           </ol>
         </section>
 
-        <section className="rounded-lg border border-border bg-surface p-4">
+        <section className="rounded-xl border border-border bg-surface p-4">
           {stage ? (
             editable ? (
               <StageForm
@@ -421,7 +421,7 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
             <button
               type="submit"
               disabled={saving || publishing}
-              className="rounded-md border border-border-strong bg-surface px-4 py-2 text-sm font-medium transition hover:bg-accent-soft disabled:opacity-60"
+              className="rounded-md border border-border-strong bg-surface px-5 py-3 text-sm font-medium transition hover:bg-accent-soft disabled:opacity-60"
             >
               {saving ? 'Saving…' : 'Save draft'}
             </button>
@@ -436,7 +436,7 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
               title={
                 problems.length > 0 ? 'Fix the problems listed above first' : undefined
               }
-              className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
+              className="rounded-md bg-accent px-5 py-3 text-sm font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
             >
               {publishing ? 'Publishing…' : `Publish version ${template.version}`}
             </button>
@@ -456,7 +456,7 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
           )}
         </div>
       ) : (
-        <p className="rounded-lg border border-border bg-surface px-4 py-3 text-sm text-muted">
+        <p className="rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted">
           This version is published, so it cannot be changed — work already running is
           following it. Create a new version to make changes.{' '}
           <Link href="/workflows" className="text-accent underline-offset-4 hover:underline">
@@ -525,7 +525,7 @@ function ReadOnlyStage({ stage }: { stage: StageDefinition }) {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[11px] font-medium uppercase tracking-wide text-subtle">{label}</dt>
+      <dt className="text-xs font-medium text-muted">{label}</dt>
       <dd className="mt-0.5">{children}</dd>
     </div>
   )

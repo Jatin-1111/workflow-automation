@@ -8,28 +8,43 @@
  * interface, so the palette stays deliberate rather than reacting to the OS.
  */
 :root {
-  --background: #f7f8fa;
+  /* Surfaces. A faintly cool page behind white cards gives depth without shadow. */
+  --background: #f6f7f9;
   --surface: #ffffff;
-  --foreground: #15181d;
-  --muted: #5c6470;
-  --subtle: #8b93a1;
-  --border: #e3e6eb;
-  --border-strong: #ccd2da;
-  --accent: #1f3f8f;
-  --accent-hover: #17326f;
-  --accent-soft: #eef2fb;
+  --surface-sunken: #fafbfc;
 
-  /* Status indicators (spec §42) */
-  --status-action: #b4520a;
-  --status-progress: #1f3f8f;
-  --status-waiting: #6b6270;
-  --status-overdue: #b3261e;
-  --status-complete: #1d6b45;
+  /* Text. Four steps is enough hierarchy and keeps contrast honest. */
+  --foreground: #14171c;
+  --muted: #545c68;
+  --subtle: #858d9a;
+
+  --border: #e6e8ec;
+  --border-strong: #cfd4db;
+
+  --accent: #1e3a8a;
+  --accent-hover: #172e6e;
+  --accent-soft: #eef2fb;
+  --accent-ring: #c7d4f0;
+
+  /* Status. Each has a tint so a pill reads at a glance without shouting. */
+  --status-action: #9a4a08;
+  --status-action-soft: #fdf1e5;
+  --status-progress: #1e3a8a;
+  --status-progress-soft: #eef2fb;
+  --status-waiting: #5b5566;
+  --status-waiting-soft: #f3f2f5;
+  --status-overdue: #a51f18;
+  --status-overdue-soft: #fdeceb;
+  --status-complete: #17603d;
+  --status-complete-soft: #eaf5ef;
+  --status-neutral: #545c68;
+  --status-neutral-soft: #f2f4f6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-subtle: var(--subtle);
@@ -38,11 +53,21 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-ring: var(--accent-ring);
+
   --color-status-action: var(--status-action);
+  --color-status-action-soft: var(--status-action-soft);
   --color-status-progress: var(--status-progress);
+  --color-status-progress-soft: var(--status-progress-soft);
   --color-status-waiting: var(--status-waiting);
+  --color-status-waiting-soft: var(--status-waiting-soft);
   --color-status-overdue: var(--status-overdue);
+  --color-status-overdue-soft: var(--status-overdue-soft);
   --color-status-complete: var(--status-complete);
+  --color-status-complete-soft: var(--status-complete-soft);
+  --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-soft: var(--status-neutral-soft);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -51,4 +76,30 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  /* Steadier letterforms at the small sizes a dense interface relies on. */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Figures line up in columns without having to say so at every call site. */
+table,
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* One focus treatment everywhere, visible on both white and tinted surfaces. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* The brief asks for no unnecessary animation; honour a stated preference. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

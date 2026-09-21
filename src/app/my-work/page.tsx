@@ -18,6 +18,7 @@ import { WorkFilters } from '@/features/my-work/work-filters'
 import { WorkRow } from '@/features/my-work/work-row'
 import { WaitingList } from '@/features/my-work/waiting-list'
 import { BUCKET_LABELS } from '@/lib/workflow/buckets'
+import { Count, PageHeader } from '@/features/ui/primitives'
 
 export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>) {
   const user = await requireUser()
@@ -41,35 +42,33 @@ export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>
 
   return (
     <AppShell user={user} current="/my-work">
-      <main className="mx-auto w-full max-w-7xl px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">My Work</h1>
-          <p className="mt-1 text-sm text-muted">
-            {openCount === 0
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+        <PageHeader
+          title="My Work"
+          description={
+            openCount === 0
               ? 'Nothing is waiting on you right now.'
-              : `${openCount} open ${openCount === 1 ? 'item' : 'items'} across your projects.`}
-          </p>
-        </div>
+              : `${openCount} open ${openCount === 1 ? 'item' : 'items'} across your projects.`
+          }
+        />
 
         <WorkFilters filters={filters} work={work} />
 
         <section className="mt-6 space-y-6">
           {total === 0 ? (
-            <p className="rounded-lg border border-dashed border-border bg-surface px-4 py-10 text-center text-sm text-muted">
+            <p className="rounded-xl border border-dashed border-border bg-surface px-5 py-14 text-center text-sm text-muted">
               Nothing in {filters.view === 'all' ? 'open work' : BUCKET_LABELS[filters.view]}.
             </p>
           ) : (
             groups.map((group) => (
               <div key={group.key}>
                 {group.label ? (
-                  <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-subtle">
+                  <h2 className="mb-2 px-1 text-sm font-semibold text-foreground">
                     {group.label}
-                    <span className="ml-2 font-normal text-subtle">
-                      {group.items.length}
-                    </span>
+                    <Count value={group.items.length} />
                   </h2>
                 ) : null}
-                <ul className="overflow-hidden rounded-lg border border-border bg-surface">
+                <ul className="overflow-hidden rounded-xl border border-border bg-surface">
                   {group.items.map((item) => (
                     <WorkRow key={item.taskId} item={item} now={now} />
                   ))}

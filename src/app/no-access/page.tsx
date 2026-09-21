@@ -14,7 +14,7 @@ export default async function NoAccessPage() {
         </p>
         <Link
           href={landing}
-          className="mt-6 inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover"
+          className="mt-6 inline-block rounded-md bg-accent px-5 py-3 text-sm font-medium text-white transition hover:bg-accent-hover"
         >
           Back to my work
         </Link>

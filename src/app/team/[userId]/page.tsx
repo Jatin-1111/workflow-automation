@@ -25,7 +25,7 @@ export default async function PersonPage({ params }: PageProps<'/team/[userId]'>
 
   return (
     <AppShell user={viewer} current="/team">
-      <main className="mx-auto w-full max-w-5xl px-6 py-8">
+      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <nav className="mb-4 text-xs text-subtle">
           <Link href="/team" className="transition hover:text-foreground">
             Team
@@ -35,7 +35,7 @@ export default async function PersonPage({ params }: PageProps<'/team/[userId]'>
         </nav>
 
         <header className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">{person.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{person.name}</h1>
           <p className="mt-1 text-sm text-muted">
             {person.userId} · {person.email} · {humanise(person.accessLevel)}
             {person.departmentName ? ` · ${person.departmentName}` : ''}

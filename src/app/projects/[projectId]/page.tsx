@@ -24,7 +24,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
 
   return (
     <AppShell user={user} current="/projects">
-      <main className="mx-auto w-full max-w-5xl px-6 py-8">
+      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <nav className="mb-4 text-xs text-subtle">
           <Link href="/projects" className="transition hover:text-foreground">
             Projects
@@ -34,7 +34,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
         </nav>
 
         <header className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">{project.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
           <p className="mt-1 text-sm text-muted">
             {project.description}
             {project.ownerName ? ` · Owner: ${project.ownerName}` : ''}
@@ -107,7 +107,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
             ) : (
               <ul className="divide-y divide-border">
                 {completed.map((row) => (
-                  <li key={row.instanceId} className="flex items-center gap-4 px-4 py-2.5">
+                  <li key={row.instanceId} className="flex items-center gap-4 px-5 py-3">
                     <span className="min-w-0 flex-1 text-sm">{row.title}</span>
                     <span className="shrink-0 text-xs text-muted">
                       {humanise(row.status)}

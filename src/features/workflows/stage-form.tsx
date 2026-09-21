@@ -40,7 +40,7 @@ function deriveKey(label: string, placeholder: string, current: string): string 
 
 const input =
   'w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft'
-const label = 'text-[11px] font-medium uppercase tracking-wide text-subtle'
+const label = 'text-xs font-medium text-muted'
 
 export function StageForm({
   stage,

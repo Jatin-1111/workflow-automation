@@ -44,7 +44,7 @@ export function ReassignPanel({
     )
 
   return (
-    <section className="rounded-lg border border-border bg-surface">
+    <section className="rounded-xl border border-border bg-surface">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold">Assignment</h2>
@@ -104,7 +104,7 @@ export function ReassignPanel({
           </ul>
 
           <label className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-subtle">
+            <span className="text-xs font-medium text-muted">
               Why
             </span>
             <input

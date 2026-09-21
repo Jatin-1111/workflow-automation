@@ -27,9 +27,9 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
 
   return (
     <AppShell user={user} current="/search">
-      <main className="mx-auto w-full max-w-4xl px-6 py-8">
+      <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
         <div className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">Search</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Search</h1>
           <p className="mt-1 text-sm text-muted">
             People, projects, workflows, work, stages and files. Paste an ID to go
             straight to it.
@@ -54,13 +54,13 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
         </form>
 
         {!results.parsed.usable ? (
-          <p className="rounded-lg border border-dashed border-border bg-surface px-4 py-10 text-center text-sm text-muted">
+          <p className="rounded-xl border border-dashed border-border bg-surface px-4 py-10 text-center text-sm text-muted">
             {results.parsed.term.length === 0
               ? 'Type something to search for.'
               : `Use at least ${MIN_SEARCH_LENGTH} characters.`}
           </p>
         ) : results.total === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-surface px-4 py-10 text-center">
+          <div className="rounded-xl border border-dashed border-border bg-surface px-4 py-10 text-center">
             <p className="text-sm text-muted">
               Nothing matches “{results.parsed.term}” in what you can see.
             </p>
@@ -104,12 +104,12 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
                         {hit.href ? (
                           <Link
                             href={hit.href}
-                            className="flex items-center gap-4 px-4 py-2.5 transition hover:bg-accent-soft/60"
+                            className="flex items-center gap-4 px-5 py-3 transition hover:bg-accent-soft/60"
                           >
                             {body}
                           </Link>
                         ) : (
-                          <div className="flex items-center gap-4 px-4 py-2.5">{body}</div>
+                          <div className="flex items-center gap-4 px-5 py-3">{body}</div>
                         )}
                       </li>
                     )

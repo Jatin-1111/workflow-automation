@@ -20,6 +20,7 @@ import { StageProgressBar } from '@/features/tasks/stage-progress'
 import { TimelinePanel } from '@/features/tasks/timeline-panel'
 import { StatusBadge } from '@/features/my-work/status-badge'
 import { formatDeadline } from '@/features/my-work/format'
+import { Breadcrumbs, Panel, Pill, Ref } from '@/features/ui/primitives'
 import { isEntityId } from '@/lib/ids/format'
 
 export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>) {
@@ -46,38 +47,34 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
 
   return (
     <AppShell user={user} current="/my-work">
-      <main className="mx-auto w-full max-w-7xl px-6 py-8">
-        <nav className="mb-4 flex flex-wrap items-center gap-x-2 text-xs text-subtle">
-          <Link href="/my-work" className="transition hover:text-foreground">
-            My Work
-          </Link>
-          <span aria-hidden>/</span>
-          <span className="font-medium text-muted">{detail.projectName}</span>
-          <span aria-hidden>/</span>
-          <span>{detail.workflowName}</span>
-          <span aria-hidden>/</span>
-          <span>{detail.instanceTitle}</span>
-        </nav>
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+        <Breadcrumbs
+          items={[
+            { label: 'My Work', href: '/my-work' },
+            { label: detail.projectName },
+            { label: detail.workflowName },
+            { label: detail.instanceTitle },
+          ]}
+        />
 
         <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">{stage.name}</h1>
-            <p className="mt-1 text-sm text-muted">
-              {detail.canOperate
-                ? 'Assigned to you'
-                : `Assigned to ${detail.assigneeNames.join(', ')}`}
-              {task.revisionRound > 1 ? ` · revision ${task.revisionRound}` : ''}
-              {' · '}
-              {detail.instanceId}
+            <h1 className="text-2xl font-semibold tracking-tight">{stage.name}</h1>
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+              <span>
+                {detail.canOperate
+                  ? 'Assigned to you'
+                  : `Assigned to ${detail.assigneeNames.join(', ')}`}
+              </span>
+              {task.revisionRound > 1 ? (
+                <Pill tone="action">Revision {task.revisionRound}</Pill>
+              ) : null}
+              <Ref>{detail.instanceId}</Ref>
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            {detail.slaBreached ? (
-              <span className="rounded border border-border px-2 py-1 text-[11px] font-medium text-status-overdue">
-                SLA breached
-              </span>
-            ) : null}
+            {detail.slaBreached ? <Pill tone="overdue">SLA breached</Pill> : null}
             <span
               className={`text-sm ${
                 deadline.overdue ? 'font-medium text-status-overdue' : 'text-muted'
@@ -89,20 +86,24 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
           </div>
         </header>
 
-        <div className="mb-6 rounded-lg border border-border bg-surface px-4 py-3">
+        <div className="mb-6 rounded-xl border border-border bg-surface px-5 py-4">
           <StageProgressBar stages={detail.progress} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <div className="space-y-6">
             {stage.instructions ? (
-              <section className="rounded-lg border border-border bg-surface p-4">
-                <h2 className="text-sm font-semibold">What you need to do</h2>
-                <p className="mt-1.5 text-sm text-muted">{stage.instructions}</p>
+              <section className="rounded-xl border border-accent-ring bg-accent-soft/60 px-5 py-4">
+                <h2 className="text-sm font-semibold text-foreground">
+                  What you need to do
+                </h2>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                  {stage.instructions}
+                </p>
               </section>
             ) : null}
 
-            <section className="rounded-lg border border-border bg-surface p-4">
+            <section className="rounded-xl border border-border bg-surface p-5">
               {detail.canOperate ? (
                 <TaskForm
                   taskId={task.taskId}
@@ -120,33 +121,36 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
             </section>
 
             {detail.priorStages.length > 0 ? (
-              <section className="rounded-lg border border-border bg-surface">
-                <h2 className="border-b border-border px-4 py-3 text-sm font-semibold">
-                  Work from earlier stages
-                </h2>
+              <Panel
+                title="Work from earlier stages"
+                description="Everything recorded before this point."
+              >
                 <div className="divide-y divide-border">
                   {detail.priorStages.map((prior) => (
-                    <div key={prior.name} className="px-4 py-3">
-                      <p className="text-xs text-subtle">
+                    <div key={prior.name} className="px-5 py-4">
+                      <p className="text-xs font-medium text-foreground">
                         {prior.name}
-                        {prior.completedBy.length > 0
-                          ? ` · completed by ${prior.completedBy.join(', ')}`
-                          : ''}
+                        {prior.completedBy.length > 0 ? (
+                          <span className="font-normal text-subtle">
+                            {' '}
+                            &mdash; completed by {prior.completedBy.join(', ')}
+                          </span>
+                        ) : null}
                       </p>
-                      <dl className="mt-2 space-y-2">
+                      <dl className="mt-2.5 grid gap-x-6 gap-y-3 sm:grid-cols-2">
                         {prior.values.map((entry) => (
                           <div key={entry.label}>
-                            <dt className="text-xs font-medium text-muted">
-                              {entry.label}
-                            </dt>
-                            <dd className="whitespace-pre-wrap text-sm">{entry.value}</dd>
+                            <dt className="text-xs text-subtle">{entry.label}</dt>
+                            <dd className="mt-0.5 whitespace-pre-wrap text-sm leading-relaxed">
+                              {entry.value}
+                            </dd>
                           </div>
                         ))}
                       </dl>
                     </div>
                   ))}
                 </div>
-              </section>
+              </Panel>
             ) : null}
           </div>
 

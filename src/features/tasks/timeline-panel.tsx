@@ -5,13 +5,13 @@ import type { TimelineRow } from './queries'
 
 export function TimelinePanel({ events }: { events: TimelineRow[] }) {
   return (
-    <section className="rounded-lg border border-border bg-surface">
+    <section className="rounded-xl border border-border bg-surface">
       <h2 className="border-b border-border px-4 py-3 text-sm font-semibold">
         Activity history
       </h2>
       <ol className="divide-y divide-border">
         {[...events].reverse().map((event) => (
-          <li key={event.eventId} className="px-4 py-2.5">
+          <li key={event.eventId} className="px-5 py-3">
             <p className="text-sm">
               <span className="font-medium">{event.actorName}</span>{' '}
               <span className="text-muted">{humanise(event.action).toLowerCase()}</span>

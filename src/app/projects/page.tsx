@@ -12,9 +12,9 @@ export default async function ProjectsPage() {
 
   return (
     <AppShell user={user} current="/projects">
-      <main className="mx-auto w-full max-w-5xl px-6 py-8">
+      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <div className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">Projects</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
           <p className="mt-1 text-sm text-muted">
             Major Projects, and the workflows running inside them.
           </p>

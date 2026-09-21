@@ -12,9 +12,9 @@ export default async function TeamPage() {
 
   return (
     <AppShell user={user} current="/team">
-      <main className="mx-auto w-full max-w-5xl px-6 py-8">
+      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <div className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">Team</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
           <p className="mt-1 text-sm text-muted">
             Open work per person, across every project. Anyone carrying overdue
             work appears first.
@@ -24,19 +24,19 @@ export default async function TeamPage() {
         <Section title="Workload" count={workload.length}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-subtle">
-                <th className="px-4 py-2 font-medium">Person</th>
-                <th className="px-4 py-2 font-medium">Roles</th>
-                <th className="px-4 py-2 text-right font-medium">Active</th>
-                <th className="px-4 py-2 text-right font-medium">Due today</th>
-                <th className="px-4 py-2 text-right font-medium">Overdue</th>
-                <th className="px-4 py-2 text-right font-medium">To approve</th>
+              <tr className="border-b border-border bg-surface-sunken text-left text-xs font-medium text-muted">
+                <th className="px-5 py-2.5 font-medium">Person</th>
+                <th className="px-5 py-2.5 font-medium">Roles</th>
+                <th className="px-5 py-2.5 text-right font-medium">Active</th>
+                <th className="px-5 py-2.5 text-right font-medium">Due today</th>
+                <th className="px-5 py-2.5 text-right font-medium">Overdue</th>
+                <th className="px-5 py-2.5 text-right font-medium">To approve</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {workload.map((person) => (
                 <tr key={person.userId}>
-                  <td className="px-4 py-2.5">
+                  <td className="px-5 py-3">
                     <Link
                       href={`/team/${person.userId}`}
                       className="font-medium text-accent underline-offset-4 hover:underline"
@@ -47,11 +47,11 @@ export default async function TeamPage() {
                       {person.userId}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-muted">{person.roleCount}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums">{person.active}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums">{person.dueToday}</td>
+                  <td className="px-5 py-3 text-muted">{person.roleCount}</td>
+                  <td className="px-5 py-3 text-right tabular-nums">{person.active}</td>
+                  <td className="px-5 py-3 text-right tabular-nums">{person.dueToday}</td>
                   <td
-                    className={`px-4 py-2.5 text-right tabular-nums ${
+                    className={`px-5 py-3 text-right tabular-nums ${
                       person.overdue > 0
                         ? 'font-medium text-status-overdue'
                         : 'text-muted'
@@ -60,7 +60,7 @@ export default async function TeamPage() {
                     {person.overdue}
                   </td>
                   <td
-                    className={`px-4 py-2.5 text-right tabular-nums ${
+                    className={`px-5 py-3 text-right tabular-nums ${
                       person.pendingApprovals > 0 ? 'text-status-action' : 'text-muted'
                     }`}
                   >

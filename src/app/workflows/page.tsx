@@ -47,9 +47,9 @@ export default async function WorkflowsPage() {
 
   return (
     <AppShell user={user} current="/workflows">
-      <main className="mx-auto w-full max-w-5xl px-6 py-8">
+      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <div className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">Workflows</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Workflows</h1>
           <p className="mt-1 text-sm text-muted">
             Build a process once and the platform runs it. Editing a published
             workflow creates a new version; work already running keeps the version
