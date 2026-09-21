@@ -80,6 +80,28 @@ export function UserCreator({
         </label>
 
         <label className="space-y-1">
+          <span className="text-xs font-medium text-muted">Phone (optional)</span>
+          <input name="phone" type="tel" maxLength={40} className={fieldClass} />
+        </label>
+
+        <label className="space-y-1">
+          <span className="text-xs font-medium text-muted">Joining date (optional)</span>
+          <input name="joiningDate" type="date" className={fieldClass} />
+        </label>
+
+        <label className="space-y-1 sm:col-span-2">
+          <span className="text-xs font-medium text-muted">
+            Photo URL (optional)
+          </span>
+          <input
+            name="photoUrl"
+            type="url"
+            placeholder="https://…"
+            className={fieldClass}
+          />
+        </label>
+
+        <label className="space-y-1">
           <span className="text-xs font-medium text-muted">Department</span>
           <select name="departmentId" defaultValue="" className={`${controlClass} block w-full`}>
             <option value="">Not set</option>

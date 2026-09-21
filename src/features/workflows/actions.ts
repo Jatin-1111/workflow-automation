@@ -18,7 +18,7 @@ import {
 } from '@/lib/db/repositories/workflow-templates'
 import { listInstances } from '@/lib/db/repositories/workflow-instances'
 import { validateTemplate } from '@/lib/workflow/template-validation'
-import type { ProjectId, RoleId, WorkflowTemplateId } from '@/lib/types/ids'
+import type { DepartmentId, ProjectId, RoleId, WorkflowTemplateId } from '@/lib/types/ids'
 import type { StageDefinition, WorkflowTemplate } from '@/lib/types/workflow'
 
 export type BuilderState =
@@ -86,6 +86,7 @@ interface SubmittedTemplate {
   name: string
   description?: string
   projectId?: string
+  departmentId?: string
   stages: StageDefinition[]
   initialStageKey: string
 }
@@ -161,6 +162,9 @@ export async function saveWorkflowAction(
     description: submitted.description?.trim() || undefined,
     projectId: isEntityId(String(submitted.projectId ?? ''), 'project')
       ? (submitted.projectId as ProjectId)
+      : undefined,
+    departmentId: isEntityId(String(submitted.departmentId ?? ''), 'department')
+      ? (submitted.departmentId as DepartmentId)
       : undefined,
     stages,
     initialStageKey: submitted.initialStageKey,

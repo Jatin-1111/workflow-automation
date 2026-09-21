@@ -265,3 +265,32 @@ describe('applyWaitingFilters', () => {
     assert.equal(applyWaitingFilters(waiting, parseFilters({ view: 'all' })).length, 2)
   })
 })
+
+describe('filtering by deadline (spec §10)', () => {
+  const HOUR = 3_600_000
+
+  // Rows as the dashboard has already bucketed them: the filter trusts that
+  // work rather than deciding overdue a second time.
+  const late = item({ bucket: 'overdue', dueAt: new Date(NOW.getTime() - HOUR) })
+  const soon = item({ bucket: 'needs_action', dueAt: new Date(NOW.getTime() + 2 * HOUR) })
+  const later = item({ bucket: 'upcoming', dueAt: new Date(NOW.getTime() + 5 * 86_400_000) })
+  const undated = item({ bucket: 'needs_action', dueAt: undefined })
+  const all = [late, soon, later, undated]
+
+  function shown(due: string) {
+    return applyFilters(all, parseFilters({ view: 'all', due }), NOW).map((i) => i.taskId)
+  }
+
+  it('answers each deadline question separately', () => {
+    assert.deepEqual(shown('overdue'), [late.taskId])
+    assert.deepEqual(shown('none'), [undated.taskId])
+    // Already past is not "due today": overdue is its own answer.
+    assert.deepEqual(shown('today'), [soon.taskId])
+    assert.deepEqual(shown('week'), [soon.taskId, later.taskId])
+  })
+
+  it('ignores a deadline value it does not recognise', () => {
+    assert.equal(parseFilters({ due: 'someday' }).due, undefined)
+    assert.equal(applyFilters(all, parseFilters({ view: 'all', due: 'someday' }), NOW).length, 4)
+  })
+})

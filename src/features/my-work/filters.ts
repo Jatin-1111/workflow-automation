@@ -6,6 +6,11 @@
  * combination trivially testable.
  */
 
+import {
+  isDueWindow,
+  matchesDueWindow,
+  type DueWindow,
+} from '@/lib/workflow/due-window'
 import type { WaitingItem, WorkItem } from './queries'
 import type { Priority, WorkBucket } from '@/lib/types/status'
 import { WORK_BUCKETS } from '@/lib/types/status'
@@ -22,6 +27,8 @@ export interface MyWorkFilters {
   project?: string
   workflow?: string
   priority?: Priority
+  /** §10 asks for a deadline filter alongside the sections, not instead. */
+  due?: DueWindow
   search?: string
   group: Grouping
   sort: Sort
@@ -48,6 +55,7 @@ export function parseFilters(
   const group = first(params.group)
   const sort = first(params.sort)
   const priority = first(params.priority)
+  const due = first(params.due)
 
   return {
     view:
@@ -59,6 +67,7 @@ export function parseFilters(
     priority: ['low', 'medium', 'high', 'urgent'].includes(priority ?? '')
       ? (priority as Priority)
       : undefined,
+    due: isDueWindow(due) ? due : undefined,
     search: first(params.q),
     group: GROUPINGS.includes(group as Grouping) ? (group as Grouping) : 'none',
     sort: SORTS.includes(sort as Sort) ? (sort as Sort) : 'due',
@@ -78,7 +87,11 @@ function matchesSearch(item: WorkItem, search: string): boolean {
   return haystack.includes(search.toLowerCase())
 }
 
-export function applyFilters(items: WorkItem[], filters: MyWorkFilters): WorkItem[] {
+export function applyFilters(
+  items: WorkItem[],
+  filters: MyWorkFilters,
+  now = new Date(),
+): WorkItem[] {
   const filtered = items.filter((item) => {
     // `all` means everything still open, not everything ever.
     if (filters.view === 'all' ? item.bucket === 'completed' : item.bucket !== filters.view) {
@@ -87,6 +100,16 @@ export function applyFilters(items: WorkItem[], filters: MyWorkFilters): WorkIte
     if (filters.project && item.projectId !== filters.project) return false
     if (filters.workflow && item.workflowId !== filters.workflow) return false
     if (filters.priority && item.priority !== filters.priority) return false
+    if (
+      filters.due &&
+      !matchesDueWindow(
+        { dueAt: item.dueAt, overdue: item.bucket === 'overdue' },
+        filters.due,
+        now,
+      )
+    ) {
+      return false
+    }
     if (filters.search && !matchesSearch(item, filters.search)) return false
     return true
   })

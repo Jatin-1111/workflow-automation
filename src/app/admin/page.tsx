@@ -12,13 +12,12 @@ import { RoleEditor, type RoleOption } from '@/features/admin/role-editor'
 import { toggleUserStatusAction } from '@/features/admin/actions'
 import { OrgManager } from '@/features/admin/org-editor'
 import { UserCreator } from '@/features/admin/user-creator'
+import { ProjectManager } from '@/features/admin/project-editor'
 import {
   createDepartmentAction,
-  createProjectAction,
   createRoleAction,
   createTeamAction,
   updateDepartmentAction,
-  updateProjectAction,
   updateRoleAction,
   updateTeamAction,
 } from '@/features/admin/org-actions'
@@ -241,20 +240,20 @@ export default async function AdminPage() {
           <Section
             title="Major Projects"
             count={projects.length}
-            description="The initiatives workflows run inside."
+            description="The initiatives workflows run inside. The owner and team show on the project dashboard."
           >
-            <OrgManager
-              label="Project"
-              idField="projectId"
-              entities={projects.map((project) => ({
-                id: project.projectId,
+            <ProjectManager
+              projects={projects.map((project) => ({
+                projectId: project.projectId,
                 name: project.name,
-                detail: project.description,
+                description: project.description,
                 status: project.status,
+                ownerId: project.ownerId,
+                memberIds: project.memberIds,
               }))}
-              createAction={createProjectAction}
-              updateAction={updateProjectAction}
-              describable
+              people={users
+                .filter((person) => person.status === 'active')
+                .map((person) => ({ value: person.userId, label: person.name }))}
             />
           </Section>
 

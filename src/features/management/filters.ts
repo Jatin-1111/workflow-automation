@@ -10,23 +10,16 @@
  */
 
 import { deriveBucket } from '@/lib/workflow/buckets'
-import { endOfBusinessDay } from '@/lib/workflow/business-day'
+import {
+  isDueWindow,
+  matchesDueWindow,
+  type DueWindow,
+} from '@/lib/workflow/due-window'
 import { PRIORITIES, TASK_STATUSES } from '@/lib/types/status'
 import type { Priority, TaskStatus } from '@/lib/types/status'
 import type { Task } from '@/lib/types/task'
 import type { WorkflowInstance } from '@/lib/types/instance'
 import type { DepartmentId, RoleId, UserId } from '@/lib/types/ids'
-
-/** When something falls due, as a manager would ask for it. */
-export const DUE_WINDOWS = ['overdue', 'today', 'week', 'none'] as const
-export type DueWindow = (typeof DUE_WINDOWS)[number]
-
-export const DUE_WINDOW_LABELS: Record<DueWindow, string> = {
-  overdue: 'Overdue',
-  today: 'Due today',
-  week: 'Due this week',
-  none: 'No deadline',
-}
 
 export interface OverviewFilters {
   project?: string
@@ -44,8 +37,6 @@ export interface PersonIndex {
   departmentOf: Map<UserId, DepartmentId | undefined>
   rolesOf: Map<UserId, RoleId[]>
 }
-
-const WEEK_MS = 7 * 86_400_000
 
 function first(value: string | string[] | undefined): string | undefined {
   const raw = Array.isArray(value) ? value[0] : value
@@ -72,7 +63,7 @@ export function parseOverviewFilters(
     priority: PRIORITIES.includes(priority as Priority)
       ? (priority as Priority)
       : undefined,
-    due: DUE_WINDOWS.includes(due as DueWindow) ? (due as DueWindow) : undefined,
+    due: isDueWindow(due) ? due : undefined,
   }
 }
 
@@ -86,18 +77,11 @@ export function activeFilterCount(filters: OverviewFilters): number {
 }
 
 function matchesDue(task: Task, due: DueWindow, now: Date): boolean {
-  if (due === 'none') return task.dueAt === undefined
-  if (!task.dueAt) return false
-
-  const overdue = deriveBucket(task, now) === 'overdue'
-  if (due === 'overdue') return overdue
-  if (overdue) return false
-
-  const limit =
-    due === 'today'
-      ? endOfBusinessDay(now).getTime()
-      : now.getTime() + WEEK_MS
-  return task.dueAt.getTime() <= limit
+  return matchesDueWindow(
+    { dueAt: task.dueAt, overdue: deriveBucket(task, now) === 'overdue' },
+    due,
+    now,
+  )
 }
 
 /**

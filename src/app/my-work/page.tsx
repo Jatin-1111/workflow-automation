@@ -32,7 +32,7 @@ export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>
     getOnboarding(user),
   ])
   const filters = parseFilters(await searchParams)
-  const groups = groupItems(applyFilters(work.items, filters), filters.group, now)
+  const groups = groupItems(applyFilters(work.items, filters, now), filters.group, now)
 
   // Waiting-on-others rows count towards the section, so the empty state does
   // not contradict a list sitting right beneath it.

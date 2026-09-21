@@ -7,6 +7,7 @@
 
 import Link from 'next/link'
 import { BUCKET_LABELS } from '@/lib/workflow/buckets'
+import { DUE_WINDOWS, DUE_WINDOW_LABELS } from '@/lib/workflow/due-window'
 import { WORK_BUCKETS, type WorkBucket } from '@/lib/types/status'
 import { buttonClass, controlClass } from '@/features/ui/primitives'
 import type { MyWork } from './queries'
@@ -22,6 +23,7 @@ function hrefWith(filters: MyWorkFilters, changes: Params): string {
     project: filters.project,
     workflow: filters.workflow,
     priority: filters.priority,
+    due: filters.due,
     q: filters.search,
     group: filters.group === 'none' ? undefined : filters.group,
     sort: filters.sort === 'due' ? undefined : filters.sort,
@@ -44,7 +46,11 @@ export function WorkFilters({
 }) {
   const tabs: (WorkBucket | 'all')[] = [...WORK_BUCKETS, 'all']
   const filtered = Boolean(
-    filters.project || filters.workflow || filters.priority || filters.search,
+    filters.project ||
+      filters.workflow ||
+      filters.priority ||
+      filters.due ||
+      filters.search,
   )
 
   return (
@@ -136,6 +142,16 @@ export function WorkFilters({
             { value: 'medium', label: 'Medium' },
             { value: 'low', label: 'Low' },
           ]}
+        />
+
+        <Select
+          name="due"
+          label="Any deadline"
+          value={filters.due}
+          options={DUE_WINDOWS.map((choice) => ({
+            value: choice,
+            label: DUE_WINDOW_LABELS[choice],
+          }))}
         />
 
         <Select

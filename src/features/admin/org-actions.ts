@@ -37,11 +37,13 @@ import {
 import {
   findUserByEmail,
   insertUser,
+  listUsers,
   updateUserProfile,
 } from '@/lib/db/repositories/users'
 import { ACCESS_LEVELS } from '@/lib/types/status'
 import type { AccessLevel, EntityStatus } from '@/lib/types/status'
 import type { DepartmentId, ProjectId, RoleId, TeamId, UserId } from '@/lib/types/ids'
+import { safePhotoUrl } from './validation'
 import type { AdminActionState } from './actions'
 
 const MAX_NAME = 80
@@ -203,12 +205,15 @@ export async function createProjectAction(
     return refuse(`There is already a project called ${name}.`)
   }
 
+  const people = new Set((await listUsers()).map((user) => user.userId as string))
   const now = new Date()
+
   await insertProject({
     projectId: await nextId('project'),
     name,
     description: readOptional(formData, 'description'),
-    memberIds: [],
+    ownerId: readId(formData, 'ownerId', 'user', people) as UserId | undefined,
+    memberIds: readMembers(formData, people),
     status: 'active',
     createdAt: now,
     updatedAt: now,
@@ -227,11 +232,31 @@ export async function updateProjectAction(formData: FormData): Promise<void> {
   const status = readStatus(formData)
   const name = readName(formData)
 
+  // A status toggle submits neither, and must not be read as "clear the team".
+  const changingPeople = formData.has('ownerId') || formData.has('memberIds')
+  const people = changingPeople
+    ? new Set((await listUsers()).map((user) => user.userId as string))
+    : new Set<string>()
+
   await updateProject(projectId as ProjectId, {
     ...(name ? { name } : {}),
     ...(status ? { status } : {}),
+    ...(changingPeople
+      ? {
+          ownerId: readId(formData, 'ownerId', 'user', people) as UserId | undefined,
+          memberIds: readMembers(formData, people),
+        }
+      : {}),
   })
   refreshed()
+}
+
+/** Only people who exist, so a stale form cannot add a phantom member. */
+function readMembers(formData: FormData, known: Set<string>): UserId[] {
+  return formData
+    .getAll('memberIds')
+    .filter((value): value is string => typeof value === 'string')
+    .filter((value) => known.has(value)) as UserId[]
 }
 
 /* -------------------------------------------------------------------------
@@ -335,11 +360,20 @@ export async function createUserAction(
     .filter((value): value is string => typeof value === 'string')
     .filter((value) => knownRoles.has(value)) as RoleId[]
 
+  // Optional on purpose: somebody can be added and start receiving work
+  // before anyone has chased them for a photograph.
+  const joining = String(formData.get('joiningDate') ?? '').trim()
+  const joiningDate = joining ? new Date(joining) : undefined
+
   const now = new Date()
   await insertUser({
     userId: await nextId('user'),
     name,
     email,
+    phone: readOptional(formData, 'phone'),
+    photoUrl: safePhotoUrl(readOptional(formData, 'photoUrl')),
+    joiningDate:
+      joiningDate && !Number.isNaN(joiningDate.getTime()) ? joiningDate : undefined,
     departmentId: readId(formData, 'departmentId', 'department', departments) as
       | DepartmentId
       | undefined,

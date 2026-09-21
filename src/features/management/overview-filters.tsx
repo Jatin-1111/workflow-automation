@@ -8,7 +8,8 @@
 
 import Link from 'next/link'
 import { Count, buttonClass, controlClass } from '@/features/ui/primitives'
-import { DUE_WINDOWS, DUE_WINDOW_LABELS, activeFilterCount } from './filters'
+import { activeFilterCount } from './filters'
+import { DUE_WINDOWS, DUE_WINDOW_LABELS } from '@/lib/workflow/due-window'
 import { humanise } from '@/features/my-work/format'
 import { PRIORITIES, TASK_STATUSES } from '@/lib/types/status'
 import type { OverviewFilters } from './filters'
@@ -111,9 +112,9 @@ export function OverviewFilterBar({
           name="due"
           label="Deadline"
           value={filters.due}
-          options={DUE_WINDOWS.map((window) => ({
-            value: window,
-            label: DUE_WINDOW_LABELS[window],
+          options={DUE_WINDOWS.map((choice) => ({
+            value: choice,
+            label: DUE_WINDOW_LABELS[choice],
           }))}
         />
       </div>

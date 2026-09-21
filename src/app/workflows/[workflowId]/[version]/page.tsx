@@ -11,6 +11,7 @@ import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
 import { WorkflowEditor } from '@/features/workflows/workflow-editor'
 import { DiscardDraftButton } from '@/features/workflows/discard-draft-button'
+import { listDepartments } from '@/lib/db/repositories/departments'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listRoles } from '@/lib/db/repositories/roles'
 import { listUsers } from '@/lib/db/repositories/users'
@@ -31,10 +32,11 @@ export default async function WorkflowVersionPage({
   const template = await findTemplateVersion(workflowId, versionNumber)
   if (!template) notFound()
 
-  const [roles, users, projects, instances] = await Promise.all([
+  const [roles, users, projects, departments, instances] = await Promise.all([
     listRoles(),
     listUsers(),
     listProjects(),
+    listDepartments(),
     listInstances(),
   ])
 
@@ -88,6 +90,7 @@ export default async function WorkflowVersionPage({
             name: template.name,
             description: template.description,
             projectId: template.projectId,
+            departmentId: template.departmentId,
             stages: template.stages,
             initialStageKey: template.initialStageKey,
             status: template.status,
@@ -106,6 +109,10 @@ export default async function WorkflowVersionPage({
           projects={projects.map((project) => ({
             projectId: project.projectId,
             name: project.name,
+          }))}
+          departments={departments.map((department) => ({
+            departmentId: department.departmentId,
+            name: department.name,
           }))}
         />
       </main>

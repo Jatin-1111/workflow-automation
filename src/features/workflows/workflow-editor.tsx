@@ -36,6 +36,11 @@ export interface ProjectOption {
   name: string
 }
 
+export interface DepartmentOption {
+  departmentId: string
+  name: string
+}
+
 /**
  * The template as the editor needs it.
  *
@@ -48,6 +53,7 @@ export interface EditableTemplate {
   name: string
   description?: string
   projectId?: string
+  departmentId?: string
   stages: StageDefinition[]
   initialStageKey: string
   status: string
@@ -57,6 +63,7 @@ interface Props {
   template: EditableTemplate
   roles: RoleOption[]
   projects: ProjectOption[]
+  departments: DepartmentOption[]
   /** Versions cannot be edited once work is pinned to them (spec §38). */
   editable: boolean
 }
@@ -79,10 +86,17 @@ function toKey(name: string, taken: string[]): string {
   return candidate
 }
 
-export function WorkflowEditor({ template, roles, projects, editable }: Props) {
+export function WorkflowEditor({
+  template,
+  roles,
+  projects,
+  departments,
+  editable,
+}: Props) {
   const [name, setName] = useState(template.name)
   const [description, setDescription] = useState(template.description ?? '')
   const [projectId, setProjectId] = useState(template.projectId ?? '')
+  const [departmentId, setDepartmentId] = useState(template.departmentId ?? '')
   const [stages, setStages] = useState<StageDefinition[]>(template.stages)
   const [initialStageKey, setInitialStageKey] = useState(template.initialStageKey)
 
@@ -115,6 +129,7 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
     name,
     description,
     projectId,
+    departmentId,
     stages,
     initialStageKey,
   })
@@ -264,6 +279,25 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
             {projects.map((project) => (
               <option key={project.projectId} value={project.projectId}>
                 {project.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-muted">
+            Department
+          </span>
+          <select
+            className="rounded-md border border-border bg-surface px-2.5 py-1.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+            value={departmentId}
+            onChange={(event) => setDepartmentId(event.target.value)}
+            disabled={!editable}
+          >
+            <option value="">Not tied to a department</option>
+            {departments.map((department) => (
+              <option key={department.departmentId} value={department.departmentId}>
+                {department.name}
               </option>
             ))}
           </select>
