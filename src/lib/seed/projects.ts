@@ -31,6 +31,13 @@ export const PROJECT_SEEDS: ProjectSeed[] = [
     memberKeys: ['ananya', 'tanu', 'nitin'],
   },
   {
+    key: 'sandbox',
+    name: 'Sandbox',
+    description: 'Somewhere to practise. Nothing here is real work.',
+    ownerKey: 'nitin',
+    memberKeys: ['nitin', 'tanu', 'harnoor', 'ananya'],
+  },
+  {
     key: 'general_operations',
     name: 'Business Orbit General Operations',
     description: 'Hiring, onboarding, finance, HR and other standing processes',

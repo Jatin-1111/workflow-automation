@@ -80,6 +80,14 @@ export async function AppShell({
             ) : null}
           </Link>
 
+          <Link
+            href="/help"
+            aria-current={current === '/help' ? 'page' : undefined}
+            className="shrink-0 text-sm text-muted transition hover:text-foreground"
+          >
+            Help
+          </Link>
+
           <span aria-hidden className="hidden h-5 w-px bg-border sm:block" />
 
           <Link

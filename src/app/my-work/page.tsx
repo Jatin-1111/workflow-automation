@@ -19,12 +19,19 @@ import { WorkRow } from '@/features/my-work/work-row'
 import { WaitingList } from '@/features/my-work/waiting-list'
 import { BUCKET_LABELS } from '@/lib/workflow/buckets'
 import { Count, PageHeader } from '@/features/ui/primitives'
+import { getOnboarding } from '@/features/onboarding/queries'
+import { SetupCard } from '@/features/onboarding/setup-card'
+import { WelcomeTour } from '@/features/onboarding/welcome-tour'
+import { EmptyBucket } from '@/features/my-work/empty-bucket'
 
 export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>) {
   const user = await requireUser()
   const now = new Date()
 
-  const work = await getMyWork(user.userId, now)
+  const [work, onboarding] = await Promise.all([
+    getMyWork(user.userId, now),
+    getOnboarding(user),
+  ])
   const filters = parseFilters(await searchParams)
   const groups = groupItems(applyFilters(work.items, filters), filters.group, now)
 
@@ -43,6 +50,14 @@ export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>
   return (
     <AppShell user={user} current="/my-work">
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+        {onboarding.showTour ? (
+          <WelcomeTour accessLevel={user.accessLevel} name={user.name} />
+        ) : null}
+
+        {onboarding.showSetup ? (
+          <SetupCard steps={onboarding.steps} remaining={onboarding.remaining} />
+        ) : null}
+
         <PageHeader
           title="My Work"
           description={
@@ -56,9 +71,7 @@ export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>
 
         <section className="mt-6 space-y-6">
           {total === 0 ? (
-            <p className="rounded-xl border border-dashed border-border bg-surface px-5 py-14 text-center text-sm text-muted">
-              Nothing in {filters.view === 'all' ? 'open work' : BUCKET_LABELS[filters.view]}.
-            </p>
+            <EmptyBucket view={filters.view} filtered={Boolean(filters.search)} />
           ) : (
             groups.map((group) => (
               <div key={group.key}>

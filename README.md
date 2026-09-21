@@ -112,6 +112,10 @@ the role at somebody else in **Admin → People** and every workflow follows.
 - **Reports** — how long work takes, which stage holds it up, how often it
   comes back, and who is carrying it, over a chosen period and exportable as
   CSV. Measured from the stage records rather than estimated.
+- **Getting started** — a role-aware introduction on first login, a setup card
+  that reads the real state of the organisation, teaching empty states, a Help
+  page carrying the four-level model, and a Practice Run workflow in a Sandbox
+  project for learning the product on the real machinery
 
 ---
 

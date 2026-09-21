@@ -67,6 +67,21 @@ export async function updateUserStatus(
   )
 }
 
+/** Record that somebody has been shown the introduction (spec §47). */
+export async function markTourSeen(userId: UserId): Promise<void> {
+  await (await users()).updateOne(
+    { userId },
+    { $set: { 'onboarding.tourSeenAt': new Date(), updatedAt: new Date() } },
+  )
+}
+
+export async function dismissSetupCard(userId: UserId): Promise<void> {
+  await (await users()).updateOne(
+    { userId },
+    { $set: { 'onboarding.setupDismissedAt': new Date(), updatedAt: new Date() } },
+  )
+}
+
 export async function countUsers(): Promise<number> {
   return (await users()).countDocuments()
 }

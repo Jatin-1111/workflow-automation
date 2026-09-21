@@ -133,7 +133,10 @@ export function StageForm({
             }
           />
         </Labelled>
-        <Labelled text="Completion" hint="With more than one owner.">
+        <Labelled
+          text="Completion"
+          hint="Only matters when a stage has more than one owner."
+        >
           <select
             className={input}
             value={stage.completionRule}

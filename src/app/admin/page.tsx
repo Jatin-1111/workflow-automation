@@ -11,6 +11,7 @@ import { Section } from '@/features/management/section'
 import { RoleEditor, type RoleOption } from '@/features/admin/role-editor'
 import { toggleUserStatusAction } from '@/features/admin/actions'
 import { humanise } from '@/features/my-work/format'
+import { Hint } from '@/features/ui/primitives'
 import { listDepartments } from '@/lib/db/repositories/departments'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listRoles } from '@/lib/db/repositories/roles'
@@ -100,6 +101,14 @@ export default async function AdminPage() {
           </Section>
 
           <Section title="People" count={users.length}>
+            <div className="px-5 pt-4">
+              <Hint>
+                Workflow roles decide what work reaches somebody. Their access level,
+                shown beside their name, decides what they can see and change. The two
+                are independent: an employee can hold three roles, and an administrator
+                can hold none.
+              </Hint>
+            </div>
             <ul className="divide-y divide-border">
               {users.map((user) => {
                 const roleOptions: RoleOption[] = roles.map((role) => ({

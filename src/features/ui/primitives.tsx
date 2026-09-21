@@ -223,6 +223,21 @@ export const tdClass = 'px-5 py-3 align-middle'
 export const tdNumClass = 'px-5 py-3 text-right align-middle tabular-nums'
 export const trClass = 'border-b border-border last:border-b-0 hover:bg-surface-sunken'
 
+/**
+ * An explanation of something genuinely confusing.
+ *
+ * Deliberately plain and deliberately rare: a hint on an obvious control is
+ * clutter, which the brief asks against. These earn their place only where
+ * people reliably get the concept wrong.
+ */
+export function Hint({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="rounded-lg border border-border bg-surface-sunken px-3 py-2 text-xs leading-relaxed text-muted">
+      {children}
+    </p>
+  )
+}
+
 /** An id shown for reference, kept quiet so it never competes with a name. */
 export function Ref({ children }: { children: React.ReactNode }) {
   return <span className="font-mono text-xs text-subtle">{children}</span>
