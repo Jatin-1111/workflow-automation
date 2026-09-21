@@ -182,7 +182,9 @@ export async function seed(options: SeedOptions): Promise<SeedSummary> {
   // Demo instances are produced by running the engine against the seeded
   // template, so the resulting tasks and timelines are genuine.
   const instanceCount = await seedInstances({
-    template: workflows[0],
+    templateByKey: new Map(
+      WORKFLOW_SEEDS.map((seed, index) => [seed.key, workflows[index]]),
+    ),
     projectIdByKey: projectIds,
     userIdByKey: userIds,
     now,

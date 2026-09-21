@@ -47,10 +47,10 @@ export async function AppShell({
   return (
     <>
       <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-3">
-          <div className="flex items-center gap-7">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <span className="text-sm font-semibold tracking-tight">Business Orbit</span>
-            <nav className="flex items-center gap-5">
+            <nav className="flex flex-wrap items-center gap-x-5 gap-y-1">
               {entries.map((entry) =>
                 entry.pending ? (
                   <span
@@ -98,7 +98,8 @@ export async function AppShell({
               className="text-sm text-muted transition hover:text-foreground"
             >
               {user.name}
-              <span className="text-subtle"> · {user.userId}</span>
+              {/* The id is useful at a desk and only noise on a phone. */}
+              <span className="hidden text-subtle sm:inline"> · {user.userId}</span>
             </Link>
 
             <LogoutButton />

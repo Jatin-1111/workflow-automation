@@ -53,4 +53,8 @@ export const ROLE_SEEDS: RoleSeed[] = [
   { key: 'project_manager', name: 'Project Manager', description: 'Runs a major project' },
   { key: 'content_writer', name: 'Content Writer', description: 'General content production' },
   { key: 'video_editor', name: 'Video Editor', description: 'Video and podcast editing' },
+  // Added for the Podcast workflow. New processes bring new roles; nothing
+  // about adding them touches the engine.
+  { key: 'podcast_producer', name: 'Podcast Producer', description: 'Runs podcast production end to end' },
+  { key: 'podcast_host', name: 'Podcast Host', description: 'Hosts episodes and confirms guests' },
 ]

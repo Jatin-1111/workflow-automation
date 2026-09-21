@@ -1,36 +1,157 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Business Orbit — Workflow Operating System
 
-## Getting Started
+An internal workflow operating system for Business Orbit. People follow defined
+processes through the platform instead of coordinating routine work through
+WhatsApp, calls and direct messages. When somebody finishes their part, the
+platform hands the work to whoever is next.
 
-First, run the development server:
+Built against the 56-section brief in `Business_Orbit_Base44_Master_Prompt.docx`.
+
+---
+
+## Running it
 
 ```bash
+npm install
+cp .env.example .env.local     # then set SESSION_SECRET
+npm run db:up                  # MongoDB in Docker
+npm run seed                   # organisation, workflows and demo data
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+All demo users share the password in `SEED_PASSWORD` (default `orbit1234`):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Person  | Email                      | Access   | Holds |
+|---------|----------------------------|----------|-------|
+| Nitin   | nitin@businessorbit.in     | Admin    | Administrator, Management, Podcast Host |
+| Tanu    | tanu@businessorbit.in      | Manager  | Proposal Content Owner, Final Approver, Podcast Producer |
+| Harnoor | harnoor@businessorbit.in   | Employee | Sales, Content Writer |
+| Ananya  | ananya@businessorbit.in    | Employee | Proposal Designer, QC Owner, Video Editor |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Other commands:
 
-## Learn More
+```bash
+npm test             # unit and workflow tests
+npm run walkthrough  # replays a proposal end to end and prints its timeline
+npm run seed -- --reset
+npm run db:down
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## What this actually is
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The product is **a workflow engine, a personal work dashboard, and the
+management views over them** — not a proposal app. Proposal Creation and
+Podcast Production are both configuration.
 
-## Deploy on Vercel
+```
+Business Orbit
+  └─ Major Project        Startup Mela 2027
+      └─ Workflow          Proposal Creation        (the repeatable process)
+          └─ Instance       Proposal — ABC Technologies
+              └─ Task        Design & Formatting    (assigned to a person)
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### The engine
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`src/lib/engine/` is a pure state machine. No React, no Next.js, no database:
+operations take the current state and return either a typed refusal or the next
+state plus the records to persist. It cannot allocate ids, which is what keeps
+it honest — it emits drafts and `src/lib/workflow/persist.ts` gives them ids.
+
+Routing is deterministic. The next stage comes from the template, never from a
+judgement call (§51).
+
+### Stages name roles, not people
+
+A stage declares **assignee sources** and takes their union:
+
+```ts
+{ mode: 'role', roleId } | { mode: 'users', userIds }
+| { mode: 'initiator' } | { mode: 'stage_assignee', stageKey }
+```
+
+Three requirements fall out of this for free: a two-owner stage, dispatch
+returning to whoever raised the request, and a revision going back to whoever
+actually did the work rather than whoever holds the role today.
+
+This is why a person leaving is an admin action, not a development task: point
+the role at somebody else in **Admin → People** and every workflow follows.
+
+---
+
+## What is in this release
+
+- Login, sessions, and three permission tiers enforced in the data layer
+- **My Work** — every task assigned to you across all projects and workflows,
+  in six sections, with search, filters, four groupings and three sorts
+- **Task detail** — instructions, earlier stages' work, files, checklist,
+  comments, history, and the actions that move the workflow on
+- Versioned file upload and download, scoped to people involved in the workflow
+- Approve / Request Changes, with a mandatory comment and per-stage routing for
+  where rejected work goes
+- **Management overview** — active work, pending approvals, overdue, stuck work
+  against SLA, project status, upcoming deadlines
+- **Team workload** and per-person drill-down; **project dashboards**
+- In-app notifications, user profile, and an admin panel for people and roles
+- Two complete workflows: Proposal Creation (7 stages) and Podcast Production
+  (11 stages), both running on the same engine
+
+---
+
+## What is NOT in this release
+
+Stated plainly so nothing here is a surprise.
+
+| Not built | Where it stands |
+|---|---|
+| **Workflow Builder UI** (§34, §35) | The engine, the schema and the seed format are complete and in the shape the builder will emit. Only the admin-facing editor is missing; new workflows are added today as a data file, as `podcast-production.ts` shows. |
+| **Conditional stages** (§36) | `StageCondition` is carried on every stage and stored, but the engine does not evaluate it yet. A stage with conditions runs as though it had none. |
+| **Workflow versioning enforcement** (§38) | Instances pin the version they started on and always read that version, so running work is already safe. What is missing is the UI for publishing v2 of a template. |
+| **Global search** (§48) | Search exists within My Work only. |
+| **Reports** | Not started. |
+| **Email / WhatsApp notification** (§41) | In-app only, as the brief specifies. |
+
+**The honest framing:** week one ships the engine, not the builder. Demo the
+Podcast workflow first — it is the evidence that adding a process does not
+require a developer touching engine or interface code.
+
+---
+
+## Verification
+
+`npm test` covers 88 tests, including two that matter more than the rest:
+
+- `proposal-workflow.test.ts` drives all 28 steps of the brief's own acceptance
+  scenario (§55) through the engine with no UI, and asserts the resulting
+  timeline matches §33 exactly.
+- `podcast-workflow.test.ts` drives an entirely different 11-stage process
+  through the same engine, and asserts the two workflows share no stage key but
+  `quality_check` and no workflow role at all.
+
+Adding the Podcast workflow touched only `src/lib/seed/`. Nothing in
+`src/lib/engine/`, `src/features/`, `src/app/` or `src/lib/db/` changed.
+
+---
+
+## Before this carries real work
+
+- **File storage is local disk.** `src/lib/files/storage.ts` is shaped like
+  object storage, so moving to S3 is a change to that one file — but as it
+  stands, uploads do not survive a container restart without a volume and will
+  not work across multiple instances.
+- **`SESSION_SECRET` must be set** to a real random value per environment.
+- **MongoDB runs unauthenticated-in-Docker for development.** Production needs
+  proper credentials, TLS and backups.
+- Roles with nobody assigned will stall any workflow routing to them. The engine
+  refuses rather than stranding work, and **Admin → Role coverage** flags them
+  in red before it happens.
+
+---
+
+## Conventions
+
+`AGENTS.md` holds the engineering rules this codebase is held to. The one that
+matters most: if you find yourself writing `if (workflow === 'proposal')`, the
+schema is missing a field — add the field.

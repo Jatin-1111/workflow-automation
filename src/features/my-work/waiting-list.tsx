@@ -21,7 +21,7 @@ export function WaitingList({ items }: { items: WaitingItem[] }) {
         {items.map((item) => (
           <li
             key={item.instanceId}
-            className="flex items-start gap-4 border-b border-border px-4 py-3 last:border-b-0"
+            className="flex flex-col gap-2 border-b border-border px-4 py-3 last:border-b-0 sm:flex-row sm:items-start sm:gap-4"
           >
             <span className="min-w-0 flex-1">
               <span className="flex flex-wrap items-center gap-x-2 text-xs text-subtle">
@@ -36,13 +36,13 @@ export function WaitingList({ items }: { items: WaitingItem[] }) {
               </span>
             </span>
 
-            <span className="flex shrink-0 items-center gap-3">
+            <span className="flex shrink-0 items-center gap-3 sm:justify-end">
               {item.slaBreached ? (
                 <span className="rounded border border-border px-1.5 py-0.5 text-[11px] font-medium text-status-overdue">
                   SLA breached
                 </span>
               ) : null}
-              <span className="w-28 text-right text-xs text-muted">
+              <span className="text-xs text-muted sm:w-28 sm:text-right">
                 {item.hoursWaiting}h waiting
               </span>
             </span>

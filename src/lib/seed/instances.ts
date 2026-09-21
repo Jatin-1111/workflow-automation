@@ -28,6 +28,8 @@ const HOUR = 3_600_000
 
 export interface InstanceSeed {
   title: string
+  /** Which workflow template this instance runs on. */
+  workflowKey: string
   projectKey: string
   initiatorKey: string
   /** Stage to leave the workflow sitting on, or `null` to run to completion. */
@@ -40,6 +42,7 @@ export interface InstanceSeed {
 export const INSTANCE_SEEDS: InstanceSeed[] = [
   {
     title: 'Proposal — ABC Technologies',
+    workflowKey: 'proposal_creation',
     projectKey: 'startup_mela_2027',
     initiatorKey: 'harnoor',
     stopAt: 'design_formatting',
@@ -58,6 +61,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
   {
     // Left waiting long enough to breach the 12-hour approval SLA (spec §43).
     title: 'Proposal — XYZ Technologies',
+    workflowKey: 'proposal_creation',
     projectKey: 'startup_mela_2027',
     initiatorKey: 'harnoor',
     stopAt: 'final_approval',
@@ -75,6 +79,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
   },
   {
     title: 'Proposal — DEF Media',
+    workflowKey: 'proposal_creation',
     projectKey: 'ai_summit',
     initiatorKey: 'harnoor',
     stopAt: 'proposal_content',
@@ -91,6 +96,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
   },
   {
     title: 'Proposal — GHI Labs',
+    workflowKey: 'proposal_creation',
     projectKey: 'podcast',
     initiatorKey: 'harnoor',
     stopAt: 'quality_check',
@@ -108,6 +114,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
   },
   {
     title: 'Proposal — JKL Industries',
+    workflowKey: 'proposal_creation',
     projectKey: 'general_operations',
     initiatorKey: 'harnoor',
     stopAt: 'deliverables_discussion',
@@ -126,6 +133,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
     // One finished run, so the Completed view and project dashboards have
     // something real to show.
     title: 'Proposal — MNO Ventures',
+    workflowKey: 'proposal_creation',
     projectKey: 'startup_mela_2027',
     initiatorKey: 'harnoor',
     stopAt: null,
@@ -139,6 +147,53 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
       proposal_type: 'Sponsorship',
       expected_deadline: '2026-09-15',
       estimated_value: 1200000,
+    },
+  },
+  {
+    // Podcast episodes run on a completely different template through the same
+    // engine, which is the point of seeding them (spec §53).
+    title: 'Podcast — Episode 04: Building in Public',
+    workflowKey: 'podcast_production',
+    projectKey: 'podcast',
+    initiatorKey: 'tanu',
+    stopAt: 'editing',
+    startedHoursAgo: 30,
+    fieldValues: {
+      episode_title: 'Episode 04: Building in Public',
+      episode_topic: 'How founders use transparency to build an audience.',
+      guest_name: 'Rhea Kapoor',
+      guest_email: 'rhea@buildinpublic.example',
+      target_publish_date: '2026-10-08',
+    },
+  },
+  {
+    title: 'Podcast — Episode 05: Hiring Your First Ten',
+    workflowKey: 'podcast_production',
+    projectKey: 'podcast',
+    initiatorKey: 'tanu',
+    stopAt: 'research',
+    startedHoursAgo: 8,
+    fieldValues: {
+      episode_title: 'Episode 05: Hiring Your First Ten',
+      episode_topic: 'Early hiring mistakes and how to avoid them.',
+      guest_name: 'Vikram Desai',
+      guest_email: 'vikram@tenhires.example',
+      target_publish_date: '2026-10-22',
+    },
+  },
+  {
+    title: 'Podcast — Episode 03: Sample Guest',
+    workflowKey: 'podcast_production',
+    projectKey: 'podcast',
+    initiatorKey: 'tanu',
+    stopAt: null,
+    startedHoursAgo: 200,
+    fieldValues: {
+      episode_title: 'Episode 03: Sample Guest',
+      episode_topic: 'A finished episode, for the completed views.',
+      guest_name: 'Sample Guest',
+      guest_email: 'guest@example.com',
+      target_publish_date: '2026-09-10',
     },
   },
 ]
@@ -164,22 +219,41 @@ function submissionFor(
   }
 }
 
+/**
+ * A plausible value for a required field the seed did not supply.
+ *
+ * Keyed on field type first, so a new workflow needs no change here unless it
+ * wants a nicer sentence than the generic one.
+ */
 function defaultValueFor(
   key: string,
   type: string,
   instance: WorkflowInstance,
 ): FieldValue {
-  const client = String(instance.fieldValues.client_name ?? 'the client')
-  if (type === 'email') return String(instance.fieldValues.contact_email ?? 'contact@example.com')
+  const subject = String(
+    instance.fieldValues.client_name ?? instance.fieldValues.guest_name ?? 'this work',
+  )
+
+  if (type === 'email') {
+    return String(
+      instance.fieldValues.contact_email ?? instance.fieldValues.guest_email ?? 'contact@example.com',
+    )
+  }
   if (type === 'date') return new Date().toISOString().slice(0, 10)
-  if (type === 'number' || type === 'currency') return 0
-  if (key === 'final_deliverables') {
-    return `Agreed package for ${client}: branding, stall space and speaking slot.`
+  if (type === 'number' || type === 'currency') return key === 'duration_minutes' ? 48 : 3
+  if (type === 'select') {
+    const stageField = instance.fieldValues[key]
+    return typeof stageField === 'string' ? stageField : 'Remote'
   }
-  if (key === 'proposal_content') {
-    return `Full proposal content prepared for ${client}.`
+
+  const sentences: Record<string, string> = {
+    final_deliverables: `Agreed package for ${subject}: branding, stall space and speaking slot.`,
+    proposal_content: `Full proposal content prepared for ${subject}.`,
+    research_summary: `Background notes on ${subject} and the episode topic.`,
+    question_list: `Opening question, three topic questions and a closing question for ${subject}.`,
+    published_url: `https://businessorbit.example/podcast/${subject.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
   }
-  return `Recorded for ${client}.`
+  return sentences[key] ?? `Recorded for ${subject}.`
 }
 
 function unwrap<T>(label: string, outcome: EngineOutcome<T>): T {
@@ -284,14 +358,19 @@ async function driveTo(
 }
 
 export async function seedInstances(params: {
-  template: WorkflowTemplate
+  templateByKey: Map<string, WorkflowTemplate>
   projectIdByKey: Map<string, ProjectId>
   userIdByKey: Map<string, UserId>
   now: Date
 }): Promise<number> {
-  const { template, projectIdByKey, userIdByKey, now } = params
+  const { templateByKey, projectIdByKey, userIdByKey, now } = params
 
   for (const seed of INSTANCE_SEEDS) {
+    const template = templateByKey.get(seed.workflowKey)
+    if (!template) {
+      throw new Error(`Instance seed "${seed.title}" names unknown workflow "${seed.workflowKey}"`)
+    }
+
     const clock = { at: new Date(now.getTime() - seed.startedHoursAgo * HOUR) }
     const initiatedBy = userIdByKey.get(seed.initiatorKey)
     const projectId = projectIdByKey.get(seed.projectKey)
