@@ -28,3 +28,17 @@ export async function searchProjects(pattern: RegExp, limit = 10): Promise<Proje
 export async function listProjects(): Promise<Project[]> {
   return (await projects()).find({}, WITHOUT_ID).sort({ name: 1 }).toArray()
 }
+
+export async function insertProject(doc: Project): Promise<void> {
+  await (await projects()).insertOne(doc)
+}
+
+export async function updateProject(
+  projectId: ProjectId,
+  changes: Partial<Project>,
+): Promise<void> {
+  await (await projects()).updateOne(
+    { projectId },
+    { $set: { ...changes, updatedAt: new Date() } },
+  )
+}

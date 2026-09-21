@@ -23,3 +23,19 @@ export async function findDepartmentById(
 export async function listDepartments(): Promise<Department[]> {
   return (await departments()).find({}, WITHOUT_ID).sort({ name: 1 }).toArray()
 }
+
+export async function insertDepartment(doc: Department): Promise<void> {
+  await (await departments()).insertOne(doc)
+}
+
+/** Field-level edit. Deactivating is a status change, never a delete: people
+ * and history still point at the department. */
+export async function updateDepartment(
+  departmentId: DepartmentId,
+  changes: Partial<Department>,
+): Promise<void> {
+  await (await departments()).updateOne(
+    { departmentId },
+    { $set: { ...changes, updatedAt: new Date() } },
+  )
+}

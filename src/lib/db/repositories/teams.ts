@@ -21,3 +21,17 @@ export async function findTeamById(teamId: TeamId): Promise<Team | null> {
 export async function listTeams(): Promise<Team[]> {
   return (await teams()).find({}, WITHOUT_ID).sort({ name: 1 }).toArray()
 }
+
+export async function insertTeam(doc: Team): Promise<void> {
+  await (await teams()).insertOne(doc)
+}
+
+export async function updateTeam(
+  teamId: TeamId,
+  changes: Partial<Team>,
+): Promise<void> {
+  await (await teams()).updateOne(
+    { teamId },
+    { $set: { ...changes, updatedAt: new Date() } },
+  )
+}

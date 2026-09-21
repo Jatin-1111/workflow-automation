@@ -10,6 +10,18 @@ import { AppShell } from '@/features/shell/app-shell'
 import { Section } from '@/features/management/section'
 import { RoleEditor, type RoleOption } from '@/features/admin/role-editor'
 import { toggleUserStatusAction } from '@/features/admin/actions'
+import { OrgManager } from '@/features/admin/org-editor'
+import { UserCreator } from '@/features/admin/user-creator'
+import {
+  createDepartmentAction,
+  createProjectAction,
+  createRoleAction,
+  createTeamAction,
+  updateDepartmentAction,
+  updateProjectAction,
+  updateRoleAction,
+  updateTeamAction,
+} from '@/features/admin/org-actions'
 import { humanise } from '@/features/my-work/format'
 import { Hint } from '@/features/ui/primitives'
 import { listDepartments } from '@/lib/db/repositories/departments'
@@ -109,6 +121,14 @@ export default async function AdminPage() {
                 can hold none.
               </Hint>
             </div>
+            <div className="mt-4 border-t border-border">
+              <UserCreator
+                departments={departments.map((d) => ({ value: d.departmentId, label: d.name }))}
+                teams={teams.map((t) => ({ value: t.teamId, label: t.name }))}
+                roles={roles.map((r) => ({ value: r.roleId, label: r.name }))}
+              />
+            </div>
+
             <ul className="divide-y divide-border">
               {users.map((user) => {
                 const roleOptions: RoleOption[] = roles.map((role) => ({
@@ -176,39 +196,93 @@ export default async function AdminPage() {
             </ul>
           </Section>
 
-          <Section title="Structure">
-            <dl className="grid gap-4 px-4 py-4 sm:grid-cols-3">
-              <div>
-                <dt className="text-xs font-medium text-muted">
-                  Departments
-                </dt>
-                <dd className="mt-1 text-sm text-muted">
-                  {departments.map((department) => department.name).join(', ')}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs font-medium text-muted">
-                  Teams
-                </dt>
-                <dd className="mt-1 text-sm text-muted">
-                  {teams.map((team) => team.name).join(', ')}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs font-medium text-muted">
-                  Major Projects
-                </dt>
-                <dd className="mt-1 text-sm text-muted">
-                  {projects.map((project) => project.name).join(', ')}
-                </dd>
-              </div>
-            </dl>
+          <Section
+            title="Departments"
+            count={departments.length}
+            description="Deactivating keeps the record; nothing that points at it breaks."
+          >
+            <OrgManager
+              label="Department"
+              idField="departmentId"
+              entities={departments.map((department) => ({
+                id: department.departmentId,
+                name: department.name,
+                detail: department.description,
+                status: department.status,
+              }))}
+              createAction={createDepartmentAction}
+              updateAction={updateDepartmentAction}
+              describable
+            />
+          </Section>
+
+          <Section title="Teams" count={teams.length}>
+            <OrgManager
+              label="Team"
+              idField="teamId"
+              entities={teams.map((team) => ({
+                id: team.teamId,
+                name: team.name,
+                detail: team.departmentId
+                  ? departments.find((d) => d.departmentId === team.departmentId)?.name
+                  : undefined,
+                status: team.status,
+              }))}
+              createAction={createTeamAction}
+              updateAction={updateTeamAction}
+              selectField={{
+                name: 'departmentId',
+                label: 'Department',
+                options: departments.map((d) => ({ value: d.departmentId, label: d.name })),
+              }}
+            />
+          </Section>
+
+          <Section
+            title="Major Projects"
+            count={projects.length}
+            description="The initiatives workflows run inside."
+          >
+            <OrgManager
+              label="Project"
+              idField="projectId"
+              entities={projects.map((project) => ({
+                id: project.projectId,
+                name: project.name,
+                detail: project.description,
+                status: project.status,
+              }))}
+              createAction={createProjectAction}
+              updateAction={updateProjectAction}
+              describable
+            />
+          </Section>
+
+          <Section
+            title="Workflow roles"
+            count={roles.length}
+            description="What a stage is assigned to. The key is derived from the name and never changes, because templates refer to it."
+          >
+            <OrgManager
+              label="Role"
+              idField="roleId"
+              entities={roles.map((role) => ({
+                id: role.roleId,
+                name: role.name,
+                detail: `${role.key} · ${activeHoldersOf(role.roleId).length} active holder(s)`,
+                status: role.status,
+              }))}
+              createAction={createRoleAction}
+              updateAction={updateRoleAction}
+              describable
+              hint="A role with nobody active in it will stall any workflow routing to it."
+            />
           </Section>
 
           <Section
             title="Workflows"
             count={templates.length}
-            description="Editing these needs the Workflow Builder, which is not in this release."
+            description="Edit these in the Workflow Builder. A published version is immutable; editing creates the next one."
           >
             <ul className="divide-y divide-border">
               {templates.map((template) => (

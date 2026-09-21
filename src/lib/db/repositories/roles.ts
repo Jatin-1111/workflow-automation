@@ -26,3 +26,17 @@ export async function findRoleByKey(key: string): Promise<Role | null> {
 export async function listRoles(): Promise<Role[]> {
   return (await roles()).find({}, WITHOUT_ID).sort({ name: 1 }).toArray()
 }
+
+export async function insertRole(doc: Role): Promise<void> {
+  await (await roles()).insertOne(doc)
+}
+
+export async function updateRole(
+  roleId: RoleId,
+  changes: Partial<Role>,
+): Promise<void> {
+  await (await roles()).updateOne(
+    { roleId },
+    { $set: { ...changes, updatedAt: new Date() } },
+  )
+}

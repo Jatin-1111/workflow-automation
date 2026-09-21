@@ -85,3 +85,19 @@ export async function dismissSetupCard(userId: UserId): Promise<void> {
 export async function countUsers(): Promise<number> {
   return (await users()).countDocuments()
 }
+
+export async function insertUser(doc: User): Promise<void> {
+  await (await users()).insertOne(doc)
+}
+
+/** Everything about a person except their roles, status and password, each of
+ * which has its own narrower path. */
+export async function updateUserProfile(
+  userId: UserId,
+  changes: Partial<Pick<User, 'name' | 'email' | 'departmentId' | 'teamId' | 'accessLevel'>>,
+): Promise<void> {
+  await (await users()).updateOne(
+    { userId },
+    { $set: { ...changes, updatedAt: new Date() } },
+  )
+}
