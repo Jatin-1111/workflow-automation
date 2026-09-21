@@ -215,13 +215,18 @@ it, skipped and recorded when it did not.
 - **File storage defaults to local disk.** Fine for development; it does not
   survive a container restart without a volume, does not work across multiple
   instances, and does not work at all on a serverless host. Set the Cloudinary
-  variables to move it (see below).
+  variables to move it (see below). In production the fallback is refused
+  outright rather than accepted quietly, because an upload that appears to
+  work and then vanishes is worse than an error.
 - **`SESSION_SECRET` must be set** to a real random value per environment.
 - **`CRON_SECRET` must be set** or `/api/cron/reminders` answers 503 and the
   scheduled run does nothing. It refuses rather than falling open, so the
   failure is silent unless you look at the cron logs.
 - **MongoDB runs unauthenticated-in-Docker for development.** Production needs
-  proper credentials, TLS and backups.
+  proper credentials, TLS and backups, and a serverless host needs a database
+  it can reach over the network — Docker on a laptop is not one. The
+  connection pool is capped at ten per instance (`MONGO_MAX_POOL_SIZE`)
+  because every warm serverless instance holds its own.
 - Roles with nobody assigned will stall any workflow routing to them. The engine
   refuses rather than stranding work, and **Admin → Role coverage** flags them
   in red before it happens.

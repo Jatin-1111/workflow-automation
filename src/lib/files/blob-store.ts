@@ -22,7 +22,19 @@ import type { BlobStore, StoreRequest, StoredFile } from './store-contract'
  * separate switch is one more thing to get wrong between environments.
  */
 function backend(): BlobStore {
-  return cloudinaryConfigured() ? cloudinaryStore : localStore
+  if (cloudinaryConfigured()) return cloudinaryStore
+
+  // Falling back to the disk in production is not a degraded mode, it is
+  // quiet data loss: a serverless filesystem does not outlive the request, so
+  // every upload would appear to succeed and then be gone. Refuse instead.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'No object storage configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY ' +
+        'and CLOUDINARY_API_SECRET; local disk does not survive a deployment.',
+    )
+  }
+
+  return localStore
 }
 
 /** Which store is in use, for the seed to report and for diagnostics. */
