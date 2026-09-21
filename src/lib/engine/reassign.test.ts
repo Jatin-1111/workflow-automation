@@ -13,7 +13,6 @@ import {
   applyStart,
   MemoryIds,
   openTaskAt,
-  type WorkflowState,
 } from './memory-runtime'
 import { formatId } from '@/lib/ids/format'
 import type { EngineContext, EngineOutcome } from './index'

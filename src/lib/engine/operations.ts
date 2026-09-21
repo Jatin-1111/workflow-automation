@@ -20,9 +20,11 @@ import { pickDeclaredFields, validateCompletion } from './validation'
 import type {
   EngineContext,
   EngineResult,
+  NotificationDraft,
   StageSubmission,
   StartInstanceRequest,
   StartResult,
+  TaskDraft,
   TaskOperationRequest,
   TaskUpdate,
 } from './types'
@@ -294,7 +296,17 @@ export function recordFileUpload(
         at: context.now,
       },
     ],
-    notifications: [],
+    // Only the people sharing this stage, and never the person who uploaded
+    // it: on a stage held by one person this is silent, which is correct.
+    notifications: task.assignees
+      .filter((assignee) => assignee !== request.actor)
+      .map((recipientId) => ({
+        recipientId,
+        kind: 'file_uploaded' as const,
+        title: `File added: ${stage.name}`,
+        body: request.instance.title,
+        taskId: task.taskId,
+      })),
   })
 }
 
@@ -745,8 +757,40 @@ function advance(params: {
     taskUpdates: [completion],
     newTasks: [activation.result.task],
     events: [completionEvent, ...skipEvents, ...activation.result.events],
-    notifications: activation.result.notifications,
+    notifications: [
+      ...activation.result.notifications,
+      ...initiatorUpdate(request, stage, next, activation.result.task),
+    ],
   })
+}
+
+/**
+ * Telling whoever raised the work that it has moved on.
+ *
+ * This is the "where did that get to" question answered before it is asked,
+ * which is most of what the platform is for. Suppressed when they already know:
+ * they did it themselves, or the next stage is theirs and they are about to be
+ * told that instead.
+ */
+function initiatorUpdate(
+  request: TaskOperationRequest,
+  done: StageDefinition,
+  next: StageDefinition,
+  opening: TaskDraft,
+): NotificationDraft[] {
+  const { initiatedBy, title } = request.instance
+  if (initiatedBy === request.actor) return []
+  if (opening.assignees.includes(initiatedBy)) return []
+
+  return [
+    {
+      recipientId: initiatedBy,
+      kind: 'stage_completed',
+      title: `Moved on: ${title}`,
+      body: `${done.name} is finished. Now with ${next.name}.`,
+      taskStageKey: next.key,
+    },
+  ]
 }
 
 /** Most recently attached file across the instance: the approval's target. */

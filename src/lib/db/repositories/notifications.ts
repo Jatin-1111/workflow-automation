@@ -2,7 +2,7 @@
 
 import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
-import type { UserId } from '@/lib/types/ids'
+import type { TaskId, UserId } from '@/lib/types/ids'
 import type { Notification } from '@/lib/types/notification'
 
 async function notifications() {
@@ -35,4 +35,26 @@ export async function markAllNotificationsRead(recipientId: UserId): Promise<voi
     { recipientId, readAt: { $exists: false } },
     { $set: { readAt: new Date() } },
   )
+}
+
+/**
+ * Which reminders have already gone out for a set of tasks.
+ *
+ * The scheduler runs repeatedly over the same open work, so this is what stops
+ * it saying the same thing every time it wakes up. Scoped to the tasks in hand
+ * rather than the whole collection, which keeps the read bounded as history
+ * grows.
+ */
+export async function listSentReminderKeys(taskIds: TaskId[]): Promise<Set<string>> {
+  if (taskIds.length === 0) return new Set()
+  const rows = await (await notifications())
+    .find(
+      {
+        taskId: { $in: taskIds },
+        kind: { $in: ['deadline_approaching', 'task_overdue'] },
+      },
+      { projection: { taskId: 1, kind: 1, recipientId: 1, _id: 0 } },
+    )
+    .toArray()
+  return new Set(rows.map((row) => `${row.taskId}:${row.kind}:${row.recipientId}`))
 }

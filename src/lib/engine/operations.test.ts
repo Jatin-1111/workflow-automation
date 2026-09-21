@@ -5,8 +5,19 @@
 
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { completeStage, requestChanges, startInstance } from './operations'
-import { applyResult, applyStart, MemoryIds, openTaskAt } from './memory-runtime'
+import {
+  completeStage,
+  recordFileUpload,
+  requestChanges,
+  startInstance,
+} from './operations'
+import {
+  applyResult,
+  applyStart,
+  MemoryIds,
+  nextFileId,
+  openTaskAt,
+} from './memory-runtime'
 import { resolveAssignees } from './assignees'
 import { formatId } from '@/lib/ids/format'
 import type { EngineContext, EngineOutcome } from './index'
@@ -424,5 +435,104 @@ describe('version pinning', () => {
     const { state } = openWorkflow(template, { [OWNER_ROLE]: [ALICE] })
 
     assert.equal(state.instance.templateVersion, 3)
+  })
+})
+
+describe('who is told when work moves', () => {
+  const template = templateOf([
+    stage({ key: 'draft', nextStageKey: 'review' }),
+    stage({
+      key: 'review',
+      assignees: [{ mode: 'role', roleId: REVIEWER_ROLE }],
+    }),
+  ])
+  const roles = { [OWNER_ROLE]: [BEN], [REVIEWER_ROLE]: [CHARU] }
+
+  function completeDraft(initiatedBy: UserId) {
+    const { state } = openWorkflow(template, roles, initiatedBy)
+    const task = openTaskAt(state, 'draft')!
+    return expectOk(
+      completeStage({
+        instance: state.instance,
+        template,
+        tasks: state.tasks,
+        taskId: task.taskId,
+        actor: BEN,
+        context: context(roles),
+      }),
+    )
+  }
+
+  it('tells whoever raised the work that it has moved on', () => {
+    const result = completeDraft(ALICE)
+    const toInitiator = result.notifications.filter((note) => note.recipientId === ALICE)
+
+    assert.equal(toInitiator.length, 1)
+    assert.equal(toInitiator[0].kind, 'stage_completed')
+    assert.match(toInitiator[0].body ?? '', /draft is finished\. Now with review\./)
+    // Pointed at the stage now holding it, which is the thing they want to open.
+    assert.equal(toInitiator[0].taskStageKey, 'review')
+  })
+
+  it('does not tell somebody about their own work', () => {
+    // BEN raised it and BEN completed it: the notice would tell him nothing.
+    const result = completeDraft(BEN)
+    assert.deepEqual(
+      result.notifications.filter((note) => note.recipientId === BEN),
+      [],
+    )
+  })
+
+  it('does not double up when the next stage is the initiator’s own', () => {
+    // CHARU raised it and holds the review, so she gets the assignment alone.
+    const result = completeDraft(CHARU)
+    const toCharu = result.notifications.filter((note) => note.recipientId === CHARU)
+
+    assert.equal(toCharu.length, 1)
+    assert.equal(toCharu[0].kind, 'task_assigned')
+  })
+
+  it('tells the other holders of a shared stage about an upload', () => {
+    const shared = templateOf([
+      stage({ key: 'only', assignees: [{ mode: 'users', userIds: [BEN, CHARU] }] }),
+    ])
+    const { ids, state } = openWorkflow(shared, roles)
+    const task = openTaskAt(state, 'only')!
+
+    const result = expectOk(
+      recordFileUpload({
+        instance: state.instance,
+        template: shared,
+        tasks: state.tasks,
+        taskId: task.taskId,
+        actor: BEN,
+        context: context(roles),
+        file: { fileId: nextFileId(ids), version: 1 },
+      }),
+    )
+
+    assert.equal(result.notifications.length, 1)
+    assert.equal(result.notifications[0].recipientId, CHARU)
+    assert.equal(result.notifications[0].kind, 'file_uploaded')
+    assert.equal(result.notifications[0].taskId, task.taskId)
+  })
+
+  it('says nothing about an upload to a stage held by one person', () => {
+    const { ids, state } = openWorkflow(template, roles)
+    const task = openTaskAt(state, 'draft')!
+
+    const result = expectOk(
+      recordFileUpload({
+        instance: state.instance,
+        template,
+        tasks: state.tasks,
+        taskId: task.taskId,
+        actor: BEN,
+        context: context(roles),
+        file: { fileId: nextFileId(ids), version: 1 },
+      }),
+    )
+
+    assert.deepEqual(result.notifications, [])
   })
 })

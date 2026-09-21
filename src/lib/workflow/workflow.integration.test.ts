@@ -50,7 +50,7 @@ import {
 import { persistResult, persistStart } from './persist'
 import { buildEngineContext } from './engine-context'
 import { formatId } from '@/lib/ids/format'
-import type { RoleId, TaskId, UserId, WorkflowTemplateId } from '@/lib/types/ids'
+import type { RoleId, UserId, WorkflowTemplateId } from '@/lib/types/ids'
 import type { WorkflowTemplate } from '@/lib/types/workflow'
 
 const WRITER = formatId('user', 1) as UserId

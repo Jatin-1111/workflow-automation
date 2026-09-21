@@ -12,6 +12,7 @@
     "db:logs": "docker compose --env-file .env.local logs -f mongo",
     "db:indexes": "tsx --env-file=.env.local scripts/db-indexes.ts",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "reminders": "tsx --env-file=.env.local scripts/send-reminders.ts",
     "test": "tsx --env-file-if-exists=.env.local --test \"src/**/*.test.ts\"",
     "walkthrough": "tsx --env-file=.env.local scripts/proposal-walkthrough.ts"
   },

@@ -17,7 +17,6 @@ import {
   saveWorkflowAction,
   type BuilderState,
 } from './actions'
-import { Hint } from '@/features/ui/primitives'
 import { validateTemplate } from '@/lib/workflow/template-validation'
 import type { StageDefinition } from '@/lib/types/workflow'
 

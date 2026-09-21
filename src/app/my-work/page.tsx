@@ -17,7 +17,6 @@ import {
 import { WorkFilters } from '@/features/my-work/work-filters'
 import { WorkRow } from '@/features/my-work/work-row'
 import { WaitingList } from '@/features/my-work/waiting-list'
-import { BUCKET_LABELS } from '@/lib/workflow/buckets'
 import { Count, PageHeader } from '@/features/ui/primitives'
 import { getOnboarding } from '@/features/onboarding/queries'
 import { SetupCard } from '@/features/onboarding/setup-card'

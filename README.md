@@ -33,9 +33,34 @@ Other commands:
 ```bash
 npm test             # unit and workflow tests
 npm run walkthrough  # replays a proposal end to end and prints its timeline
+npm run reminders    # sends deadline and overdue notices (see below)
 npm run seed -- --reset
 npm run db:down
 ```
+
+### Scheduling the reminders
+
+Every other notification is a side effect of somebody acting. Nobody acts when
+a deadline passes, so deadline and overdue notices have to be woken up — and if
+nothing wakes them, a slipping deadline goes quiet again, which is the thing
+this platform exists to stop. **A deployment without this scheduled is a
+deployment with half of §41.**
+
+Run `npm run reminders` every fifteen minutes or so, by whichever means the host
+offers — a cron entry, a Windows scheduled task, a container sidecar:
+
+```
+*/15 * * * * cd /srv/business-orbit && npm run reminders
+```
+
+Hosts that call a URL instead can hit `GET /api/cron/reminders`, which does the
+same work. It authorises against `CRON_SECRET` as a bearer token (or a `?key=`
+parameter for schedulers that cannot set headers), and refuses outright when no
+secret is configured rather than falling open.
+
+Running it more often than necessary is harmless: what has already been said is
+read back before anything is written, so nobody is told the same thing twice.
+Not running it at all is the only failure mode.
 
 ---
 

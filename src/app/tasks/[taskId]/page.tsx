@@ -7,7 +7,6 @@
  * alongside the actions that move the workflow on.
  */
 
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireUser } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
