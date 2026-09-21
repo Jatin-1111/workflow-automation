@@ -19,6 +19,8 @@ export const ENGINE_ERROR_CODES = [
   'not_an_approval_stage',
   'reject_target_missing',
   'no_assignee_resolved',
+  'no_new_assignees',
+  'unchanged_assignment',
 ] as const
 export type EngineErrorCode = (typeof ENGINE_ERROR_CODES)[number]
 

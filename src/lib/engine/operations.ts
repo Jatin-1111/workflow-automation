@@ -433,6 +433,98 @@ export function approve(
 }
 
 /**
+ * Move an open task to different people (spec §46).
+ *
+ * A per-task override, not a change to the workflow: the stage keeps the
+ * assignee sources it was configured with, so the next run and every other
+ * instance are unaffected. Whether the actor is allowed to do this is a
+ * permission question, settled before the engine is called.
+ */
+export function reassignTask(
+  request: Omit<TaskOperationRequest, 'actor'> & {
+    actor: UserId
+    assignees: UserId[]
+    reason?: string
+  },
+): EngineOutcome<EngineResult> {
+  const task = request.tasks.find((candidate) => candidate.taskId === request.taskId)
+  if (!task) {
+    return refuse({ code: 'task_not_found', message: 'That task does not exist.' })
+  }
+  if (task.completedAt) {
+    return refuse({
+      code: 'task_already_completed',
+      message: 'Finished work cannot be reassigned.',
+    })
+  }
+  if (
+    request.instance.status === 'completed' ||
+    request.instance.status === 'cancelled'
+  ) {
+    return refuse({
+      code: 'instance_not_active',
+      message: 'This workflow is no longer running.',
+    })
+  }
+
+  const assignees = [...new Set(request.assignees)]
+  if (assignees.length === 0) {
+    return refuse({
+      code: 'no_new_assignees',
+      message: 'Choose at least one person to take this on.',
+    })
+  }
+
+  const unchanged =
+    assignees.length === task.assignees.length &&
+    assignees.every((assignee) => task.assignees.includes(assignee))
+  if (unchanged) {
+    return refuse({
+      code: 'unchanged_assignment',
+      message: 'That is already who this task is assigned to.',
+    })
+  }
+
+  const { context } = request
+
+  return accept({
+    instance: request.instance,
+    taskUpdates: [
+      {
+        taskId: task.taskId,
+        changes: {
+          assignees,
+          // Someone removed from a shared stage must not still count towards
+          // it being finished.
+          completedBy: task.completedBy.filter((done) => assignees.includes(done)),
+          updatedAt: context.now,
+        },
+      },
+    ],
+    newTasks: [],
+    events: [
+      {
+        taskId: task.taskId,
+        stageKey: task.stageKey,
+        actorId: request.actor,
+        action: 'task_reassigned',
+        comment: request.reason?.trim() || undefined,
+        at: context.now,
+      },
+    ],
+    notifications: assignees
+      .filter((assignee) => !task.assignees.includes(assignee))
+      .map((recipientId) => ({
+        recipientId,
+        kind: 'task_reassigned' as const,
+        title: `Reassigned to you: ${task.stageName}`,
+        body: request.instance.title,
+        taskId: task.taskId,
+      })),
+  })
+}
+
+/**
  * Send the work back for revision (spec §29).
  *
  * A comment is mandatory, the target comes from the template rather than being

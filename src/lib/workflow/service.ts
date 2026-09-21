@@ -17,6 +17,7 @@ import { findTemplateVersion } from '@/lib/db/repositories/workflow-templates'
 import {
   approve,
   completeStage,
+  reassignTask,
   recordFileUpload,
   requestChanges,
   saveProgress,
@@ -142,6 +143,24 @@ export function requestTaskChanges(
   submission: StageSubmission,
 ): Promise<OperationOutcome> {
   return run(taskId, actor, requestChanges, submission)
+}
+
+/**
+ * Move an open task to different people (spec §46).
+ *
+ * Whether the actor may do this is settled by the caller through the
+ * `task.reassign` capability; the engine only decides whether the move itself
+ * is coherent.
+ */
+export function reassignTaskTo(
+  taskId: TaskId,
+  actor: UserId,
+  assignees: UserId[],
+  reason?: string,
+): Promise<OperationOutcome> {
+  return run(taskId, actor, (request) =>
+    reassignTask({ ...request, assignees, reason }),
+  )
 }
 
 export function attachFileToTask(

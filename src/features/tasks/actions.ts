@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requireUser } from '@/lib/auth/dal'
+import { requireCapability, requireUser } from '@/lib/auth/dal'
 import { nextId } from '@/lib/ids/generate'
 import { insertComment } from '@/lib/db/repositories/comments'
 import { insertFile, nextVersionForSlot } from '@/lib/db/repositories/files'
@@ -11,6 +11,7 @@ import {
   attachFileToTask,
   completeTask,
   loadTaskContext,
+  reassignTaskTo,
   requestTaskChanges,
   saveTaskProgress,
   type OperationOutcome,
@@ -18,7 +19,8 @@ import {
 import { FileRejected, storeFile } from '@/lib/files/storage'
 import { isEntityId } from '@/lib/ids/format'
 import type { StageSubmission } from '@/lib/engine'
-import type { FileId, TaskId } from '@/lib/types/ids'
+import { listUsers } from '@/lib/db/repositories/users'
+import type { FileId, TaskId, UserId } from '@/lib/types/ids'
 import type { FieldValue } from '@/lib/types/instance'
 
 export type TaskActionState = OperationOutcome | { ok: null }
@@ -182,6 +184,42 @@ export async function uploadFileAction(
     slotKey,
     version,
   })
+  if (outcome.ok) revalidateTask(taskId)
+  return outcome
+}
+
+/**
+ * Move an open task to somebody else (spec §46).
+ *
+ * Reserved to people who carry the reassignment capability, and accepted only
+ * for accounts that are actually active — handing work to a deactivated person
+ * would strand it where nobody can act on it.
+ */
+export async function reassignAction(
+  _previous: TaskActionState,
+  formData: FormData,
+): Promise<TaskActionState> {
+  const actor = await requireCapability('task.reassign')
+
+  const taskId = readTaskId(formData)
+  if (!taskId) return refuse('task_not_found', 'That task could not be identified.')
+
+  const active = new Set(
+    (await listUsers())
+      .filter((candidate) => candidate.status === 'active')
+      .map((candidate) => candidate.userId),
+  )
+  const assignees = formData
+    .getAll('assignees')
+    .filter((value): value is string => typeof value === 'string')
+    .filter((value): value is UserId => active.has(value as UserId))
+
+  if (assignees.length === 0) {
+    return refuse('no_new_assignees', 'Choose at least one active person.')
+  }
+
+  const reason = String(formData.get('reason') ?? '').trim()
+  const outcome = await reassignTaskTo(taskId, actor.userId, assignees, reason || undefined)
   if (outcome.ok) revalidateTask(taskId)
   return outcome
 }

@@ -51,8 +51,9 @@ async function materialise(
     title: draft.title,
     body: draft.body,
     instanceId,
-    // A notification about a newly opened stage points at that stage's task.
-    taskId: tasks.find((task) => task.stageKey === draft.taskStageKey)?.taskId,
+    // A notification points either at a task this operation just opened, or at
+    // one that already existed - a reassignment names the task directly.
+    taskId: draft.taskId ?? tasks.find((task) => task.stageKey === draft.taskStageKey)?.taskId,
     createdAt: now,
   }))
 

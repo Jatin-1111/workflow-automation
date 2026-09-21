@@ -107,6 +107,8 @@ the role at somebody else in **Admin → People** and every workflow follows.
 - **Global search** across people, projects, workflows, work, stages and
   files, scoped to what the person searching may see. Pasting a permanent ID
   goes straight to it.
+- **Task reassignment** for managers and administrators, with each person's
+  current load shown at the point of choosing, and the reason recorded
 
 ---
 

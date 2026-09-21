@@ -12,6 +12,8 @@ import { listCommentsForInstance } from '@/lib/db/repositories/comments'
 import { listFilesForInstance } from '@/lib/db/repositories/files'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listTimelineForInstance } from '@/lib/db/repositories/timeline-events'
+import { listRoles } from '@/lib/db/repositories/roles'
+import { listAllOpenTasks } from '@/lib/db/repositories/tasks'
 import { listUsers } from '@/lib/db/repositories/users'
 import { loadTaskContext } from '@/lib/workflow/service'
 import { can } from '@/lib/auth/permissions'
@@ -66,6 +68,14 @@ export interface TimelineRow {
   at: Date
 }
 
+/** Somebody a task could be moved to (spec §46). */
+export interface AssignableRow {
+  userId: string
+  name: string
+  roles: string[]
+  openTasks: number
+}
+
 export interface TaskDetail {
   task: Task
   stage: StageDefinition
@@ -80,7 +90,12 @@ export interface TaskDetail {
 
   /** Whether the viewer may act, as opposed to merely read (spec §46). */
   canOperate: boolean
+  canReassign: boolean
   assigneeNames: string[]
+  assigneeIds: string[]
+  /** How the stage is configured to pick people, for context when overriding. */
+  assignmentSource?: string
+  assignable: AssignableRow[]
 
   progress: StageProgress[]
   priorStages: PriorStage[]
@@ -121,13 +136,18 @@ export async function getTaskDetail(
 
   if (!isAssignee && !participated && !oversees) return null
 
-  const [projects, users, files, comments, timeline] = await Promise.all([
-    listProjects(),
-    listUsers(),
-    listFilesForInstance(instance.instanceId),
-    listCommentsForInstance(instance.instanceId),
-    listTimelineForInstance(instance.instanceId),
-  ])
+  const canReassign = can(viewer.accessLevel, 'task.reassign')
+
+  const [projects, users, files, comments, timeline, roles, openTasks] =
+    await Promise.all([
+      listProjects(),
+      listUsers(),
+      listFilesForInstance(instance.instanceId),
+      listCommentsForInstance(instance.instanceId),
+      listTimelineForInstance(instance.instanceId),
+      canReassign ? listRoles() : Promise.resolve([]),
+      canReassign ? listAllOpenTasks() : Promise.resolve([]),
+    ])
 
   const userName = new Map(users.map((user) => [user.userId, user.name]))
   const nameOf = (userId: UserId) => userName.get(userId) ?? userId
@@ -151,7 +171,25 @@ export async function getTaskDetail(
 
     // Only an assignee of an open task may change anything.
     canOperate: isAssignee && !task.completedAt,
+    canReassign: canReassign && !task.completedAt,
     assigneeNames: task.assignees.map(nameOf),
+    assigneeIds: [...task.assignees],
+    assignmentSource: describeAssignment(stage, roles),
+    assignable: canReassign
+      ? users
+          .filter((candidate) => candidate.status === 'active')
+          .map((candidate) => ({
+            userId: candidate.userId,
+            name: candidate.name,
+            roles: candidate.roleIds.map(
+              (roleId) => roles.find((role) => role.roleId === roleId)?.name ?? roleId,
+            ),
+            // Current load, so the choice is an informed one (spec §17).
+            openTasks: openTasks.filter((candidate2) =>
+              candidate2.assignees.includes(candidate.userId),
+            ).length,
+          }))
+      : [],
 
     progress: buildProgress(template.stages, tasks, task, instance.fieldValues),
     priorStages: buildPriorStages(template.stages, tasks, task, nameOf),
@@ -180,6 +218,22 @@ export async function getTaskDetail(
       at: event.at,
     })),
   }
+}
+
+/** How the stage picks its people, in words (spec §6, §22, §31). */
+function describeAssignment(
+  stage: StageDefinition,
+  roles: { roleId: string; name: string }[],
+): string | undefined {
+  const parts = stage.assignees.map((source) => {
+    if (source.mode === 'role') {
+      return roles.find((role) => role.roleId === source.roleId)?.name ?? 'a role'
+    }
+    if (source.mode === 'initiator') return 'whoever started this'
+    if (source.mode === 'stage_assignee') return `whoever did ${source.stageKey}`
+    return 'named people'
+  })
+  return parts.length > 0 ? parts.join(' and ') : undefined
 }
 
 /** Where this stage sits in the workflow (spec §11). */

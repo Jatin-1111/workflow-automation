@@ -24,7 +24,12 @@ export type TimelineEventDraft = Omit<TimelineEvent, 'eventId' | 'instanceId'>
 export type NotificationDraft = Omit<
   Notification,
   'notificationId' | 'instanceId' | 'taskId' | 'createdAt'
-> & { taskStageKey?: string }
+> & {
+  /** Points at a stage this operation is opening, resolved once it has an id. */
+  taskStageKey?: string
+  /** Points at a task that already exists, such as one being reassigned. */
+  taskId?: TaskId
+}
 
 /** A change to an existing task, addressed by its permanent id. */
 export interface TaskUpdate {

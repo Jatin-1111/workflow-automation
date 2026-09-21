@@ -15,6 +15,7 @@ import { getTaskDetail } from '@/features/tasks/queries'
 import { TaskForm } from '@/features/tasks/task-form'
 import { FilePanel } from '@/features/tasks/file-panel'
 import { CommentPanel } from '@/features/tasks/comment-panel'
+import { ReassignPanel } from '@/features/tasks/reassign-panel'
 import { StageProgressBar } from '@/features/tasks/stage-progress'
 import { TimelinePanel } from '@/features/tasks/timeline-panel'
 import { StatusBadge } from '@/features/my-work/status-badge'
@@ -150,6 +151,15 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
           </div>
 
           <aside className="space-y-6">
+            {detail.canReassign ? (
+              <ReassignPanel
+                taskId={task.taskId}
+                people={detail.assignable}
+                currentAssignees={detail.assigneeIds}
+                stageSource={detail.assignmentSource}
+              />
+            ) : null}
+
             <FilePanel
               taskId={task.taskId}
               slots={stage.files}

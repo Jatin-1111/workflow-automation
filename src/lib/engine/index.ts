@@ -14,6 +14,7 @@ export {
   approve,
   completeStage,
   recordFileUpload,
+  reassignTask,
   requestChanges,
   saveProgress,
   startInstance,

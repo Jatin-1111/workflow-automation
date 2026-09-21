@@ -127,7 +127,9 @@ export function applyResult(
         title: notification.title,
         body: notification.body,
         instanceId,
-        taskId: created.find((task) => task.stageKey === notification.taskStageKey)?.taskId,
+        taskId:
+          notification.taskId ??
+          created.find((task) => task.stageKey === notification.taskStageKey)?.taskId,
         createdAt: now,
       })),
     ],
