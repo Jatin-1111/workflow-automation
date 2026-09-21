@@ -187,16 +187,47 @@ it, skipped and recorded when it did not.
 
 ## Before this carries real work
 
-- **File storage is local disk.** `src/lib/files/storage.ts` is shaped like
-  object storage, so moving to S3 is a change to that one file — but as it
-  stands, uploads do not survive a container restart without a volume and will
-  not work across multiple instances.
+- **File storage defaults to local disk.** Fine for development; it does not
+  survive a container restart without a volume, does not work across multiple
+  instances, and does not work at all on a serverless host. Set the Cloudinary
+  variables to move it (see below).
 - **`SESSION_SECRET` must be set** to a real random value per environment.
 - **MongoDB runs unauthenticated-in-Docker for development.** Production needs
   proper credentials, TLS and backups.
 - Roles with nobody assigned will stall any workflow routing to them. The engine
   refuses rather than stranding work, and **Admin → Role coverage** flags them
   in red before it happens.
+
+---
+
+## File storage
+
+Local disk by default, Cloudinary when `CLOUDINARY_CLOUD_NAME`, `_API_KEY` and
+`_API_SECRET` are all set. Nothing else changes: callers hold an opaque storage
+key and never learn which store answered. `npm run seed` prints which one it
+cleared.
+
+Two things about the Cloudinary backend are deliberate and worth not undoing:
+
+**Everything is uploaded as `raw`, including PDFs and images.** Nothing here
+transforms an asset, so the image pipeline buys nothing — and raw sidesteps
+both the format/public_id asymmetry images have and the account-level setting
+that blocks PDF delivery through the image pipeline.
+
+**Cloudinary URLs never reach a browser.** Files are read server-side and
+streamed through `/api/files/[fileId]`, which is where the viewer can actually
+be checked — it returns 404 rather than 403 to someone outside the workflow,
+because whether a file exists is not theirs to learn. Cloudinary cannot express
+that rule: a signed URL is a bearer token for one asset and says nothing about
+who is asking, and per-viewer rules need token auth, which is an Advanced-plan
+feature. Assets are uploaded `authenticated` anyway, so a leaked public id is
+not itself a way in. Serving a Cloudinary URL directly would be faster and
+cheaper, and would silently replace the access model with "did you ever see
+the link".
+
+`CLOUDINARY_FOLDER` namespaces the deployment. **Set it per environment**:
+`seed --reset` deletes everything under that folder, so staging sharing a
+folder with production would take production with it.
 
 ---
 
