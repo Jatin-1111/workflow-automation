@@ -15,6 +15,7 @@ import {
   approve,
   completeStage,
   recordFileUpload,
+  requestChanges,
   startInstance,
   type EngineContext,
   type EngineOutcome,
@@ -37,6 +38,11 @@ export interface InstanceSeed {
   stopAt: string | null
   /** Hours before now that this instance started. */
   startedHoursAgo: number
+  /**
+   * Approval stage to send work back from once, so the seeded history shows a
+   * revision the way a real run would (spec §29).
+   */
+  rejectOnceAt?: string
   fieldValues: Record<string, FieldValue>
 }
 
@@ -135,6 +141,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
     // something real to show.
     title: 'Proposal — MNO Ventures',
     workflowKey: 'proposal_creation',
+    rejectOnceAt: 'final_approval',
     projectKey: 'startup_mela_2027',
     initiatorKey: 'harnoor',
     stopAt: null,
@@ -185,6 +192,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
   {
     title: 'Podcast — Episode 03: Sample Guest',
     workflowKey: 'podcast_production',
+    rejectOnceAt: 'approval',
     projectKey: 'podcast',
     initiatorKey: 'tanu',
     stopAt: null,
@@ -291,12 +299,30 @@ function unwrap<T>(label: string, outcome: EngineOutcome<T>): T {
  * Each step advances the clock, so deadlines and SLA breaches in the seeded
  * data are the ones the engine actually computed.
  */
+/**
+ * A believable but repeatable number of hours for a stage to take.
+ *
+ * Derived from the stage and instance rather than randomly, so reseeding gives
+ * the same figures twice — and so the reports show a spread instead of every
+ * row reading the same number.
+ */
+function hoursForStage(stageKey: string, instanceId: string): number {
+  const seed = [...`${stageKey}:${instanceId}`].reduce(
+    (total, character) => total + character.charCodeAt(0),
+    0,
+  )
+  // Between 1 and 20 hours, weighted so most stages are quick.
+  return 1 + (seed % 7) + (seed % 3) * 4
+}
+
 async function driveTo(
   template: WorkflowTemplate,
   instance: WorkflowInstance,
   stopAt: string | null,
   clock: { at: Date },
+  rejectOnceAt?: string,
 ): Promise<void> {
+  let rejectionUsed = false
   const context = async (): Promise<EngineContext> =>
     buildEngineContext(template, clock.at)
 
@@ -313,7 +339,9 @@ async function driveTo(
 
     const stage = template.stages.find((candidate) => candidate.key === stageKey)!
     const actor: UserId = task.assignees[0]
-    clock.at = new Date(clock.at.getTime() + 2 * HOUR)
+    clock.at = new Date(
+      clock.at.getTime() + hoursForStage(stageKey, current.instanceId) * HOUR,
+    )
 
     // Satisfy any required uploads before trying to complete the stage.
     for (const slot of stage.files.filter((file) => file.required)) {
@@ -375,9 +403,24 @@ async function driveTo(
       context: await context(),
     }
 
+    // One seeded run is sent back, so the history and the reports show what a
+    // revision actually looks like.
+    const sendBack = stage.requiresApproval && stageKey === rejectOnceAt && !rejectionUsed
+    if (sendBack) rejectionUsed = true
+
     const result = unwrap(
       stageKey,
-      stage.requiresApproval ? approve(request) : completeStage(request),
+      sendBack
+        ? requestChanges({
+            ...request,
+            submission: {
+              ...submission,
+              comment: 'Please correct the pricing table and resend.',
+            },
+          })
+        : stage.requiresApproval
+          ? approve(request)
+          : completeStage(request),
     )
     await persistResult(result, clock.at)
 
@@ -428,7 +471,7 @@ export async function seedInstances(params: {
       clock.at,
     )
 
-    await driveTo(template, instance, seed.stopAt, clock)
+    await driveTo(template, instance, seed.stopAt, clock, seed.rejectOnceAt)
   }
 
   return INSTANCE_SEEDS.length

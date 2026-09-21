@@ -109,6 +109,9 @@ the role at somebody else in **Admin → People** and every workflow follows.
   goes straight to it.
 - **Task reassignment** for managers and administrators, with each person's
   current load shown at the point of choosing, and the reason recorded
+- **Reports** — how long work takes, which stage holds it up, how often it
+  comes back, and who is carrying it, over a chosen period and exportable as
+  CSV. Measured from the stage records rather than estimated.
 
 ---
 
@@ -119,7 +122,6 @@ Stated plainly so nothing here is a surprise.
 | Not built | Where it stands |
 |---|---|
 | **Workflow versioning enforcement** (§38) | Instances pin the version they started on and always read that version, so running work is already safe. What is missing is the UI for publishing v2 of a template. |
-| **Reports** | Not started. |
 | **Email / WhatsApp notification** (§41) | In-app only, as the brief specifies. |
 
 **The honest framing:** an administrator can now build and publish a working

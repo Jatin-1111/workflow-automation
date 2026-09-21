@@ -63,6 +63,11 @@ export async function listOpenTasksForProject(projectId: ProjectId): Promise<Tas
     .toArray()
 }
 
+/** Every task, for reporting over completed work as well as open. */
+export async function listAllTasks(): Promise<Task[]> {
+  return (await tasks()).find({}, WITHOUT_ID).toArray()
+}
+
 /** Open tasks across the organisation, for the management views. */
 export async function searchTasks(pattern: RegExp, limit = 20): Promise<Task[]> {
   return (await tasks())

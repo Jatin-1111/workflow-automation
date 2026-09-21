@@ -15,6 +15,11 @@ export async function appendTimelineEvents(docs: TimelineEvent[]): Promise<void>
   await (await events()).insertMany(docs)
 }
 
+/** Every event, for reporting. Read only by the metrics layer. */
+export async function listAllTimelineEvents(): Promise<TimelineEvent[]> {
+  return (await events()).find({}, WITHOUT_ID).toArray()
+}
+
 export async function listTimelineForInstance(
   instanceId: WorkflowInstanceId,
 ): Promise<TimelineEvent[]> {
