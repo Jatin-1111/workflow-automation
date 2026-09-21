@@ -30,6 +30,9 @@ export const TIMELINE_ACTIONS = [
   'comment_added',
   'approval_granted',
   'changes_requested',
+  /** Paused pending something outside, or stopped by an impediment (spec §42). */
+  'task_held',
+  'task_resumed',
   'instance_completed',
   'instance_cancelled',
 ] as const

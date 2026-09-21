@@ -21,6 +21,7 @@ export const CAPABILITIES = [
   'team.view_workload',
   'project.view_dashboard',
   'task.reassign',
+  'instance.cancel',
   'instance.view_all',
 
   // Administration
@@ -45,6 +46,9 @@ const MANAGER_CAPABILITIES: Capability[] = [
   'team.view_workload',
   'project.view_dashboard',
   'task.reassign',
+  // Calling off a run stops work for everybody, so it sits with oversight
+  // rather than with whoever happens to hold the current stage.
+  'instance.cancel',
 ]
 
 const ADMIN_CAPABILITIES: Capability[] = [

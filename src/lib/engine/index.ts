@@ -12,7 +12,10 @@
 
 export {
   approve,
+  cancelInstance,
   completeStage,
+  holdTask,
+  resumeTask,
   recordFileUpload,
   reassignTask,
   requestChanges,
@@ -35,6 +38,7 @@ export type {
 export type {
   EngineContext,
   EngineResult,
+  InstanceOperationRequest,
   InstanceDraft,
   NotificationDraft,
   StageSubmission,

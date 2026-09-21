@@ -91,6 +91,10 @@ export interface TaskDetail {
   /** Whether the viewer may act, as opposed to merely read (spec §46). */
   canOperate: boolean
   canReassign: boolean
+  /** Whether the viewer may call off the whole run (spec §42). */
+  canCancel: boolean
+  /** Why this task is parked, taken from the hold that put it there. */
+  heldReason?: string
   assigneeNames: string[]
   assigneeIds: string[]
   /** How the stage is configured to pick people, for context when overriding. */
@@ -172,6 +176,20 @@ export async function getTaskDetail(
     // Only an assignee of an open task may change anything.
     canOperate: isAssignee && !task.completedAt,
     canReassign: canReassign && !task.completedAt,
+    canCancel:
+      can(viewer.accessLevel, 'instance.cancel') &&
+      instance.status !== 'completed' &&
+      instance.status !== 'cancelled',
+    // The most recent hold is the one that explains the current state; older
+    // ones belong to the timeline, which keeps every pass.
+    heldReason:
+      task.status === 'waiting' || task.status === 'blocked'
+        ? timeline
+            .filter(
+              (event) => event.action === 'task_held' && event.taskId === task.taskId,
+            )
+            .at(-1)?.comment
+        : undefined,
     assigneeNames: task.assignees.map(nameOf),
     assigneeIds: [...task.assignees],
     assignmentSource: describeAssignment(stage, roles),

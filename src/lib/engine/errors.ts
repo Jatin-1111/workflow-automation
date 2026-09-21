@@ -21,6 +21,9 @@ export const ENGINE_ERROR_CODES = [
   'no_assignee_resolved',
   'no_new_assignees',
   'unchanged_assignment',
+  'reason_required',
+  'task_not_on_hold',
+  'task_on_hold',
 ] as const
 export type EngineErrorCode = (typeof ENGINE_ERROR_CODES)[number]
 

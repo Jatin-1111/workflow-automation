@@ -6,9 +6,12 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
+  cancelInstance,
   completeStage,
+  holdTask,
   recordFileUpload,
   requestChanges,
+  resumeTask,
   startInstance,
 } from './operations'
 import {
@@ -534,5 +537,220 @@ describe('who is told when work moves', () => {
     )
 
     assert.deepEqual(result.notifications, [])
+  })
+})
+
+describe('pausing and stopping work', () => {
+  const template = templateOf([
+    stage({ key: 'draft', nextStageKey: 'review' }),
+    stage({ key: 'review' }),
+  ])
+  const roles = { [OWNER_ROLE]: [BEN] }
+
+  function open(initiatedBy: UserId = ALICE) {
+    const { ids, state } = openWorkflow(template, roles, initiatedBy)
+    return { ids, state, task: openTaskAt(state, 'draft')! }
+  }
+
+  function hold(
+    hold: 'waiting' | 'blocked',
+    reason: string,
+    initiatedBy: UserId = ALICE,
+  ) {
+    const { state, task } = open(initiatedBy)
+    return {
+      state,
+      task,
+      outcome: holdTask({
+        instance: state.instance,
+        template,
+        tasks: state.tasks,
+        taskId: task.taskId,
+        actor: BEN,
+        context: context(roles),
+        hold,
+        reason,
+      }),
+    }
+  }
+
+  it('parks a task as waiting, with the reason on the record', () => {
+    const { outcome } = hold('waiting', 'Client has not sent the brief')
+    const result = expectOk(outcome)
+
+    assert.equal(result.taskUpdates[0].changes.status, 'waiting')
+    assert.equal(result.events[0].action, 'task_held')
+    assert.match(result.events[0].comment ?? '', /Waiting: Client has not sent the brief/)
+  })
+
+  it('distinguishes blocked from waiting', () => {
+    const result = expectOk(hold('blocked', 'Licence expired').outcome)
+
+    assert.equal(result.taskUpdates[0].changes.status, 'blocked')
+    assert.match(result.events[0].comment ?? '', /^Blocked: /)
+  })
+
+  it('will not park work without saying why', () => {
+    assert.deepEqual(codesOf(hold('waiting', '   ').outcome), ['reason_required'])
+  })
+
+  it('tells whoever raised the work that it stopped', () => {
+    const result = expectOk(hold('blocked', 'Licence expired').outcome)
+
+    assert.equal(result.notifications.length, 1)
+    assert.equal(result.notifications[0].recipientId, ALICE)
+    assert.equal(result.notifications[0].kind, 'task_held')
+  })
+
+  it('says nothing to somebody about their own decision', () => {
+    // BEN raised it and BEN parked it.
+    const result = expectOk(hold('waiting', 'Chasing the client', BEN).outcome)
+    assert.deepEqual(result.notifications, [])
+  })
+
+  it('refuses to park a task twice', () => {
+    const { ids, state, task } = open()
+    const held = expectOk(
+      holdTask({
+        instance: state.instance,
+        template,
+        tasks: state.tasks,
+        taskId: task.taskId,
+        actor: BEN,
+        context: context(roles),
+        hold: 'waiting',
+        reason: 'Chasing',
+      }),
+    )
+    const after = applyResult(state, held, ids, NOW)
+
+    assert.deepEqual(
+      codesOf(
+        holdTask({
+          instance: after.instance,
+          template,
+          tasks: after.tasks,
+          taskId: task.taskId,
+          actor: BEN,
+          context: context(roles),
+          hold: 'blocked',
+          reason: 'Something else',
+        }),
+      ),
+      ['task_on_hold'],
+    )
+  })
+
+  it('puts a held task back where it was', () => {
+    const { ids, state, task } = open()
+    const held = expectOk(
+      holdTask({
+        instance: state.instance,
+        template,
+        tasks: state.tasks,
+        taskId: task.taskId,
+        actor: BEN,
+        context: context(roles),
+        hold: 'waiting',
+        reason: 'Chasing',
+      }),
+    )
+    const after = applyResult(state, held, ids, NOW)
+
+    const resumed = expectOk(
+      resumeTask({
+        instance: after.instance,
+        template,
+        tasks: after.tasks,
+        taskId: task.taskId,
+        actor: BEN,
+        context: context(roles),
+      }),
+    )
+
+    // Nothing was recorded before it was parked, so it is untouched again.
+    assert.equal(resumed.taskUpdates[0].changes.status, 'not_started')
+    assert.equal(resumed.events[0].action, 'task_resumed')
+  })
+
+  it('refuses to resume a task that was never held', () => {
+    const { state, task } = open()
+    assert.deepEqual(
+      codesOf(
+        resumeTask({
+          instance: state.instance,
+          template,
+          tasks: state.tasks,
+          taskId: task.taskId,
+          actor: BEN,
+          context: context(roles),
+        }),
+      ),
+      ['task_not_on_hold'],
+    )
+  })
+
+  it('cancels the run and closes the work with it', () => {
+    const { state, task } = open()
+    const result = expectOk(
+      cancelInstance({
+        instance: state.instance,
+        template,
+        tasks: state.tasks,
+        actor: ALICE,
+        context: context(roles),
+        reason: 'Client withdrew',
+      }),
+    )
+
+    assert.equal(result.instance.status, 'cancelled')
+    assert.deepEqual(result.instance.currentStageKeys, [])
+    // Cancelled, never completed: a report must not count this as delivered.
+    assert.equal(result.taskUpdates[0].changes.status, 'cancelled')
+    assert.equal(result.taskUpdates[0].taskId, task.taskId)
+    assert.equal(result.events[0].action, 'instance_cancelled')
+    assert.equal(result.events[0].comment, 'Client withdrew')
+  })
+
+  it('tells whoever was holding the work that it is off', () => {
+    const { state } = open()
+    const result = expectOk(
+      cancelInstance({
+        instance: state.instance,
+        template,
+        tasks: state.tasks,
+        actor: ALICE,
+        context: context(roles),
+        reason: 'Client withdrew',
+      }),
+    )
+
+    assert.deepEqual(
+      result.notifications.map((note) => [note.recipientId, note.kind]),
+      [[BEN, 'workflow_cancelled']],
+    )
+  })
+
+  it('will not cancel without a reason, or cancel twice', () => {
+    const { state } = open()
+    const base = {
+      instance: state.instance,
+      template,
+      tasks: state.tasks,
+      actor: ALICE,
+      context: context(roles),
+    }
+
+    assert.deepEqual(codesOf(cancelInstance({ ...base, reason: ' ' })), ['reason_required'])
+    assert.deepEqual(
+      codesOf(
+        cancelInstance({
+          ...base,
+          instance: { ...state.instance, status: 'cancelled' },
+          reason: 'Again',
+        }),
+      ),
+      ['instance_not_active'],
+    )
   })
 })

@@ -97,4 +97,17 @@ export interface TaskOperationRequest {
   context: EngineContext
 }
 
+/**
+ * State an instance-level operation acts on.
+ *
+ * No `taskId`: cancelling is about the whole run, not one person's part.
+ */
+export interface InstanceOperationRequest {
+  template: WorkflowTemplate
+  instance: WorkflowInstance
+  tasks: Task[]
+  actor: UserId
+  context: EngineContext
+}
+
 export type { RoleId }

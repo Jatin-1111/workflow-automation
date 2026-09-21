@@ -9,6 +9,7 @@
 
 import type { FieldValue, WorkflowInstance } from '@/lib/types/instance'
 import type { ChecklistItemState, Task } from '@/lib/types/task'
+import type { TaskStatus } from '@/lib/types/status'
 import type { FileId, UserId } from '@/lib/types/ids'
 import type { StageDefinition } from '@/lib/types/workflow'
 import { activateStage } from './activate'
@@ -20,6 +21,7 @@ import { pickDeclaredFields, validateCompletion } from './validation'
 import type {
   EngineContext,
   EngineResult,
+  InstanceOperationRequest,
   NotificationDraft,
   StageSubmission,
   StartInstanceRequest,
@@ -799,4 +801,202 @@ function latestFileId(tasks: Task[]): FileId | undefined {
     .filter((task) => task.files.length > 0)
     .sort((a, b) => b.activatedAt.getTime() - a.activatedAt.getTime())
   return withFiles[0]?.files.at(-1)?.fileId
+}
+
+/* -------------------------------------------------------------------------
+ * Pausing and stopping (spec §42)
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Park a task that cannot move right now.
+ *
+ * Two kinds, because the difference matters to whoever reads the dashboard:
+ * `waiting` is normal latency outside the company — a client has not replied
+ * — and `blocked` is something wrong that somebody has to clear. Both stop the
+ * task being presented as actionable.
+ *
+ * A reason is required. The whole point is that a stalled piece of work says
+ * why it stalled, rather than sitting in a list looking merely slow, and an
+ * optional reason would mostly be left blank.
+ */
+export function holdTask(
+  request: TaskOperationRequest & {
+    hold: Extract<TaskStatus, 'waiting' | 'blocked'>
+    reason: string
+  },
+): EngineOutcome<EngineResult> {
+  const loaded = loadTask(request)
+  if (!loaded.ok) return loaded
+
+  const { task, stage } = loaded.result
+  const { context } = request
+
+  if (task.status === 'waiting' || task.status === 'blocked') {
+    return refuse({
+      code: 'task_on_hold',
+      message: 'That task is already on hold.',
+      key: stage.key,
+    })
+  }
+
+  const reason = request.reason.trim()
+  if (!reason) {
+    return refuse({
+      code: 'reason_required',
+      message: 'Say what this is waiting on, so the delay explains itself.',
+      key: stage.key,
+    })
+  }
+
+  return accept({
+    instance: { ...request.instance, updatedAt: context.now },
+    taskUpdates: [
+      {
+        taskId: task.taskId,
+        changes: { status: request.hold, updatedAt: context.now },
+      },
+    ],
+    newTasks: [],
+    events: [
+      {
+        taskId: task.taskId,
+        stageKey: stage.key,
+        actorId: request.actor,
+        action: 'task_held',
+        comment: `${request.hold === 'blocked' ? 'Blocked' : 'Waiting'}: ${reason}`,
+        at: context.now,
+      },
+    ],
+    // The person who raised the work is the one who needs to know it stopped;
+    // the holder is the one who just said so.
+    notifications:
+      request.instance.initiatedBy === request.actor
+        ? []
+        : [
+            {
+              recipientId: request.instance.initiatedBy,
+              kind: 'task_held',
+              title: `${request.hold === 'blocked' ? 'Blocked' : 'Waiting'}: ${stage.name}`,
+              body: `${request.instance.title} — ${reason}`,
+              taskId: task.taskId,
+            },
+          ],
+  })
+}
+
+/** Put a held task back into play, with the deadline it always had. */
+export function resumeTask(
+  request: TaskOperationRequest,
+): EngineOutcome<EngineResult> {
+  const loaded = loadTask(request)
+  if (!loaded.ok) return loaded
+
+  const { task, stage } = loaded.result
+  const { context } = request
+
+  if (task.status !== 'waiting' && task.status !== 'blocked') {
+    return refuse({
+      code: 'task_not_on_hold',
+      message: 'That task is not on hold.',
+      key: stage.key,
+    })
+  }
+
+  // Back to where it was: anything already recorded means it was under way.
+  const resumed: TaskStatus =
+    Object.keys(task.fieldValues).length > 0 || task.files.length > 0
+      ? 'in_progress'
+      : 'not_started'
+
+  return accept({
+    instance: { ...request.instance, updatedAt: context.now },
+    taskUpdates: [
+      { taskId: task.taskId, changes: { status: resumed, updatedAt: context.now } },
+    ],
+    newTasks: [],
+    events: [
+      {
+        taskId: task.taskId,
+        stageKey: stage.key,
+        actorId: request.actor,
+        action: 'task_resumed',
+        at: context.now,
+      },
+    ],
+    notifications: [],
+  })
+}
+
+/**
+ * Call off a whole run (spec §42).
+ *
+ * Cancelling is not completing: no next stage is activated, nothing is marked
+ * approved, and the instance stops where it stands. Every open task is closed
+ * with it, because leaving one on somebody's dashboard would have them working
+ * on something that no longer exists.
+ *
+ * Authorisation is the caller's: the engine has no view of who may do this.
+ */
+export function cancelInstance(
+  request: InstanceOperationRequest & { reason: string },
+): EngineOutcome<EngineResult> {
+  const { instance, context } = request
+
+  if (instance.status === 'completed' || instance.status === 'cancelled') {
+    return refuse({
+      code: 'instance_not_active',
+      message: 'This workflow is no longer running.',
+    })
+  }
+
+  const reason = request.reason.trim()
+  if (!reason) {
+    return refuse({
+      code: 'reason_required',
+      message: 'Say why this is being called off. It stays on the record.',
+    })
+  }
+
+  const open = request.tasks.filter((task) => !task.completedAt)
+
+  const notified = new Set<UserId>()
+  const notifications: NotificationDraft[] = []
+  for (const task of open) {
+    for (const assignee of task.assignees) {
+      if (assignee === request.actor || notified.has(assignee)) continue
+      notified.add(assignee)
+      notifications.push({
+        recipientId: assignee,
+        kind: 'workflow_cancelled',
+        title: `Cancelled: ${instance.title}`,
+        body: reason,
+        taskId: task.taskId,
+      })
+    }
+  }
+
+  return accept({
+    instance: {
+      ...instance,
+      currentStageKeys: [],
+      status: 'cancelled',
+      updatedAt: context.now,
+    },
+    taskUpdates: open.map((task) => ({
+      taskId: task.taskId,
+      // Cancelled, not completed: this work was never done, and a report that
+      // counted it as finished would overstate what the team delivered.
+      changes: { status: 'cancelled' as TaskStatus, updatedAt: context.now },
+    })),
+    newTasks: [],
+    events: [
+      {
+        actorId: request.actor,
+        action: 'instance_cancelled',
+        comment: reason,
+        at: context.now,
+      },
+    ],
+    notifications,
+  })
 }

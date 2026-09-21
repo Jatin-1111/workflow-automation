@@ -15,6 +15,7 @@ import { TaskForm } from '@/features/tasks/task-form'
 import { FilePanel } from '@/features/tasks/file-panel'
 import { CommentPanel } from '@/features/tasks/comment-panel'
 import { ReassignPanel } from '@/features/tasks/reassign-panel'
+import { HoldPanel } from '@/features/tasks/hold-panel'
 import { StageProgressBar } from '@/features/tasks/stage-progress'
 import { TimelinePanel } from '@/features/tasks/timeline-panel'
 import { StatusBadge } from '@/features/my-work/status-badge'
@@ -160,6 +161,21 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
                 people={detail.assignable}
                 currentAssignees={detail.assigneeIds}
                 stageSource={detail.assignmentSource}
+              />
+            ) : null}
+
+            {!task.completedAt ? (
+              <HoldPanel
+                // Its open/confirm state only means anything for the status it
+                // was opened against; remounting drops a form left ajar by the
+                // previous hold or resume.
+                key={task.status}
+                taskId={task.taskId}
+                instanceId={detail.instanceId}
+                status={task.status}
+                heldReason={detail.heldReason}
+                canOperate={detail.canOperate}
+                canCancel={detail.canCancel}
               />
             ) : null}
 

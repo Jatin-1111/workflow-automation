@@ -9,9 +9,12 @@ import { appendTimelineEvents } from '@/lib/db/repositories/timeline-events'
 import {
   approveTask,
   attachFileToTask,
+  cancelWorkflowInstance,
   completeTask,
+  holdTaskFor,
   loadTaskContext,
   reassignTaskTo,
+  resumeHeldTask,
   requestTaskChanges,
   saveTaskProgress,
   type OperationOutcome,
@@ -26,6 +29,7 @@ import {
 } from './form-parsing'
 import type { StageSubmission } from '@/lib/engine'
 import { listUsers } from '@/lib/db/repositories/users'
+import { isEntityId } from '@/lib/ids/format'
 import type { FileId, TaskId } from '@/lib/types/ids'
 
 export type TaskActionState = OperationOutcome | { ok: null }
@@ -251,4 +255,79 @@ export async function addCommentAction(
 
   revalidateTask(taskId)
   return { ok: true }
+}
+
+/**
+ * Park a task, saying what it is waiting on (spec §42).
+ *
+ * Only the people holding it: parking somebody else's work without being able
+ * to act on it would hide a delay rather than explain it.
+ */
+export async function holdTaskAction(
+  _previous: TaskActionState,
+  formData: FormData,
+): Promise<TaskActionState> {
+  const user = await requireUser()
+  const taskId = readTaskId(formData)
+  if (!taskId) return refuse('task_not_found', 'That task could not be identified.')
+
+  const hold = String(formData.get('hold') ?? '')
+  if (hold !== 'waiting' && hold !== 'blocked') {
+    return refuse('invalid_hold', 'Choose whether this is waiting or blocked.')
+  }
+
+  const outcome = await holdTaskFor(
+    taskId,
+    user.userId,
+    hold,
+    readReason(formData) ?? '',
+  )
+  if (outcome.ok) revalidateTask(taskId)
+  return outcome
+}
+
+export async function resumeTaskAction(
+  _previous: TaskActionState,
+  formData: FormData,
+): Promise<TaskActionState> {
+  const user = await requireUser()
+  const taskId = readTaskId(formData)
+  if (!taskId) return refuse('task_not_found', 'That task could not be identified.')
+
+  const outcome = await resumeHeldTask(taskId, user.userId)
+  if (outcome.ok) revalidateTask(taskId)
+  return outcome
+}
+
+/**
+ * Call off a whole run (spec §42).
+ *
+ * Gated on `instance.cancel` rather than on holding a task: stopping a piece
+ * of work for everybody is a management decision, not the current assignee's.
+ */
+export async function cancelInstanceAction(
+  _previous: TaskActionState,
+  formData: FormData,
+): Promise<TaskActionState> {
+  const user = await requireCapability('instance.cancel')
+
+  const instanceId = String(formData.get('instanceId') ?? '')
+  if (!isEntityId(instanceId, 'workflowInstance')) {
+    return refuse('instance_not_found', 'That workflow could not be identified.')
+  }
+
+  const outcome = await cancelWorkflowInstance(
+    instanceId,
+    user.userId,
+    readReason(formData) ?? '',
+  )
+  if (outcome.ok) {
+    // Cancelling is instance-wide, and the page it was done from is a task
+    // page, so refresh that too rather than leaving a stale view behind.
+    const taskId = readTaskId(formData)
+    if (taskId) revalidateTask(taskId)
+    revalidatePath('/dashboard')
+    revalidatePath('/projects')
+  }
+  return outcome
 }

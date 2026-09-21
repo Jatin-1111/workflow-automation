@@ -17,6 +17,13 @@ export const NOTIFICATION_KINDS = [
   'deadline_approaching',
   'task_overdue',
   'workflow_completed',
+  /**
+   * Both beyond §41's list. Work that stops — parked or called off — has to
+   * reach the people relying on it, and saying so under a kind that means
+   * something else would read as a lie on the notifications page.
+   */
+  'task_held',
+  'workflow_cancelled',
 ] as const
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number]
 

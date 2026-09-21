@@ -16,7 +16,10 @@ import { findInstanceById } from '@/lib/db/repositories/workflow-instances'
 import { findTemplateVersion } from '@/lib/db/repositories/workflow-templates'
 import {
   approve,
+  cancelInstance,
   completeStage,
+  holdTask,
+  resumeTask,
   reassignTask,
   recordFileUpload,
   requestChanges,
@@ -28,7 +31,7 @@ import {
 } from '@/lib/engine'
 import { buildEngineContext } from './engine-context'
 import { persistResult } from './persist'
-import type { FileId, TaskId, UserId } from '@/lib/types/ids'
+import type { FileId, TaskId, UserId, WorkflowInstanceId } from '@/lib/types/ids'
 import type { WorkflowInstance } from '@/lib/types/instance'
 import type { Task } from '@/lib/types/task'
 import type { WorkflowTemplate } from '@/lib/types/workflow'
@@ -169,4 +172,60 @@ export function attachFileToTask(
   file: { fileId: FileId; slotKey?: string; version: number },
 ): Promise<OperationOutcome> {
   return run(taskId, actor, (request) => recordFileUpload({ ...request, file }))
+}
+
+/**
+ * Park a task, or put it back (spec §42).
+ *
+ * The engine settles whether the transition is coherent and insists on a
+ * reason; who may do it is the caller's business, and today that is whoever
+ * holds the task.
+ */
+export function holdTaskFor(
+  taskId: TaskId,
+  actor: UserId,
+  hold: 'waiting' | 'blocked',
+  reason: string,
+): Promise<OperationOutcome> {
+  return run(taskId, actor, (request) => holdTask({ ...request, hold, reason }))
+}
+
+export function resumeHeldTask(taskId: TaskId, actor: UserId): Promise<OperationOutcome> {
+  return run(taskId, actor, resumeTask)
+}
+
+/**
+ * Call off a whole run.
+ *
+ * Instance-level rather than task-level, so it loads from the instance and
+ * does not go through `run`, which is built around one person's task.
+ * Authorisation belongs to the caller: the engine cannot see who is asking.
+ */
+export async function cancelWorkflowInstance(
+  instanceId: WorkflowInstanceId,
+  actor: UserId,
+  reason: string,
+): Promise<OperationOutcome> {
+  const instance = await findInstanceById(instanceId)
+  if (!instance) return failed('instance_not_found', 'That workflow no longer exists.')
+
+  const template = await findTemplateVersion(instance.workflowId, instance.templateVersion)
+  if (!template) {
+    return failed('template_missing', 'The version this workflow started on is missing.')
+  }
+
+  const now = new Date()
+  const outcome = cancelInstance({
+    template,
+    instance,
+    tasks: await listTasksForInstance(instanceId),
+    actor,
+    context: await buildEngineContext(template, now),
+    reason,
+  })
+
+  if (!outcome.ok) return { ok: false, errors: outcome.errors }
+
+  await persistResult(outcome.result, now)
+  return { ok: true }
 }
