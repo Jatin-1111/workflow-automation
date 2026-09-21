@@ -46,21 +46,44 @@ nothing wakes them, a slipping deadline goes quiet again, which is the thing
 this platform exists to stop. **A deployment without this scheduled is a
 deployment with half of §41.**
 
-Run `npm run reminders` every fifteen minutes or so, by whichever means the host
-offers — a cron entry, a Windows scheduled task, a container sidecar:
+`GET /api/cron/reminders` does the work. It authorises against `CRON_SECRET`
+as a bearer token (or a `?key=` parameter for schedulers that cannot set
+headers) and refuses outright when no secret is set, rather than falling open.
+`npm run reminders` does the same thing from a shell.
+
+Running it repeatedly is harmless: what has already been said is read back
+before anything is written, so nobody is told the same thing twice. Not running
+it at all is the only failure mode.
+
+**Self-hosted** — a crontab entry, systemd timer or Windows scheduled task:
 
 ```
 */15 * * * * cd /srv/business-orbit && npm run reminders
 ```
 
-Hosts that call a URL instead can hit `GET /api/cron/reminders`, which does the
-same work. It authorises against `CRON_SECRET` as a bearer token (or a `?key=`
-parameter for schedulers that cannot set headers), and refuses outright when no
-secret is configured rather than falling open.
+**On Vercel** — `vercel.json` holds a daily run at 03:00 UTC (08:30 IST), which
+is all the Hobby plan allows: it caps cron at once per day and fires anywhere
+inside the hour. Vercel sends `Authorization: Bearer $CRON_SECRET` on its own
+once that variable is set in the project, so nothing needs changing.
 
-Running it more often than necessary is harmless: what has already been said is
-read back before anything is written, so nobody is told the same thing twice.
-Not running it at all is the only failure mode.
+Once a day is not enough on its own. Overdue notices would arrive up to a day
+late, and the "due soon" window — half a stage's own allowance — would usually
+be missed entirely, so work would skip straight from silence to overdue. Treat
+the Vercel entry as a floor and drive the real cadence from outside:
+
+1. Sign in at **cron-job.org** (free, unlimited jobs, one-minute granularity).
+2. Create a job for `https://<your-domain>/api/cron/reminders`, every 15 minutes.
+3. Under the job's headers, add `Authorization` with the value
+   `Bearer <your CRON_SECRET>`.
+
+Two of its quirks are worth knowing: it treats a response over 1024 bytes or a
+run over 30 seconds as a failure. This endpoint answers with a short JSON
+summary well inside both, but a much larger organisation could one day cross
+the time limit — the work still happens, the service just records it as failed.
+
+If you would rather own the scheduler in code than in somebody's dashboard, a
+Cloudflare Worker on a cron trigger does the same job on the free plan (five
+triggers per account, minute granularity) and lives in version control.
 
 ---
 
