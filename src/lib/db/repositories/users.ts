@@ -34,6 +34,14 @@ export async function findUsersByRole(roleId: RoleId): Promise<User[]> {
   return (await users()).find({ roleIds: roleId, status: 'active' }, WITHOUT_ID).toArray()
 }
 
+/** Name or email match, for global search (spec §48). */
+export async function searchUsers(pattern: RegExp, limit = 10): Promise<User[]> {
+  return (await users())
+    .find({ $or: [{ name: pattern }, { email: pattern }] }, WITHOUT_ID)
+    .limit(limit)
+    .toArray()
+}
+
 export async function listUsers(): Promise<User[]> {
   return (await users()).find({}, WITHOUT_ID).sort({ name: 1 }).toArray()
 }

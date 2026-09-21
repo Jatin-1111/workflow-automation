@@ -64,6 +64,24 @@ export async function listOpenTasksForProject(projectId: ProjectId): Promise<Tas
 }
 
 /** Open tasks across the organisation, for the management views. */
+export async function searchTasks(pattern: RegExp, limit = 20): Promise<Task[]> {
+  return (await tasks())
+    .find({ stageName: pattern }, WITHOUT_ID)
+    .sort({ dueAt: 1 })
+    .limit(limit)
+    .toArray()
+}
+
+/** Every instance a person has ever been assigned work on. */
+export async function listInstanceIdsAssignedTo(
+  userId: UserId,
+): Promise<WorkflowInstanceId[]> {
+  const rows = await (await tasks())
+    .find({ assignees: userId }, { projection: { instanceId: 1, _id: 0 } })
+    .toArray()
+  return [...new Set(rows.map((row) => row.instanceId))]
+}
+
 export async function listAllOpenTasks(): Promise<Task[]> {
   return (await tasks())
     .find({ status: { $ne: 'completed' } }, WITHOUT_ID)

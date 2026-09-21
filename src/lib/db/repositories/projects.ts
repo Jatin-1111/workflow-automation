@@ -18,6 +18,13 @@ export async function findProjectById(projectId: ProjectId): Promise<Project | n
   return (await projects()).findOne({ projectId }, WITHOUT_ID)
 }
 
+export async function searchProjects(pattern: RegExp, limit = 10): Promise<Project[]> {
+  return (await projects())
+    .find({ $or: [{ name: pattern }, { description: pattern }] }, WITHOUT_ID)
+    .limit(limit)
+    .toArray()
+}
+
 export async function listProjects(): Promise<Project[]> {
   return (await projects()).find({}, WITHOUT_ID).sort({ name: 1 }).toArray()
 }

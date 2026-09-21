@@ -17,6 +17,14 @@ export async function findFileById(fileId: FileId): Promise<FileRecord | null> {
   return (await files()).findOne({ fileId }, WITHOUT_ID)
 }
 
+export async function searchFiles(pattern: RegExp, limit = 20): Promise<FileRecord[]> {
+  return (await files())
+    .find({ name: pattern }, WITHOUT_ID)
+    .sort({ uploadedAt: -1 })
+    .limit(limit)
+    .toArray()
+}
+
 export async function listFilesForInstance(
   instanceId: WorkflowInstanceId,
 ): Promise<FileRecord[]> {

@@ -30,6 +30,28 @@ export async function findInstancesByIds(
   return (await instances()).find({ instanceId: { $in: instanceIds } }, WITHOUT_ID).toArray()
 }
 
+/** Title match — which is how a client or an episode is found (spec §48). */
+export async function searchInstances(
+  pattern: RegExp,
+  limit = 20,
+): Promise<WorkflowInstance[]> {
+  return (await instances())
+    .find({ title: pattern }, WITHOUT_ID)
+    .sort({ startedAt: -1 })
+    .limit(limit)
+    .toArray()
+}
+
+/** Instances somebody has a part in, used to scope what search may return. */
+export async function listInstanceIdsStartedBy(
+  initiatedBy: UserId,
+): Promise<WorkflowInstanceId[]> {
+  const rows = await (await instances())
+    .find({ initiatedBy }, { projection: { instanceId: 1, _id: 0 } })
+    .toArray()
+  return rows.map((row) => row.instanceId)
+}
+
 export async function listInstances(filter?: {
   projectId?: ProjectId
   status?: WorkflowInstance['status']

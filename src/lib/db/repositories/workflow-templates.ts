@@ -106,6 +106,16 @@ export async function deleteTemplateVersion(
   await (await templates()).deleteOne({ workflowId, version, status: 'draft' })
 }
 
+export async function searchTemplates(
+  pattern: RegExp,
+  limit = 10,
+): Promise<WorkflowTemplate[]> {
+  return (await templates())
+    .find({ status: 'active', $or: [{ name: pattern }, { description: pattern }] }, WITHOUT_ID)
+    .limit(limit)
+    .toArray()
+}
+
 export async function listActiveTemplates(
   projectId?: ProjectId,
 ): Promise<WorkflowTemplate[]> {

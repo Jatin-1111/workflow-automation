@@ -104,6 +104,9 @@ the role at somebody else in **Admin → People** and every workflow follows.
 - **Conditional stages** — a stage can be set to run only when what the
   workflow recorded earlier says it should. A stage that does not apply is
   skipped, and the skip is recorded rather than passed over silently.
+- **Global search** across people, projects, workflows, work, stages and
+  files, scoped to what the person searching may see. Pasting a permanent ID
+  goes straight to it.
 
 ---
 
@@ -114,7 +117,6 @@ Stated plainly so nothing here is a surprise.
 | Not built | Where it stands |
 |---|---|
 | **Workflow versioning enforcement** (§38) | Instances pin the version they started on and always read that version, so running work is already safe. What is missing is the UI for publishing v2 of a template. |
-| **Global search** (§48) | Search exists within My Work only. |
 | **Reports** | Not started. |
 | **Email / WhatsApp notification** (§41) | In-app only, as the brief specifies. |
 

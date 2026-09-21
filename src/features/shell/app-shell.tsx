@@ -77,6 +77,17 @@ export async function AppShell({
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Search sits in the frame so it is reachable from anywhere. */}
+            <form method="get" action="/search" className="hidden sm:block">
+              <input
+                type="search"
+                name="q"
+                placeholder="Search or paste an ID"
+                aria-label="Search Business Orbit"
+                className="h-8 w-56 rounded-md border border-border bg-surface px-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
+              />
+            </form>
+
             <Link
               href="/notifications"
               aria-current={current === '/notifications' ? 'page' : undefined}
