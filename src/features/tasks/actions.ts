@@ -4,11 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { requireUser } from '@/lib/auth/dal'
 import { nextId } from '@/lib/ids/generate'
 import { insertComment } from '@/lib/db/repositories/comments'
-import {
-  insertFile,
-  markFileFinalApproved,
-  nextVersionForSlot,
-} from '@/lib/db/repositories/files'
+import { insertFile, nextVersionForSlot } from '@/lib/db/repositories/files'
 import { appendTimelineEvents } from '@/lib/db/repositories/timeline-events'
 import {
   approveTask,
@@ -112,7 +108,6 @@ export async function approveAction(
   const outcome = await approveTask(taskId, user.userId, readSubmission(formData), finalFileId)
   if (!outcome.ok) return outcome
 
-  if (finalFileId) await markFileFinalApproved(finalFileId)
   revalidateTask(taskId)
   return outcome
 }

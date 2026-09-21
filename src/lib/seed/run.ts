@@ -11,6 +11,7 @@ import { getDb } from '@/lib/db/client'
 import { COLLECTIONS } from '@/lib/db/collections'
 import { ensureIndexes } from '@/lib/db/indexes'
 import { nextIds } from '@/lib/ids/generate'
+import { clearStoredFiles } from '@/lib/files/blob-store'
 import { insertDepartments } from '@/lib/db/repositories/departments'
 import { insertProjects } from '@/lib/db/repositories/projects'
 import { insertRoles } from '@/lib/db/repositories/roles'
@@ -67,6 +68,8 @@ async function resetCollections(): Promise<void> {
     COLLECTIONS.timelineEvents,
   ]
   await Promise.all(names.map((name) => db.collection(name).deleteMany({})))
+  // Drop the blobs too, or reseeding leaves files nothing points at.
+  await clearStoredFiles()
 }
 
 /** Pair each seed definition with a freshly allocated id, keyed by machine key. */

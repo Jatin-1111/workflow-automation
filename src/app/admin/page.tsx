@@ -33,6 +33,16 @@ export default async function AdminPage() {
   const holdersOf = (roleId: string) =>
     users.filter((user) => user.roleIds.includes(roleId as never))
 
+  /**
+   * Only active people count as cover.
+   *
+   * The engine resolves a role to its *active* holders, so counting a
+   * deactivated account here would report a role as covered while any workflow
+   * routing to it refuses to activate.
+   */
+  const activeHoldersOf = (roleId: string) =>
+    holdersOf(roleId).filter((user) => user.status === 'active')
+
   return (
     <AppShell user={admin} current="/admin">
       <main className="mx-auto w-full max-w-5xl px-6 py-8">
@@ -51,7 +61,11 @@ export default async function AdminPage() {
           >
             <ul className="divide-y divide-border">
               {roles.map((role) => {
-                const holders = holdersOf(role.roleId)
+                const active = activeHoldersOf(role.roleId)
+                const inactive = holdersOf(role.roleId).filter(
+                  (user) => user.status !== 'active',
+                )
+
                 return (
                   <li
                     key={role.roleId}
@@ -61,14 +75,23 @@ export default async function AdminPage() {
                       <span className="block font-medium">{role.name}</span>
                       <span className="font-mono text-xs text-subtle">{role.key}</span>
                     </span>
-                    <span
-                      className={`shrink-0 text-xs ${
-                        holders.length === 0 ? 'font-medium text-status-overdue' : 'text-muted'
-                      }`}
-                    >
-                      {holders.length === 0
-                        ? 'Nobody assigned'
-                        : holders.map((user) => user.name).join(', ')}
+                    <span className="shrink-0 text-right text-xs">
+                      <span
+                        className={
+                          active.length === 0
+                            ? 'font-medium text-status-overdue'
+                            : 'text-muted'
+                        }
+                      >
+                        {active.length === 0
+                          ? 'Nobody assigned'
+                          : active.map((user) => user.name).join(', ')}
+                      </span>
+                      {inactive.length > 0 ? (
+                        <span className="block text-subtle">
+                          {inactive.map((user) => user.name).join(', ')} (deactivated)
+                        </span>
+                      ) : null}
                     </span>
                   </li>
                 )

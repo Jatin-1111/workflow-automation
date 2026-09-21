@@ -7,7 +7,8 @@
  */
 
 import { nextId } from '@/lib/ids/generate'
-import { insertFile } from '@/lib/db/repositories/files'
+import { insertFile, markFileFinalApproved } from '@/lib/db/repositories/files'
+import { storeBytes } from '@/lib/files/blob-store'
 import { listTasksForInstance } from '@/lib/db/repositories/tasks'
 import { findInstanceById } from '@/lib/db/repositories/workflow-instances'
 import {
@@ -256,6 +257,25 @@ function defaultValueFor(
   return sentences[key] ?? `Recorded for ${subject}.`
 }
 
+/** A tiny valid PDF, so seeded attachments open rather than 404. */
+function placeholderPdf(caption: string): Buffer {
+  const text = caption.replace(/[()\\]/g, '')
+  const body = [
+    '%PDF-1.4',
+    '1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj',
+    '2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj',
+    '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 120]/Contents 4 0 R' +
+      '/Resources<</Font<</F1 5 0 R>>>>>>endobj',
+    `4 0 obj<</Length 70>>stream`,
+    `BT /F1 10 Tf 20 60 Td (${text}) Tj ET`,
+    'endstream endobj',
+    '5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj',
+    'trailer<</Root 1 0 R>>',
+    '%%EOF',
+  ].join('\n')
+  return Buffer.from(body, 'utf8')
+}
+
 function unwrap<T>(label: string, outcome: EngineOutcome<T>): T {
   if (!outcome.ok) {
     throw new Error(
@@ -298,6 +318,14 @@ async function driveTo(
     // Satisfy any required uploads before trying to complete the stage.
     for (const slot of stage.files.filter((file) => file.required)) {
       const fileId = await nextId('file')
+      // Write real bytes: a seeded record pointing at nothing would download
+      // as a broken link the moment anyone clicked it.
+      const stored = await storeBytes({
+        instanceId: current.instanceId,
+        extension: 'pdf',
+        bytes: placeholderPdf(`${slot.label} — ${current.title}`),
+      })
+
       await insertFile({
         fileId,
         instanceId: current.instanceId,
@@ -307,9 +335,9 @@ async function driveTo(
         slotKey: slot.key,
         name: `${slot.key}-v1.pdf`,
         mimeType: 'application/pdf',
-        sizeBytes: 248_000,
+        sizeBytes: stored.sizeBytes,
         version: 1,
-        storageKey: `seed/${current.instanceId}/${fileId}.pdf`,
+        storageKey: stored.storageKey,
         isFinalApproved: false,
         uploadedBy: actor,
         uploadedAt: clock.at,
@@ -347,13 +375,18 @@ async function driveTo(
       context: await context(),
     }
 
-    await persistResult(
-      unwrap(
-        stageKey,
-        stage.requiresApproval ? approve(request) : completeStage(request),
-      ),
-      clock.at,
+    const result = unwrap(
+      stageKey,
+      stage.requiresApproval ? approve(request) : completeStage(request),
     )
+    await persistResult(result, clock.at)
+
+    // Mirror what the service does after an approval, so seeded history shows
+    // the same final-approved file a real run would (spec §30).
+    const approvedFileId = result.events.find(
+      (event) => event.action === 'approval_granted',
+    )?.fileId
+    if (approvedFileId) await markFileFinalApproved(approvedFileId)
   }
 }
 

@@ -12,7 +12,7 @@ import { findFileById } from '@/lib/db/repositories/files'
 import { listTasksForInstance } from '@/lib/db/repositories/tasks'
 import { findInstanceById } from '@/lib/db/repositories/workflow-instances'
 import { can } from '@/lib/auth/permissions'
-import { FileRejected, readStoredFile } from '@/lib/files/storage'
+import { FileMissing, FileRejected, readStoredFile } from '@/lib/files/storage'
 import { isEntityId } from '@/lib/ids/format'
 
 export async function GET(
@@ -53,7 +53,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    if (error instanceof FileRejected) {
+    if (error instanceof FileRejected || error instanceof FileMissing) {
       return new NextResponse('Not found', { status: 404 })
     }
     return new NextResponse('File unavailable', { status: 500 })

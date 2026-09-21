@@ -10,6 +10,7 @@
  */
 
 import 'server-only'
+import { markFileFinalApproved } from '@/lib/db/repositories/files'
 import { listTasksForInstance, findTaskById } from '@/lib/db/repositories/tasks'
 import { findInstanceById } from '@/lib/db/repositories/workflow-instances'
 import { findTemplateVersion } from '@/lib/db/repositories/workflow-templates'
@@ -69,6 +70,8 @@ async function run(
   actor: UserId,
   operate: (request: TaskOperationRequest) => EngineOutcome<EngineResult>,
   submission?: StageSubmission,
+  /** Runs after a successful operation, with the engine's own result. */
+  afterPersist?: (result: EngineResult) => Promise<void>,
 ): Promise<OperationOutcome> {
   const loaded = await loadTaskContext(taskId)
   if (!loaded) return failed('task_not_found', 'That task no longer exists.')
@@ -87,6 +90,7 @@ async function run(
   if (!outcome.ok) return { ok: false, errors: outcome.errors }
 
   await persistResult(outcome.result, now)
+  await afterPersist?.(outcome.result)
   return { ok: true }
 }
 
@@ -106,13 +110,30 @@ export function completeTask(
   return run(taskId, actor, completeStage, submission)
 }
 
+/**
+ * Approve a stage, and mark the file that was approved as final (spec §30).
+ *
+ * Which file that is comes from the engine's own decision, recorded on the
+ * approval event, rather than from whatever a form happened to submit.
+ */
 export function approveTask(
   taskId: TaskId,
   actor: UserId,
   submission: StageSubmission,
   finalFileId?: FileId,
 ): Promise<OperationOutcome> {
-  return run(taskId, actor, (request) => approve({ ...request, finalFileId }), submission)
+  return run(
+    taskId,
+    actor,
+    (request) => approve({ ...request, finalFileId }),
+    submission,
+    async (result) => {
+      const approved = result.events.find(
+        (event) => event.action === 'approval_granted',
+      )?.fileId
+      if (approved) await markFileFinalApproved(approved)
+    },
+  )
 }
 
 export function requestTaskChanges(
