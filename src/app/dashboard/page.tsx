@@ -9,14 +9,32 @@ import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
 import { getManagementOverview } from '@/features/management/queries'
+import { OverviewFilterBar } from '@/features/management/overview-filters'
+import { parseOverviewFilters } from '@/features/management/filters'
+import { listDepartments } from '@/lib/db/repositories/departments'
+import { listProjects } from '@/lib/db/repositories/projects'
+import { listRoles } from '@/lib/db/repositories/roles'
+import { listUsers } from '@/lib/db/repositories/users'
+import { listActiveTemplates } from '@/lib/db/repositories/workflow-templates'
 import { StatTile } from '@/features/management/stat-tile'
 import { EmptyRow, Section } from '@/features/management/section'
 import { formatDeadline } from '@/features/my-work/format'
 
-export default async function ManagementDashboardPage() {
+export default async function ManagementDashboardPage({
+  searchParams,
+}: PageProps<'/dashboard'>) {
   const user = await requireCapability('management.view_dashboard')
   const now = new Date()
-  const overview = await getManagementOverview(now)
+  const filters = parseOverviewFilters(await searchParams)
+
+  const [overview, projects, templates, people, roles, departments] = await Promise.all([
+    getManagementOverview(now, filters),
+    listProjects(),
+    listActiveTemplates(),
+    listUsers(),
+    listRoles(),
+    listDepartments(),
+  ])
   const { counts } = overview
 
   return (
@@ -32,6 +50,17 @@ export default async function ManagementDashboardPage() {
             .
           </p>
         </div>
+
+        <OverviewFilterBar
+          filters={filters}
+          projects={projects.map((p) => ({ value: p.projectId, label: p.name }))}
+          workflows={templates.map((t) => ({ value: t.workflowId, label: t.name }))}
+          people={people
+            .filter((person) => person.status === 'active')
+            .map((person) => ({ value: person.userId, label: person.name }))}
+          roles={roles.map((r) => ({ value: r.roleId, label: r.name }))}
+          departments={departments.map((d) => ({ value: d.departmentId, label: d.name }))}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatTile label="Active workflows" value={counts.activeWorkflows} />

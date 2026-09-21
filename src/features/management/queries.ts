@@ -10,12 +10,24 @@ import 'server-only'
 import { listDepartments } from '@/lib/db/repositories/departments'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listRoles } from '@/lib/db/repositories/roles'
-import { listAllOpenTasks, listTasksForInstance } from '@/lib/db/repositories/tasks'
+import {
+  listAllOpenTasks,
+  listAllTasks,
+  listTasksForInstance,
+} from '@/lib/db/repositories/tasks'
 import { listUsers } from '@/lib/db/repositories/users'
 import { listInstances } from '@/lib/db/repositories/workflow-instances'
 import { listActiveTemplates } from '@/lib/db/repositories/workflow-templates'
 import { deriveBucket, hasBreachedSla, hoursWaiting } from '@/lib/workflow/buckets'
 import { endOfBusinessDay } from '@/lib/workflow/business-day'
+import {
+  filterPeople,
+  filterTasks,
+  hasAnyFilter,
+  instancesMatching,
+  type OverviewFilters,
+  type PersonIndex,
+} from './filters'
 import type { ProjectId, TaskId, UserId, WorkflowInstanceId } from '@/lib/types/ids'
 import type { Priority } from '@/lib/types/status'
 
@@ -91,14 +103,27 @@ export interface ManagementOverview {
  */
 export async function getManagementOverview(
   now = new Date(),
+  filters: OverviewFilters = {},
 ): Promise<ManagementOverview> {
-  const [openTasks, instances, users, projects, templates] = await Promise.all([
-    listAllOpenTasks(),
-    listInstances(),
-    listUsers(),
-    listProjects(),
-    listActiveTemplates(),
-  ])
+  const [allOpenTasks, allInstances, users, projects, templates, allTasks] =
+    await Promise.all([
+      listAllOpenTasks(),
+      listInstances(),
+      listUsers(),
+      listProjects(),
+      listActiveTemplates(),
+      hasAnyFilter(filters) ? listAllTasks() : Promise.resolve([]),
+    ])
+
+  // Department and role belong to a person, not a task, so they are resolved
+  // through the directory rather than read off the work.
+  const index: PersonIndex = {
+    departmentOf: new Map(users.map((user) => [user.userId, user.departmentId])),
+    rolesOf: new Map(users.map((user) => [user.userId, user.roleIds])),
+  }
+
+  const openTasks = filterTasks(allOpenTasks, filters, index, now)
+  const instances = instancesMatching(allInstances, allTasks, filters, index)
 
   const userName = new Map(users.map((user) => [user.userId, user.name]))
   const projectName = new Map(projects.map((project) => [project.projectId, project.name]))
@@ -163,7 +188,7 @@ export async function getManagementOverview(
     }))
     .sort((a, b) => b.hoursWaiting - a.hoursWaiting)
 
-  const workload: WorkloadRow[] = users
+  const workload: WorkloadRow[] = filterPeople(users, filters)
     .filter((user) => user.status === 'active')
     .map((user) => {
       const mine = buckets.filter((entry) => entry.task.assignees.includes(user.userId))
@@ -199,7 +224,11 @@ export async function getManagementOverview(
       priority: entry.task.priority,
     }))
 
-  const projectRows: ProjectStatusRow[] = projects.map((project) => {
+  const visibleProjects = filters.project
+    ? projects.filter((project) => project.projectId === filters.project)
+    : projects
+
+  const projectRows: ProjectStatusRow[] = visibleProjects.map((project) => {
     const projectInstances = instances.filter(
       (instance) => instance.projectId === project.projectId,
     )
