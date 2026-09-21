@@ -1,6 +1,6 @@
 /** Data access for teams. */
 
-import { getCollection } from '../collection'
+import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { TeamId } from '@/lib/types/ids'
 import type { Team } from '@/lib/types/organization'
@@ -15,9 +15,9 @@ export async function insertTeams(docs: Team[]): Promise<void> {
 }
 
 export async function findTeamById(teamId: TeamId): Promise<Team | null> {
-  return (await teams()).findOne({ teamId })
+  return (await teams()).findOne({ teamId }, WITHOUT_ID)
 }
 
 export async function listTeams(): Promise<Team[]> {
-  return (await teams()).find().sort({ name: 1 }).toArray()
+  return (await teams()).find({}, WITHOUT_ID).sort({ name: 1 }).toArray()
 }

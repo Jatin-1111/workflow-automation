@@ -1,6 +1,6 @@
 /** Data access for in-app notifications (spec §41). */
 
-import { getCollection } from '../collection'
+import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { UserId } from '@/lib/types/ids'
 import type { Notification } from '@/lib/types/notification'
@@ -19,7 +19,7 @@ export async function listNotificationsForUser(
   limit = 30,
 ): Promise<Notification[]> {
   return (await notifications())
-    .find({ recipientId })
+    .find({ recipientId }, WITHOUT_ID)
     .sort({ createdAt: -1 })
     .limit(limit)
     .toArray()

@@ -1,6 +1,6 @@
 /** Data access for tasks — the collection the My Work dashboard reads. */
 
-import { getCollection } from '../collection'
+import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { ProjectId, TaskId, UserId, WorkflowInstanceId } from '@/lib/types/ids'
 import type { Task } from '@/lib/types/task'
@@ -22,14 +22,14 @@ export async function updateTask(
 }
 
 export async function findTaskById(taskId: TaskId): Promise<Task | null> {
-  return (await tasks()).findOne({ taskId })
+  return (await tasks()).findOne({ taskId }, WITHOUT_ID)
 }
 
 /** Every task of an instance, which is what the engine operates over. */
 export async function listTasksForInstance(
   instanceId: WorkflowInstanceId,
 ): Promise<Task[]> {
-  return (await tasks()).find({ instanceId }).sort({ activatedAt: 1 }).toArray()
+  return (await tasks()).find({ instanceId }, WITHOUT_ID).sort({ activatedAt: 1 }).toArray()
 }
 
 /**
@@ -40,7 +40,7 @@ export async function listTasksForInstance(
  */
 export async function listOpenTasksForUser(userId: UserId): Promise<Task[]> {
   return (await tasks())
-    .find({ assignees: userId, status: { $ne: 'completed' } })
+    .find({ assignees: userId, status: { $ne: 'completed' } }, WITHOUT_ID)
     .sort({ dueAt: 1, activatedAt: 1 })
     .toArray()
 }
@@ -50,7 +50,7 @@ export async function listCompletedTasksForUser(
   limit = 50,
 ): Promise<Task[]> {
   return (await tasks())
-    .find({ assignees: userId, status: 'completed' })
+    .find({ assignees: userId, status: 'completed' }, WITHOUT_ID)
     .sort({ completedAt: -1 })
     .limit(limit)
     .toArray()
@@ -58,7 +58,7 @@ export async function listCompletedTasksForUser(
 
 export async function listOpenTasksForProject(projectId: ProjectId): Promise<Task[]> {
   return (await tasks())
-    .find({ projectId, status: { $ne: 'completed' } })
+    .find({ projectId, status: { $ne: 'completed' } }, WITHOUT_ID)
     .sort({ dueAt: 1 })
     .toArray()
 }
@@ -66,7 +66,7 @@ export async function listOpenTasksForProject(projectId: ProjectId): Promise<Tas
 /** Open tasks across the organisation, for the management views. */
 export async function listAllOpenTasks(): Promise<Task[]> {
   return (await tasks())
-    .find({ status: { $ne: 'completed' } })
+    .find({ status: { $ne: 'completed' } }, WITHOUT_ID)
     .sort({ dueAt: 1 })
     .toArray()
 }

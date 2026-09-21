@@ -1,6 +1,6 @@
 /** Data access for workflow instances. */
 
-import { getCollection } from '../collection'
+import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { ProjectId, UserId, WorkflowInstanceId } from '@/lib/types/ids'
 import type { WorkflowInstance } from '@/lib/types/instance'
@@ -20,14 +20,14 @@ export async function replaceInstance(doc: WorkflowInstance): Promise<void> {
 export async function findInstanceById(
   instanceId: WorkflowInstanceId,
 ): Promise<WorkflowInstance | null> {
-  return (await instances()).findOne({ instanceId })
+  return (await instances()).findOne({ instanceId }, WITHOUT_ID)
 }
 
 export async function findInstancesByIds(
   instanceIds: WorkflowInstanceId[],
 ): Promise<WorkflowInstance[]> {
   if (instanceIds.length === 0) return []
-  return (await instances()).find({ instanceId: { $in: instanceIds } }).toArray()
+  return (await instances()).find({ instanceId: { $in: instanceIds } }, WITHOUT_ID).toArray()
 }
 
 export async function listInstances(filter?: {
@@ -35,7 +35,7 @@ export async function listInstances(filter?: {
   status?: WorkflowInstance['status']
 }): Promise<WorkflowInstance[]> {
   return (await instances())
-    .find({ ...filter })
+    .find({ ...filter }, WITHOUT_ID)
     .sort({ startedAt: -1 })
     .toArray()
 }
@@ -51,7 +51,7 @@ export async function listInstancesStartedBy(
   status: WorkflowInstance['status'][] = ['active', 'pending_approval'],
 ): Promise<WorkflowInstance[]> {
   return (await instances())
-    .find({ initiatedBy, status: { $in: status } })
+    .find({ initiatedBy, status: { $in: status } }, WITHOUT_ID)
     .sort({ startedAt: -1 })
     .toArray()
 }

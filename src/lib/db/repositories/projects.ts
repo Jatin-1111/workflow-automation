@@ -1,6 +1,6 @@
 /** Data access for Major Projects. */
 
-import { getCollection } from '../collection'
+import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { ProjectId } from '@/lib/types/ids'
 import type { Project } from '@/lib/types/project'
@@ -15,9 +15,9 @@ export async function insertProjects(docs: Project[]): Promise<void> {
 }
 
 export async function findProjectById(projectId: ProjectId): Promise<Project | null> {
-  return (await projects()).findOne({ projectId })
+  return (await projects()).findOne({ projectId }, WITHOUT_ID)
 }
 
 export async function listProjects(): Promise<Project[]> {
-  return (await projects()).find().sort({ name: 1 }).toArray()
+  return (await projects()).find({}, WITHOUT_ID).sort({ name: 1 }).toArray()
 }

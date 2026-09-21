@@ -13,7 +13,7 @@ import type {
   UserId,
   WorkflowTemplateId,
 } from './ids'
-import type { EntityStatus, Priority } from './status'
+import type { Priority } from './status'
 
 /** Input collected from the user at a stage. */
 export const FIELD_TYPES = [
@@ -117,6 +117,16 @@ export interface StageDefinition {
   conditions?: StageCondition[]
 }
 
+/**
+ * A template's lifecycle.
+ *
+ * A draft can be edited freely because nothing runs on it. Publishing makes it
+ * active; from then on it is immutable and changes go into a new version, so
+ * work already running keeps the process it started with (spec §38).
+ */
+export const TEMPLATE_STATUSES = ['draft', 'active', 'inactive'] as const
+export type TemplateStatus = (typeof TEMPLATE_STATUSES)[number]
+
 export interface WorkflowTemplate {
   /** Stable across versions — every version of Proposal Creation shares it. */
   workflowId: WorkflowTemplateId
@@ -128,7 +138,7 @@ export interface WorkflowTemplate {
   departmentId?: DepartmentId
   stages: StageDefinition[]
   initialStageKey: string
-  status: EntityStatus
+  status: TemplateStatus
   createdBy?: UserId
   createdAt: Date
   updatedAt: Date

@@ -1,6 +1,6 @@
 /** Data access for users. The only module that queries the users collection. */
 
-import { getCollection } from '../collection'
+import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { RoleId, UserId } from '@/lib/types/ids'
 import type { PublicUser, User } from '@/lib/types/user'
@@ -21,21 +21,21 @@ export async function insertUsers(docs: User[]): Promise<void> {
 }
 
 export async function findUserById(userId: UserId): Promise<User | null> {
-  return (await users()).findOne({ userId })
+  return (await users()).findOne({ userId }, WITHOUT_ID)
 }
 
 /** Login lookup. Email is matched case-insensitively by storing it lowercased. */
 export async function findUserByEmail(email: string): Promise<User | null> {
-  return (await users()).findOne({ email: email.trim().toLowerCase() })
+  return (await users()).findOne({ email: email.trim().toLowerCase() }, WITHOUT_ID)
 }
 
 /** Resolve a workflow role to the people who currently hold it (spec §6). */
 export async function findUsersByRole(roleId: RoleId): Promise<User[]> {
-  return (await users()).find({ roleIds: roleId, status: 'active' }).toArray()
+  return (await users()).find({ roleIds: roleId, status: 'active' }, WITHOUT_ID).toArray()
 }
 
 export async function listUsers(): Promise<User[]> {
-  return (await users()).find().sort({ name: 1 }).toArray()
+  return (await users()).find({}, WITHOUT_ID).sort({ name: 1 }).toArray()
 }
 
 /** Remap which workflow roles a person holds (spec §6). */

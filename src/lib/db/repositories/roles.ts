@@ -1,6 +1,6 @@
 /** Data access for workflow roles. */
 
-import { getCollection } from '../collection'
+import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { RoleId } from '@/lib/types/ids'
 import type { Role } from '@/lib/types/organization'
@@ -15,14 +15,14 @@ export async function insertRoles(docs: Role[]): Promise<void> {
 }
 
 export async function findRoleById(roleId: RoleId): Promise<Role | null> {
-  return (await roles()).findOne({ roleId })
+  return (await roles()).findOne({ roleId }, WITHOUT_ID)
 }
 
 /** Look up by the stable machine key templates and seeds refer to. */
 export async function findRoleByKey(key: string): Promise<Role | null> {
-  return (await roles()).findOne({ key })
+  return (await roles()).findOne({ key }, WITHOUT_ID)
 }
 
 export async function listRoles(): Promise<Role[]> {
-  return (await roles()).find().sort({ name: 1 }).toArray()
+  return (await roles()).find({}, WITHOUT_ID).sort({ name: 1 }).toArray()
 }

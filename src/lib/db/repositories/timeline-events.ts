@@ -1,6 +1,6 @@
 /** Data access for the append-only instance timeline (spec §33). */
 
-import { getCollection } from '../collection'
+import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { WorkflowInstanceId } from '@/lib/types/ids'
 import type { TimelineEvent } from '@/lib/types/timeline'
@@ -18,5 +18,5 @@ export async function appendTimelineEvents(docs: TimelineEvent[]): Promise<void>
 export async function listTimelineForInstance(
   instanceId: WorkflowInstanceId,
 ): Promise<TimelineEvent[]> {
-  return (await events()).find({ instanceId }).sort({ at: 1 }).toArray()
+  return (await events()).find({ instanceId }, WITHOUT_ID).sort({ at: 1 }).toArray()
 }

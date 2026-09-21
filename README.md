@@ -97,6 +97,10 @@ the role at somebody else in **Admin → People** and every workflow follows.
 - In-app notifications, user profile, and an admin panel for people and roles
 - Two complete workflows: Proposal Creation (7 stages) and Podcast Production
   (11 stages), both running on the same engine
+- **Workflow Builder** — create a process, add, reorder, duplicate and remove
+  stages, configure roles, fields, files, checklists, deadlines, approvals and
+  routing, then publish it. Editing a published workflow starts a new version;
+  work already running keeps the version it began on.
 
 ---
 
@@ -106,16 +110,15 @@ Stated plainly so nothing here is a surprise.
 
 | Not built | Where it stands |
 |---|---|
-| **Workflow Builder UI** (§34, §35) | The engine, the schema and the seed format are complete and in the shape the builder will emit. Only the admin-facing editor is missing; new workflows are added today as a data file, as `podcast-production.ts` shows. |
 | **Conditional stages** (§36) | `StageCondition` is carried on every stage and stored, but the engine does not evaluate it yet. A stage with conditions runs as though it had none. |
 | **Workflow versioning enforcement** (§38) | Instances pin the version they started on and always read that version, so running work is already safe. What is missing is the UI for publishing v2 of a template. |
 | **Global search** (§48) | Search exists within My Work only. |
 | **Reports** | Not started. |
 | **Email / WhatsApp notification** (§41) | In-app only, as the brief specifies. |
 
-**The honest framing:** week one ships the engine, not the builder. Demo the
-Podcast workflow first — it is the evidence that adding a process does not
-require a developer touching engine or interface code.
+**The honest framing:** an administrator can now build and publish a working
+process without a developer. Demo that first — creating a workflow in the
+builder and watching the engine run it is the whole product in one sitting.
 
 ---
 
@@ -132,6 +135,10 @@ require a developer touching engine or interface code.
 
 Adding the Podcast workflow touched only `src/lib/seed/`. Nothing in
 `src/lib/engine/`, `src/features/`, `src/app/` or `src/lib/db/` changed.
+
+A third workflow, Speaker Onboarding, was then built entirely through the
+Workflow Builder with no code at all, published, and driven to completion by
+the engine — rejection routing included.
 
 ---
 

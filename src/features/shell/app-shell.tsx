@@ -24,10 +24,8 @@ const NAV: NavEntry[] = [
   { href: '/dashboard', label: 'Dashboard', requires: 'management.view_dashboard' },
   { href: '/projects', label: 'Projects', requires: 'project.view_dashboard' },
   { href: '/team', label: 'Team', requires: 'team.view_workload' },
+  { href: '/workflows', label: 'Workflows', requires: 'admin.manage_workflows' },
   { href: '/admin', label: 'Admin', requires: 'admin.manage_users' },
-  // The Workflow Builder is the one navigation promise this release does not
-  // keep; shown so its absence is explicit rather than silent.
-  { href: '/workflows', label: 'Workflows', requires: 'admin.manage_workflows', pending: true },
 ]
 
 export async function AppShell({

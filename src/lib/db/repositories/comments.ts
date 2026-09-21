@@ -1,6 +1,6 @@
 /** Data access for instance comments (spec §40). */
 
-import { getCollection } from '../collection'
+import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { WorkflowInstanceId } from '@/lib/types/ids'
 import type { Comment } from '@/lib/types/comment'
@@ -17,5 +17,5 @@ export async function insertComment(doc: Comment): Promise<void> {
 export async function listCommentsForInstance(
   instanceId: WorkflowInstanceId,
 ): Promise<Comment[]> {
-  return (await comments()).find({ instanceId }).sort({ createdAt: 1 }).toArray()
+  return (await comments()).find({ instanceId }, WITHOUT_ID).sort({ createdAt: 1 }).toArray()
 }
