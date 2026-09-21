@@ -10,6 +10,7 @@ import { requireUser } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
 import { EmptyRow, Section } from '@/features/management/section'
 import { StatTile } from '@/features/management/stat-tile'
+import { PasswordPanel } from '@/features/profile/password-panel'
 import { getMyWork } from '@/features/my-work/queries'
 import { humanise } from '@/features/my-work/format'
 import { listDepartments } from '@/lib/db/repositories/departments'
@@ -117,6 +118,8 @@ export default async function ProfilePage() {
               </ul>
             )}
           </Section>
+
+          <PasswordPanel />
 
           <Section
             title="What I can do"

@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { signSessionToken, verifySessionToken } from './token'
+import {
+  sessionPredatesPasswordChange,
+  signSessionToken,
+  verifySessionToken,
+} from './token'
 import type { UserId } from '@/lib/types/ids'
 
 const SECRET = 'test-secret-value-that-is-long-enough-for-hs256'
@@ -14,7 +18,12 @@ function inAnHour() {
 describe('session tokens', () => {
   it('round-trips a user id', async () => {
     const token = await signSessionToken(USER, inAnHour(), SECRET)
-    assert.deepEqual(await verifySessionToken(token, SECRET), { userId: USER })
+    const claims = await verifySessionToken(token, SECRET)
+
+    assert.equal(claims?.userId, USER)
+    // The issue time rides along so a session can be compared against a
+    // later password change.
+    assert.equal(typeof claims?.issuedAt, 'number')
   })
 
   it('rejects a token signed with a different secret', async () => {
@@ -65,5 +74,43 @@ describe('session tokens', () => {
     } finally {
       if (saved !== undefined) process.env.SESSION_SECRET = saved
     }
+  })
+})
+
+describe('retiring sessions when a password changes', () => {
+  it('records when a token was issued', async () => {
+    const before = Math.floor(Date.now() / 1000)
+    const token = await signSessionToken(USER, new Date(Date.now() + 60_000), SECRET)
+    const claims = await verifySessionToken(token, SECRET)
+
+    assert.ok(claims)
+    assert.ok(claims.issuedAt >= before, 'issuedAt should be now or later')
+  })
+
+  it('leaves a session alone when the password has never changed', () => {
+    assert.equal(sessionPredatesPasswordChange(1_700_000_000, undefined), false)
+  })
+
+  it('retires a session issued before the change', () => {
+    const changed = new Date(1_700_000_500_000)
+    assert.equal(sessionPredatesPasswordChange(1_700_000_499, changed), true)
+  })
+
+  it('keeps a session issued after the change', () => {
+    const changed = new Date(1_700_000_500_000)
+    assert.equal(sessionPredatesPasswordChange(1_700_000_501, changed), false)
+  })
+
+  it('keeps the session issued in the same second as the change', () => {
+    // A JWT's `iat` is whole seconds. Comparing more finely than that would
+    // sign somebody out of the password change they just made.
+    const changed = new Date(1_700_000_500_750)
+    assert.equal(sessionPredatesPasswordChange(1_700_000_500, changed), false)
+  })
+
+  it('retires a token carrying no issue time at all', async () => {
+    // verifySessionToken reports a missing `iat` as the epoch, so a hand-made
+    // token cannot sit outside the rule.
+    assert.equal(sessionPredatesPasswordChange(0, new Date()), true)
   })
 })

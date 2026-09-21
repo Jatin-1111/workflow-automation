@@ -16,6 +16,8 @@ const ALGORITHM = 'HS256'
 
 export interface SessionClaims {
   userId: UserId
+  /** Unix seconds, as JWTs record it. Used to retire pre-change sessions. */
+  issuedAt: number
 }
 
 function signingKey(secret = process.env.SESSION_SECRET): Uint8Array {
@@ -55,8 +57,26 @@ export async function verifySessionToken(
     })
     const userId = payload.userId
     if (typeof userId !== 'string' || !isEntityId(userId, 'user')) return null
-    return { userId }
+    // `iat` is always set when signing; treat a missing one as the epoch so a
+    // hand-made token without it cannot outlive a password change.
+    return { userId, issuedAt: typeof payload.iat === 'number' ? payload.iat : 0 }
   } catch {
     return null
   }
+}
+
+/**
+ * Whether a session was issued before the password it was granted under.
+ *
+ * Such a session belongs to whoever held the old password. A JWT records its
+ * issue time in whole seconds, so the comparison is made at that resolution:
+ * finer precision would retire the very session issued moments after a
+ * change, signing people out of their own password change.
+ */
+export function sessionPredatesPasswordChange(
+  issuedAt: number,
+  passwordChangedAt: Date | undefined,
+): boolean {
+  if (!passwordChangedAt) return false
+  return issuedAt < Math.floor(passwordChangedAt.getTime() / 1000)
 }

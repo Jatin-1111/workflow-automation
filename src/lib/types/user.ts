@@ -30,6 +30,14 @@ export interface User {
   status: EntityStatus
   joiningDate?: Date
   passwordHash: string
+  /**
+   * When the password last changed, to the second.
+   *
+   * Sessions issued before this are refused, so changing a password you think
+   * is compromised actually turns the other sessions off rather than leaving
+   * them running until the token expires.
+   */
+  passwordChangedAt?: Date
   onboarding?: OnboardingState
   createdAt: Date
   updatedAt: Date

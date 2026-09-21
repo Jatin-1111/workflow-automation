@@ -15,6 +15,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireCapability } from '@/lib/auth/dal'
 import { hashPassword } from '@/lib/auth/password'
+import { createSession } from '@/lib/auth/session'
 import { nextId } from '@/lib/ids/generate'
 import { isEntityId } from '@/lib/ids/format'
 import {
@@ -36,8 +37,10 @@ import {
 } from '@/lib/db/repositories/roles'
 import {
   findUserByEmail,
+  findUserById,
   insertUser,
   listUsers,
+  updateUserPassword,
   updateUserProfile,
 } from '@/lib/db/repositories/users'
 import { ACCESS_LEVELS } from '@/lib/types/status'
@@ -415,4 +418,47 @@ export async function updateUserProfileAction(formData: FormData): Promise<void>
     teamId: readId(formData, 'teamId', 'team', teams) as TeamId | undefined,
   })
   refreshed()
+}
+
+/**
+ * Set somebody else's password (spec §45).
+ *
+ * There is no email channel, so there is no reset link: a forgotten password
+ * is recovered by an administrator setting a new one and passing it on out of
+ * band. Without this, a forgotten password means editing the database.
+ *
+ * Deliberately does not ask for the person's current password — nobody has
+ * it, which is the situation this exists for — so it is gated on the
+ * administrator capability and on nothing else.
+ */
+export async function resetUserPasswordAction(
+  _previous: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const admin = await requireCapability('admin.manage_users')
+
+  const userId = String(formData.get('userId') ?? '')
+  if (!isEntityId(userId, 'user')) {
+    return refuse('That person could not be identified.')
+  }
+
+  const password = String(formData.get('password') ?? '')
+  if (password.length < MIN_PASSWORD) {
+    return refuse(`A password needs at least ${MIN_PASSWORD} characters.`)
+  }
+
+  const target = await findUserById(userId as UserId)
+  if (!target) return refuse('That person could not be found.')
+
+  await updateUserPassword(userId as UserId, await hashPassword(password))
+
+  // Resetting your own password here would retire the session you are using,
+  // so re-issue it rather than signing yourself out mid-action.
+  if (userId === admin.userId) await createSession(admin.userId)
+
+  refreshed()
+  return {
+    ok: true,
+    message: `${target.name} can now sign in with the password you set. Anywhere they were signed in has been signed out.`,
+  }
 }

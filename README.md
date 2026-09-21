@@ -219,6 +219,8 @@ it, skipped and recorded when it did not.
   outright rather than accepted quietly, because an upload that appears to
   work and then vanishes is worse than an error.
 - **`SESSION_SECRET` must be set** to a real random value per environment.
+  Rotating it signs everybody out, which is the emergency lever; changing one
+  person's password retires only their other sessions.
 - **`CRON_SECRET` must be set** or `/api/cron/reminders` answers 503 and the
   scheduled run does nothing. It refuses rather than falling open, so the
   failure is silent unless you look at the cron logs.

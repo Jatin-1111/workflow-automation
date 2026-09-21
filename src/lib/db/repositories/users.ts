@@ -101,3 +101,22 @@ export async function updateUserProfile(
     { $set: { ...changes, updatedAt: new Date() } },
   )
 }
+
+/**
+ * Replace somebody's password.
+ *
+ * `passwordChangedAt` is stored truncated to the second because a JWT records
+ * its issue time in whole seconds: keeping finer precision here would retire
+ * the very session issued moments later.
+ */
+export async function updateUserPassword(
+  userId: UserId,
+  passwordHash: string,
+  changedAt: Date = new Date(),
+): Promise<void> {
+  const toTheSecond = new Date(Math.floor(changedAt.getTime() / 1000) * 1000)
+  await (await users()).updateOne(
+    { userId },
+    { $set: { passwordHash, passwordChangedAt: toTheSecond, updatedAt: changedAt } },
+  )
+}

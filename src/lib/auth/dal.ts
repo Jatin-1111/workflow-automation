@@ -13,6 +13,7 @@ import { redirect } from 'next/navigation'
 import { findUserById, toPublicUser } from '@/lib/db/repositories/users'
 import type { PublicUser } from '@/lib/types/user'
 import { readSession } from './session'
+import { sessionPredatesPasswordChange } from './token'
 import { can, landingPath, type Capability } from './permissions'
 
 /**
@@ -27,6 +28,13 @@ export const getCurrentUser = cache(async (): Promise<PublicUser | null> => {
 
   const user = await findUserById(session.userId)
   if (!user || user.status !== 'active') return null
+
+  // A session older than the current password belongs to whoever held the old
+  // one. Changing a password is how somebody revokes access they have lost
+  // control of, and it would mean nothing if the existing cookies kept working.
+  if (sessionPredatesPasswordChange(session.issuedAt, user.passwordChangedAt)) {
+    return null
+  }
 
   return toPublicUser(user)
 })

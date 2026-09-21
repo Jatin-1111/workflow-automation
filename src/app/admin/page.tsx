@@ -12,6 +12,7 @@ import { RoleEditor, type RoleOption } from '@/features/admin/role-editor'
 import { toggleUserStatusAction } from '@/features/admin/actions'
 import { OrgManager } from '@/features/admin/org-editor'
 import { UserCreator } from '@/features/admin/user-creator'
+import { PasswordReset } from '@/features/admin/password-reset'
 import { ProjectManager } from '@/features/admin/project-editor'
 import {
   createDepartmentAction,
@@ -161,6 +162,9 @@ export default async function AdminPage() {
                         </p>
                       </div>
 
+                      <div className="flex flex-wrap items-center gap-2">
+                      <PasswordReset userId={user.userId} userName={user.name} />
+
                       <form action={toggleUserStatusAction}>
                         <input type="hidden" name="userId" value={user.userId} />
                         <input
@@ -181,6 +185,7 @@ export default async function AdminPage() {
                           {user.status === 'active' ? 'Deactivate' : 'Reactivate'}
                         </button>
                       </form>
+                      </div>
                     </div>
 
                     <RoleEditor

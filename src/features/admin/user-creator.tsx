@@ -164,7 +164,8 @@ export function UserCreator({
       </div>
 
       <p className="text-xs text-subtle">
-        Tell them the password out of band and ask them to change it. An access
+        Tell them the password out of band. They can change it themselves from
+        their profile, and you can set a new one here if they lose it. An access
         level is not a role: somebody can be an employee holding three roles, or
         an administrator holding none.
       </p>
