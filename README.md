@@ -132,7 +132,7 @@ builder and watching the engine run it is the whole product in one sitting.
 
 ## Verification
 
-`npm test` covers 88 tests, including two that matter more than the rest:
+`npm test` covers 197 tests, including three that matter more than the rest:
 
 - `proposal-workflow.test.ts` drives all 28 steps of the brief's own acceptance
   scenario (§55) through the engine with no UI, and asserts the resulting
@@ -143,6 +143,10 @@ builder and watching the engine run it is the whole product in one sitting.
 
 Adding the Podcast workflow touched only `src/lib/seed/`. Nothing in
 `src/lib/engine/`, `src/features/`, `src/app/` or `src/lib/db/` changed.
+
+- `workflow.integration.test.ts` runs the engine, the persistence layer and
+  MongoDB together against its own database, because most of this project's
+  defects have lived between those rather than inside any one of them.
 
 A third workflow, Speaker Onboarding, was then built entirely through the
 Workflow Builder with no code at all, published, and driven to completion by

@@ -17,43 +17,21 @@ import {
   type OperationOutcome,
 } from '@/lib/workflow/service'
 import { FileRejected, storeFile } from '@/lib/files/storage'
-import { isEntityId } from '@/lib/ids/format'
+import {
+  readAssignees,
+  readFileId,
+  readReason,
+  readSubmission,
+  readTaskId,
+} from './form-parsing'
 import type { StageSubmission } from '@/lib/engine'
 import { listUsers } from '@/lib/db/repositories/users'
-import type { FileId, TaskId, UserId } from '@/lib/types/ids'
-import type { FieldValue } from '@/lib/types/instance'
+import type { FileId, TaskId } from '@/lib/types/ids'
 
 export type TaskActionState = OperationOutcome | { ok: null }
 
 function refuse(code: string, message: string): TaskActionState {
   return { ok: false, errors: [{ code, message }] }
-}
-
-/** Narrow an id that arrived from a form before it reaches the database. */
-function readTaskId(formData: FormData): TaskId | null {
-  const raw = String(formData.get('taskId') ?? '')
-  return isEntityId(raw, 'task') ? raw : null
-}
-
-/**
- * Pull the stage's declared fields out of the form.
- *
- * Fields arrive as `field:<key>`, checklist items as `check:<key>`, which
- * keeps them apart from the form's own control values without the action
- * needing to know what any particular workflow collects.
- */
-function readSubmission(formData: FormData): StageSubmission {
-  const fieldValues: Record<string, FieldValue> = {}
-  const checkedItemKeys: string[] = []
-
-  for (const [name, value] of formData.entries()) {
-    if (typeof value !== 'string') continue
-    if (name.startsWith('field:')) fieldValues[name.slice(6)] = value
-    if (name.startsWith('check:')) checkedItemKeys.push(name.slice(6))
-  }
-
-  const comment = String(formData.get('comment') ?? '').trim()
-  return { fieldValues, checkedItemKeys, comment: comment || undefined }
 }
 
 function revalidateTask(taskId: TaskId) {
@@ -104,8 +82,7 @@ export async function approveAction(
   const taskId = readTaskId(formData)
   if (!taskId) return refuse('task_not_found', 'That task could not be identified.')
 
-  const raw = String(formData.get('finalFileId') ?? '')
-  const finalFileId = isEntityId(raw, 'file') ? raw : undefined
+  const finalFileId = readFileId(formData)
 
   const outcome = await approveTask(taskId, user.userId, readSubmission(formData), finalFileId)
   if (!outcome.ok) return outcome
@@ -209,17 +186,18 @@ export async function reassignAction(
       .filter((candidate) => candidate.status === 'active')
       .map((candidate) => candidate.userId),
   )
-  const assignees = formData
-    .getAll('assignees')
-    .filter((value): value is string => typeof value === 'string')
-    .filter((value): value is UserId => active.has(value as UserId))
+  const assignees = readAssignees(formData).filter((userId) => active.has(userId))
 
   if (assignees.length === 0) {
     return refuse('no_new_assignees', 'Choose at least one active person.')
   }
 
-  const reason = String(formData.get('reason') ?? '').trim()
-  const outcome = await reassignTaskTo(taskId, actor.userId, assignees, reason || undefined)
+  const outcome = await reassignTaskTo(
+    taskId,
+    actor.userId,
+    assignees,
+    readReason(formData),
+  )
   if (outcome.ok) revalidateTask(taskId)
   return outcome
 }
