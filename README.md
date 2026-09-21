@@ -40,50 +40,52 @@ npm run db:down
 
 ### Scheduling the reminders
 
-Every other notification is a side effect of somebody acting. Nobody acts when
-a deadline passes, so deadline and overdue notices have to be woken up — and if
-nothing wakes them, a slipping deadline goes quiet again, which is the thing
-this platform exists to stop. **A deployment without this scheduled is a
-deployment with half of §41.**
+Two of §41's notifications react to time passing rather than to somebody
+acting — `deadline_approaching` and `task_overdue` — so they are the only
+thing here that has to be woken up.
+
+**Overdue work is visible without any of this.** Whether a task is overdue is
+derived from its deadline against the clock every time it is read, never
+stored, so the Overdue section on My Work, the overdue tile and Stuck work on
+the management dashboard, and SLA breach on every row are all live and correct
+with the scheduler switched off entirely. Nothing goes stale waiting for a job
+to run.
+
+What the scheduler adds is narrower: a timestamped record that somebody was
+told, which derived state cannot give you, and the "due soon" warning, which
+is the one thing no screen otherwise says.
 
 `GET /api/cron/reminders` does the work. It authorises against `CRON_SECRET`
 as a bearer token (or a `?key=` parameter for schedulers that cannot set
 headers) and refuses outright when no secret is set, rather than falling open.
-`npm run reminders` does the same thing from a shell.
+`npm run reminders` does the same thing from a shell. Running it repeatedly is
+harmless: what has already been said is read back before anything is written,
+so nobody is told the same thing twice.
 
-Running it repeatedly is harmless: what has already been said is read back
-before anything is written, so nobody is told the same thing twice. Not running
-it at all is the only failure mode.
+**On Vercel**, `vercel.json` holds a daily run at 03:00 UTC (08:30 IST), which
+is all the Hobby plan allows — it caps cron at once per day and fires anywhere
+inside the hour. Vercel sends `Authorization: Bearer $CRON_SECRET` on its own
+once that variable is set in the project, so nothing needs changing.
 
-**Self-hosted** — a crontab entry, systemd timer or Windows scheduled task:
+**Self-hosted**, a crontab entry, systemd timer or Windows scheduled task can
+run it as often as you like:
 
 ```
 */15 * * * * cd /srv/business-orbit && npm run reminders
 ```
 
-**On Vercel** — `vercel.json` holds a daily run at 03:00 UTC (08:30 IST), which
-is all the Hobby plan allows: it caps cron at once per day and fires anywhere
-inside the hour. Vercel sends `Authorization: Bearer $CRON_SECRET` on its own
-once that variable is set in the project, so nothing needs changing.
+Once a day is poor cadence — an overdue notice can be most of a day late, and
+a "due soon" window is half a stage's own allowance, so most are missed
+outright. That matters less than it sounds while notifications are in-app
+only: they can only be read by opening the platform, and by then My Work is
+already showing the overdue work more plainly than the bell does.
 
-Once a day is not enough on its own. Overdue notices would arrive up to a day
-late, and the "due soon" window — half a stage's own allowance — would usually
-be missed entirely, so work would skip straight from silence to overdue. Treat
-the Vercel entry as a floor and drive the real cadence from outside:
-
-1. Sign in at **cron-job.org** (free, unlimited jobs, one-minute granularity).
-2. Create a job for `https://<your-domain>/api/cron/reminders`, every 15 minutes.
-3. Under the job's headers, add `Authorization` with the value
-   `Bearer <your CRON_SECRET>`.
-
-Two of its quirks are worth knowing: it treats a response over 1024 bytes or a
-run over 30 seconds as a failure. This endpoint answers with a short JSON
-summary well inside both, but a much larger organisation could one day cross
-the time limit — the work still happens, the service just records it as failed.
-
-If you would rather own the scheduler in code than in somebody's dashboard, a
-Cloudflare Worker on a cron trigger does the same job on the free plan (five
-triggers per account, minute granularity) and lives in version control.
+**When notifications leave the app, this changes.** The day an email, Slack or
+WhatsApp channel is added, the scheduler becomes the thing that makes it work,
+because reaching somebody who is not looking is the entire point. At that
+stage, point any external scheduler at the endpoint every fifteen minutes —
+cron-job.org and Cloudflare Workers both do this on a free tier — or move to
+Vercel Pro, where `*/15 * * * *` simply works.
 
 ---
 
@@ -215,6 +217,9 @@ it, skipped and recorded when it did not.
   instances, and does not work at all on a serverless host. Set the Cloudinary
   variables to move it (see below).
 - **`SESSION_SECRET` must be set** to a real random value per environment.
+- **`CRON_SECRET` must be set** or `/api/cron/reminders` answers 503 and the
+  scheduled run does nothing. It refuses rather than falling open, so the
+  failure is silent unless you look at the cron logs.
 - **MongoDB runs unauthenticated-in-Docker for development.** Production needs
   proper credentials, TLS and backups.
 - Roles with nobody assigned will stall any workflow routing to them. The engine
