@@ -2,7 +2,7 @@
 
 import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
-import type { WorkflowInstanceId } from '@/lib/types/ids'
+import type { UserId, WorkflowInstanceId } from '@/lib/types/ids'
 import type { TimelineEvent } from '@/lib/types/timeline'
 
 async function events() {
@@ -24,4 +24,21 @@ export async function listTimelineForInstance(
   instanceId: WorkflowInstanceId,
 ): Promise<TimelineEvent[]> {
   return (await events()).find({ instanceId }, WITHOUT_ID).sort({ at: 1 }).toArray()
+}
+
+/**
+ * What one person has done, newest first (spec §44).
+ *
+ * Across every instance, because the question the profile answers is "what
+ * have I been doing", not "what happened to this workflow".
+ */
+export async function listTimelineForActor(
+  actorId: UserId,
+  limit = 30,
+): Promise<TimelineEvent[]> {
+  return (await events())
+    .find({ actorId }, WITHOUT_ID)
+    .sort({ at: -1 })
+    .limit(limit)
+    .toArray()
 }

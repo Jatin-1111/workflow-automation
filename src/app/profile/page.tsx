@@ -15,18 +15,29 @@ import { humanise } from '@/features/my-work/format'
 import { listDepartments } from '@/lib/db/repositories/departments'
 import { listRoles } from '@/lib/db/repositories/roles'
 import { listTeams } from '@/lib/db/repositories/teams'
+import { listTimelineForActor } from '@/lib/db/repositories/timeline-events'
+import { findInstancesByIds } from '@/lib/db/repositories/workflow-instances'
 import { CAPABILITIES_BY_ACCESS_LEVEL } from '@/lib/auth/permissions'
 
 export default async function ProfilePage() {
   const user = await requireUser()
   const now = new Date()
 
-  const [work, roles, departments, teams] = await Promise.all([
+  const [work, roles, departments, teams, activity] = await Promise.all([
     getMyWork(user.userId, now),
     listRoles(),
     listDepartments(),
     listTeams(),
+    listTimelineForActor(user.userId, 20),
   ])
+
+  // Events name an instance by id; the feed needs its title to read as English.
+  const activityInstances = await findInstancesByIds([
+    ...new Set(activity.map((event) => event.instanceId)),
+  ])
+  const instanceTitle = new Map(
+    activityInstances.map((instance) => [instance.instanceId as string, instance.title]),
+  )
 
   const roleNames = user.roleIds.map(
     (roleId) => roles.find((role) => role.roleId === roleId)?.name ?? roleId,
@@ -52,6 +63,7 @@ export default async function ProfilePage() {
           </p>
           <p className="mt-1 text-xs text-subtle">
             {humanise(user.accessLevel)}
+            {` · ${humanise(user.status)}`}
             {department ? ` · ${department.name}` : ''}
             {team ? ` · ${team.name}` : ''}
             {user.joiningDate
@@ -122,24 +134,61 @@ export default async function ProfilePage() {
             </ul>
           </Section>
 
-          <Section title="Recently completed" count={completed.length}>
-            {completed.length === 0 ? (
-              <EmptyRow>Nothing completed yet.</EmptyRow>
+          <WorkSection
+            title="My active work"
+            items={active}
+            empty="Nothing open. Work arrives here when somebody finishes the stage before yours."
+          />
+
+          <WorkSection
+            title="My overdue work"
+            items={overdue}
+            empty="Nothing is late."
+          />
+
+          <WorkSection
+            title="My approvals"
+            items={approvals}
+            empty="Nothing is waiting on your decision."
+          />
+
+          <WorkSection
+            title="My completed work"
+            items={completed}
+            empty="Nothing completed yet."
+          />
+
+          <Section
+            title="My activity"
+            count={activity.length}
+            description="Everything I have done, newest first. The record is append-only."
+          >
+            {activity.length === 0 ? (
+              <EmptyRow>Nothing recorded yet.</EmptyRow>
             ) : (
               <ul className="divide-y divide-border">
-                {completed.slice(0, 10).map((item) => (
-                  <li key={item.taskId}>
-                    <Link
-                      href={`/tasks/${item.taskId}`}
-                      className="flex items-center gap-4 px-5 py-3 transition hover:bg-accent-soft/60"
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm">{item.stageName}</span>
-                        <span className="block truncate text-xs text-subtle">
-                          {item.projectName} · {item.instanceTitle}
-                        </span>
+                {activity.map((event) => (
+                  <li key={event.eventId} className="px-5 py-3">
+                    <p className="text-sm">
+                      <span className="text-muted">
+                        {humanise(event.action).toLowerCase()}
                       </span>
-                    </Link>
+                      {event.stageKey ? (
+                        <span className="font-medium"> · {humanise(event.stageKey)}</span>
+                      ) : null}
+                    </p>
+                    <p className="mt-0.5 text-xs text-subtle">
+                      {instanceTitle.get(event.instanceId) ?? event.instanceId} ·{' '}
+                      {event.at.toLocaleString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                    {event.comment ? (
+                      <p className="mt-1 text-xs text-muted">{event.comment}</p>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -148,6 +197,48 @@ export default async function ProfilePage() {
         </div>
       </main>
     </AppShell>
+  )
+}
+
+/**
+ * One person's work, listed the same way four times over.
+ *
+ * §44 asks for active, overdue, approvals and completed as separate sections;
+ * they differ only in which rows they hold, so they share a renderer.
+ */
+function WorkSection({
+  title,
+  items,
+  empty,
+}: {
+  title: string
+  items: { taskId: string; stageName: string; projectName: string; instanceTitle: string }[]
+  empty: string
+}) {
+  return (
+    <Section title={title} count={items.length}>
+      {items.length === 0 ? (
+        <EmptyRow>{empty}</EmptyRow>
+      ) : (
+        <ul className="divide-y divide-border">
+          {items.slice(0, 10).map((item) => (
+            <li key={item.taskId}>
+              <Link
+                href={`/tasks/${item.taskId}`}
+                className="flex items-center gap-4 px-5 py-3 transition hover:bg-accent-soft/60"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm">{item.stageName}</span>
+                  <span className="block truncate text-xs text-subtle">
+                    {item.projectName} · {item.instanceTitle}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
   )
 }
 
