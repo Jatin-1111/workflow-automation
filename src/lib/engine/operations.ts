@@ -12,9 +12,10 @@ import type { ChecklistItemState, Task } from '@/lib/types/task'
 import type { FileId, UserId } from '@/lib/types/ids'
 import type { StageDefinition } from '@/lib/types/workflow'
 import { activateStage } from './activate'
+import { resolveActivation } from './conditions'
 import { resolveAssignees } from './assignees'
 import { accept, refuse, type EngineOutcome } from './errors'
-import { buildTaskDraft, findStage, nextStageOf } from './stages'
+import { buildTaskDraft, findStage } from './stages'
 import { pickDeclaredFields, validateCompletion } from './validation'
 import type {
   EngineContext,
@@ -471,11 +472,25 @@ export function requestChanges(
     })
   }
 
-  const target = findStage(request.template, stage.rejectTargetStageKey)
-  if (!target) {
+  if (!findStage(request.template, stage.rejectTargetStageKey)) {
     return refuse({
       code: 'stage_not_found',
       message: `Stage "${stage.rejectTargetStageKey}" is not defined in this workflow version.`,
+      key: stage.rejectTargetStageKey,
+    })
+  }
+
+  // The rejection target is subject to its own conditions like any other
+  // stage, so work is never sent back into a step this run skipped.
+  const { stage: target, skipped } = resolveActivation(
+    request.template,
+    stage.rejectTargetStageKey,
+    request.instance.fieldValues,
+  )
+  if (!target) {
+    return refuse({
+      code: 'stage_not_found',
+      message: `There is no stage to send this back to: everything after "${stage.rejectTargetStageKey}" is skipped for this run.`,
       key: stage.rejectTargetStageKey,
     })
   }
@@ -517,6 +532,12 @@ export function requestChanges(
         comment,
         at: context.now,
       },
+      ...skipped.map((passed) => ({
+        stageKey: passed.key,
+        actorId: request.actor,
+        action: 'stage_skipped' as const,
+        at: context.now,
+      })),
       ...activation.result.events,
     ],
     notifications: activation.result.notifications.map((notification) => ({
@@ -569,7 +590,20 @@ function advance(params: {
     updatedAt: context.now,
   }
 
-  const next = nextStageOf(request.template, stage)
+  // Conditions are tested against everything recorded so far, including what
+  // the stage being completed just submitted (spec §36).
+  const { stage: next, skipped } = resolveActivation(
+    request.template,
+    stage.nextStageKey,
+    instanceBase.fieldValues,
+  )
+
+  const skipEvents = skipped.map((passed) => ({
+    stageKey: passed.key,
+    actorId: request.actor,
+    action: 'stage_skipped' as const,
+    at: context.now,
+  }))
 
   if (!next) {
     return accept({
@@ -583,6 +617,7 @@ function advance(params: {
       newTasks: [],
       events: [
         completionEvent,
+        ...skipEvents,
         {
           stageKey: stage.key,
           actorId: request.actor,
@@ -617,7 +652,7 @@ function advance(params: {
     },
     taskUpdates: [completion],
     newTasks: [activation.result.task],
-    events: [completionEvent, ...activation.result.events],
+    events: [completionEvent, ...skipEvents, ...activation.result.events],
     notifications: activation.result.notifications,
   })
 }

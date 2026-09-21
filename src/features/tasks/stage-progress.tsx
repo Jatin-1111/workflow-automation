@@ -13,12 +13,15 @@ export function StageProgressBar({ stages }: { stages: StageProgress[] }) {
             </span>
           ) : null}
           <span
+            title={stage.state === 'skipped' ? 'Not needed for this one' : undefined}
             className={
               stage.state === 'current'
                 ? 'rounded border border-accent bg-accent-soft px-2 py-1 font-medium text-accent'
                 : stage.state === 'done'
                   ? 'rounded border border-border px-2 py-1 text-status-complete'
-                  : 'rounded border border-border px-2 py-1 text-subtle'
+                  : stage.state === 'skipped'
+                    ? 'rounded border border-dashed border-border px-2 py-1 text-subtle line-through'
+                    : 'rounded border border-border px-2 py-1 text-subtle'
             }
           >
             {stage.name}

@@ -345,6 +345,14 @@ export function WorkflowEditor({ template, roles, projects, editable }: Props) {
                             approval
                           </span>
                         ) : null}
+                        {candidate.conditions && candidate.conditions.length > 0 ? (
+                          <span
+                            title="Only runs when its conditions hold"
+                            className="rounded border border-border px-1 text-[10px] text-muted"
+                          >
+                            conditional
+                          </span>
+                        ) : null}
                       </span>
                       <span className="block font-mono text-[11px] text-subtle">
                         {candidate.key}

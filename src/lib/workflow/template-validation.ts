@@ -54,6 +54,19 @@ export function validateTemplate(draft: TemplateDraft): TemplateProblem[] {
     })
   }
 
+  // Conditions test what the workflow has recorded, and at the first stage it
+  // has recorded nothing - so a conditional first stage could only ever skip,
+  // finishing the workflow the moment it started.
+  const first = stages.find((candidate) => candidate.key === draft.initialStageKey)
+  if (first?.conditions && first.conditions.length > 0) {
+    problems.push({
+      stageKey: first.key,
+      field: 'conditions',
+      message:
+        'The first stage cannot be conditional: nothing has been recorded yet to test.',
+    })
+  }
+
   for (const stage of stages) {
     if (!STAGE_KEY_PATTERN.test(stage.key)) {
       problems.push({

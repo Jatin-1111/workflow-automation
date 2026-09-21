@@ -14,6 +14,7 @@ import type {
   FieldDefinition,
   FieldType,
   RequiredFileDefinition,
+  StageCondition,
   StageDefinition,
 } from '@/lib/types/workflow'
 import type { RoleId } from '@/lib/types/ids'
@@ -211,6 +212,13 @@ export function StageForm({
         </div>
       </section>
 
+      <ConditionsEditor
+        stage={stage}
+        stages={stages}
+        isInitial={isInitial}
+        onChange={(conditions) => set('conditions', conditions)}
+      />
+
       <FieldsEditor stage={stage} onChange={(fields) => set('fields', fields)} />
       <FilesEditor stage={stage} onChange={(files) => set('files', files)} />
       <ChecklistEditor stage={stage} onChange={(checklist) => set('checklist', checklist)} />
@@ -383,6 +391,146 @@ function AssigneeEditor({
           ))}
         </ul>
       )}
+    </Part>
+  )
+}
+
+/**
+ * When this stage runs at all (spec §36).
+ *
+ * Conditions are tested against what earlier stages recorded, so only fields
+ * collected before this point are worth offering.
+ */
+function ConditionsEditor({
+  stage,
+  stages,
+  isInitial,
+  onChange,
+}: {
+  stage: StageDefinition
+  stages: StageDefinition[]
+  isInitial: boolean
+  onChange: (next: StageCondition[] | undefined) => void
+}) {
+  const conditions = stage.conditions ?? []
+  const position = stages.findIndex((candidate) => candidate.key === stage.key)
+  const earlierFields = stages
+    .slice(0, position < 0 ? stages.length : position)
+    .flatMap((earlier) =>
+      earlier.fields.map((field) => ({
+        key: field.key,
+        label: `${field.label || field.key} — ${earlier.name || earlier.key}`,
+      })),
+    )
+
+  const update = (index: number, next: StageCondition) =>
+    onChange(conditions.map((condition, i) => (i === index ? next : condition)))
+
+  if (isInitial) {
+    return (
+      <section className="rounded-lg border border-border px-3 py-3">
+        <h3 className="text-sm font-semibold">When this stage runs</h3>
+        <p className="mt-0.5 text-[11px] text-subtle">
+          The first stage always runs: nothing has been recorded yet to test.
+        </p>
+      </section>
+    )
+  }
+
+  return (
+    <Part
+      title="When this stage runs"
+      hint="With no conditions it always runs. With conditions, it is skipped unless all of them hold."
+      addLabel="Add condition"
+      onAdd={() =>
+        onChange([
+          ...conditions,
+          { fieldKey: earlierFields[0]?.key ?? '', operator: 'eq', value: '' },
+        ])
+      }
+    >
+      {conditions.length === 0 ? (
+        <p className="px-3 py-4 text-sm text-muted">Always runs.</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {conditions.map((condition, index) => (
+            <li key={index} className="flex flex-wrap items-center gap-2 px-3 py-2">
+              <select
+                className={`${input} max-w-60`}
+                value={condition.fieldKey}
+                onChange={(event) =>
+                  update(index, { ...condition, fieldKey: event.target.value })
+                }
+              >
+                <option value="">Choose a field…</option>
+                {earlierFields.map((field) => (
+                  <option key={field.key} value={field.key}>
+                    {field.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className={`${input} max-w-44`}
+                value={condition.operator}
+                onChange={(event) =>
+                  update(index, {
+                    ...condition,
+                    operator: event.target.value as StageCondition['operator'],
+                  })
+                }
+              >
+                <option value="eq">is</option>
+                <option value="neq">is not</option>
+                <option value="gt">is more than</option>
+                <option value="gte">is at least</option>
+                <option value="lt">is less than</option>
+                <option value="lte">is at most</option>
+                <option value="in">is one of</option>
+                <option value="not_in">is none of</option>
+              </select>
+
+              <input
+                className={`${input} max-w-52`}
+                placeholder={
+                  condition.operator === 'in' || condition.operator === 'not_in'
+                    ? 'Yes, Maybe'
+                    : 'Yes'
+                }
+                value={
+                  Array.isArray(condition.value)
+                    ? condition.value.join(', ')
+                    : String(condition.value ?? '')
+                }
+                onChange={(event) => {
+                  const raw = event.target.value
+                  const many = condition.operator === 'in' || condition.operator === 'not_in'
+                  update(index, {
+                    ...condition,
+                    value: many
+                      ? raw.split(',').map((part) => part.trim()).filter(Boolean)
+                      : raw,
+                  })
+                }}
+              />
+
+              <RemoveButton
+                onClick={() => {
+                  const next = conditions.filter((_, i) => i !== index)
+                  onChange(next.length > 0 ? next : undefined)
+                }}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {earlierFields.length === 0 ? (
+        <p className="px-3 pb-3 text-[11px] text-subtle">
+          No earlier stage collects any information yet, so there is nothing to test
+          against.
+        </p>
+      ) : null}
     </Part>
   )
 }

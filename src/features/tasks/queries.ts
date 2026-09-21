@@ -15,6 +15,7 @@ import { listTimelineForInstance } from '@/lib/db/repositories/timeline-events'
 import { listUsers } from '@/lib/db/repositories/users'
 import { loadTaskContext } from '@/lib/workflow/service'
 import { can } from '@/lib/auth/permissions'
+import { stageApplies } from '@/lib/engine'
 import { deriveBucket, hasBreachedSla } from '@/lib/workflow/buckets'
 import type { FieldValue } from '@/lib/types/instance'
 import type { TaskId, UserId } from '@/lib/types/ids'
@@ -25,7 +26,7 @@ import type { StageDefinition } from '@/lib/types/workflow'
 export interface StageProgress {
   key: string
   name: string
-  state: 'done' | 'current' | 'upcoming'
+  state: 'done' | 'current' | 'upcoming' | 'skipped'
   revisionRound?: number
 }
 
@@ -152,7 +153,7 @@ export async function getTaskDetail(
     canOperate: isAssignee && !task.completedAt,
     assigneeNames: task.assignees.map(nameOf),
 
-    progress: buildProgress(template.stages, tasks, task),
+    progress: buildProgress(template.stages, tasks, task, instance.fieldValues),
     priorStages: buildPriorStages(template.stages, tasks, task, nameOf),
     files: files.map((file) => ({
       fileId: file.fileId,
@@ -186,10 +187,10 @@ function buildProgress(
   stages: StageDefinition[],
   tasks: Task[],
   current: Task,
+  fieldValues: Record<string, FieldValue>,
 ): StageProgress[] {
   return stages.map((stage) => {
-    const stageTasks = tasks.filter((task) => task.stageKey === stage.key)
-    const latest = stageTasks.at(-1)
+    const latest = tasks.filter((task) => task.stageKey === stage.key).at(-1)
 
     if (stage.key === current.stageKey) {
       return {
@@ -199,11 +200,15 @@ function buildProgress(
         revisionRound: current.revisionRound > 1 ? current.revisionRound : undefined,
       }
     }
-    return {
-      key: stage.key,
-      name: stage.name,
-      state: latest?.completedAt ? 'done' : 'upcoming',
+    if (latest?.completedAt) {
+      return { key: stage.key, name: stage.name, state: 'done' }
     }
+    // A conditional stage this run will not reach is shown as skipped rather
+    // than pending, so the trail matches what will actually happen (spec §36).
+    if (!latest && !stageApplies(stage, fieldValues)) {
+      return { key: stage.key, name: stage.name, state: 'skipped' }
+    }
+    return { key: stage.key, name: stage.name, state: 'upcoming' }
   })
 }
 

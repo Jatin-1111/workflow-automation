@@ -17,6 +17,8 @@ import type {
 export const TIMELINE_ACTIONS = [
   'instance_created',
   'stage_activated',
+  /** Passed over because its conditions did not hold (spec §36). */
+  'stage_skipped',
   'stage_completed',
   /** One assignee of a shared stage finished their part (spec §22). */
   'assignee_completed',

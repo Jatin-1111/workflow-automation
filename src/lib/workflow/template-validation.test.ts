@@ -192,3 +192,27 @@ describe('reporting', () => {
     assert.ok(validateTemplate(d).length >= 4)
   })
 })
+
+describe('conditional stages', () => {
+  it('accepts a condition on a later stage', () => {
+    const d = draft([
+      stage({ key: 'request', nextStageKey: 'nda' }),
+      stage({
+        key: 'nda',
+        conditions: [{ fieldKey: 'nda_required', operator: 'eq', value: true }],
+      }),
+    ])
+    assert.deepEqual(validateTemplate(d), [])
+  })
+
+  it('refuses a condition on the first stage', () => {
+    // It could only ever skip, ending the workflow the moment it began.
+    const d = draft([
+      stage({
+        key: 'request',
+        conditions: [{ fieldKey: 'anything', operator: 'eq', value: true }],
+      }),
+    ])
+    assert.ok(messages(d).some((m) => m.includes('first stage cannot be conditional')))
+  })
+})

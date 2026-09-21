@@ -101,6 +101,9 @@ the role at somebody else in **Admin → People** and every workflow follows.
   stages, configure roles, fields, files, checklists, deadlines, approvals and
   routing, then publish it. Editing a published workflow starts a new version;
   work already running keeps the version it began on.
+- **Conditional stages** — a stage can be set to run only when what the
+  workflow recorded earlier says it should. A stage that does not apply is
+  skipped, and the skip is recorded rather than passed over silently.
 
 ---
 
@@ -110,7 +113,6 @@ Stated plainly so nothing here is a surprise.
 
 | Not built | Where it stands |
 |---|---|
-| **Conditional stages** (§36) | `StageCondition` is carried on every stage and stored, but the engine does not evaluate it yet. A stage with conditions runs as though it had none. |
 | **Workflow versioning enforcement** (§38) | Instances pin the version they started on and always read that version, so running work is already safe. What is missing is the UI for publishing v2 of a template. |
 | **Global search** (§48) | Search exists within My Work only. |
 | **Reports** | Not started. |
@@ -138,7 +140,9 @@ Adding the Podcast workflow touched only `src/lib/seed/`. Nothing in
 
 A third workflow, Speaker Onboarding, was then built entirely through the
 Workflow Builder with no code at all, published, and driven to completion by
-the engine — rejection routing included.
+the engine — rejection routing included. A conditional stage added to it in
+the builder was then shown taking both routes: run when the answer required
+it, skipped and recorded when it did not.
 
 ---
 

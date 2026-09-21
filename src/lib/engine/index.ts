@@ -5,8 +5,9 @@
  * proposals, podcasts or any other specific process - everything particular to
  * a process lives in its template document (spec §34, §52).
  *
- * Conditional stages (spec §36) are carried in the schema but not yet
- * evaluated: a stage with `conditions` runs as though it had none.
+ * A stage carrying conditions runs only when they hold against what the
+ * workflow has recorded; otherwise it is skipped and the work carries on
+ * (spec §36).
  */
 
 export {
@@ -22,6 +23,7 @@ export { resolveAssignees } from './assignees'
 export { findStage, nextStageOf } from './stages'
 export { validateCompletion } from './validation'
 export { nextRevisionRound } from './activate'
+export { evaluateCondition, resolveActivation, stageApplies } from './conditions'
 
 export type {
   EngineError,
