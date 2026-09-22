@@ -14,6 +14,7 @@
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
     "reminders": "tsx --env-file=.env.local scripts/send-reminders.ts",
     "bootstrap:admin": "tsx --env-file=.env.local scripts/bootstrap-admin.ts",
+    "demo:stage": "tsx --env-file=.env.local scripts/stage-demo.ts",
     "test": "tsx --env-file-if-exists=.env.local --test \"src/**/*.test.ts\"",
     "walkthrough": "tsx --env-file=.env.local scripts/proposal-walkthrough.ts"
   },
