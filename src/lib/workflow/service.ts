@@ -13,13 +13,17 @@ import 'server-only'
 import { markFileFinalApproved } from '@/lib/db/repositories/files'
 import { listTasksForInstance, findTaskById } from '@/lib/db/repositories/tasks'
 import { findInstanceById } from '@/lib/db/repositories/workflow-instances'
-import { findTemplateVersion } from '@/lib/db/repositories/workflow-templates'
+import {
+  findLatestActiveTemplate,
+  findTemplateVersion,
+} from '@/lib/db/repositories/workflow-templates'
 import {
   approve,
   cancelInstance,
   completeStage,
   holdTask,
   resumeTask,
+  startInstance,
   reassignTask,
   recordFileUpload,
   requestChanges,
@@ -30,8 +34,15 @@ import {
   type TaskOperationRequest,
 } from '@/lib/engine'
 import { buildEngineContext } from './engine-context'
-import { persistResult } from './persist'
-import type { FileId, TaskId, UserId, WorkflowInstanceId } from '@/lib/types/ids'
+import { persistResult, persistStart } from './persist'
+import type {
+  FileId,
+  ProjectId,
+  TaskId,
+  UserId,
+  WorkflowInstanceId,
+  WorkflowTemplateId,
+} from '@/lib/types/ids'
 import type { WorkflowInstance } from '@/lib/types/instance'
 import type { Task } from '@/lib/types/task'
 import type { WorkflowTemplate } from '@/lib/types/workflow'
@@ -228,4 +239,47 @@ export async function cancelWorkflowInstance(
 
   await persistResult(outcome.result, now)
   return { ok: true }
+}
+
+/**
+ * Begin a run of a workflow (spec §21).
+ *
+ * Always the latest active version: a run pins the version it starts on, so
+ * this is the only moment the choice is made. Everything after it follows the
+ * version recorded on the instance.
+ */
+export async function startWorkflow(params: {
+  workflowId: WorkflowTemplateId
+  initiatedBy: UserId
+  title: string
+  projectId?: ProjectId
+}): Promise<
+  | { ok: true; instanceId: WorkflowInstanceId; firstTaskId?: TaskId }
+  | { ok: false; errors: { code: string; message: string; key?: string }[] }
+> {
+  const template = await findLatestActiveTemplate(params.workflowId)
+  if (!template) {
+    return failed(
+      'workflow_not_published',
+      'That workflow has no published version. Publish it before starting work on it.',
+    ) as { ok: false; errors: { code: string; message: string; key?: string }[] }
+  }
+
+  const now = new Date()
+  const outcome = startInstance(
+    {
+      template,
+      initiatedBy: params.initiatedBy,
+      title: params.title,
+      projectId: params.projectId ?? template.projectId,
+    },
+    await buildEngineContext(template, now),
+  )
+
+  if (!outcome.ok) return { ok: false, errors: outcome.errors }
+
+  const instance = await persistStart(outcome.result, now)
+  const [first] = await listTasksForInstance(instance.instanceId)
+
+  return { ok: true, instanceId: instance.instanceId, firstTaskId: first?.taskId }
 }

@@ -22,14 +22,19 @@ import { getOnboarding } from '@/features/onboarding/queries'
 import { SetupCard } from '@/features/onboarding/setup-card'
 import { WelcomeTour } from '@/features/onboarding/welcome-tour'
 import { EmptyBucket } from '@/features/my-work/empty-bucket'
+import { StartWorkflow } from '@/features/instances/start-workflow'
+import { listProjects } from '@/lib/db/repositories/projects'
+import { listActiveTemplates } from '@/lib/db/repositories/workflow-templates'
 
 export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>) {
   const user = await requireUser()
   const now = new Date()
 
-  const [work, onboarding] = await Promise.all([
+  const [work, onboarding, templates, projects] = await Promise.all([
     getMyWork(user.userId, now),
     getOnboarding(user),
+    listActiveTemplates(),
+    listProjects(),
   ])
   const filters = parseFilters(await searchParams)
   const groups = groupItems(applyFilters(work.items, filters, now), filters.group, now)
@@ -63,6 +68,22 @@ export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>
             openCount === 0
               ? 'Nothing is waiting on you right now.'
               : `${openCount} open ${openCount === 1 ? 'item' : 'items'} across your projects.`
+          }
+          actions={
+            <StartWorkflow
+              workflows={templates.map((template) => ({
+                workflowId: template.workflowId,
+                name: template.name,
+                projectId: template.projectId,
+                stageCount: template.stages.length,
+              }))}
+              projects={projects
+                .filter((project) => project.status === 'active')
+                .map((project) => ({
+                  projectId: project.projectId,
+                  name: project.name,
+                }))}
+            />
           }
         />
 
