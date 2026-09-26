@@ -21,6 +21,7 @@ import { deriveBucket, hasBreachedSla } from '@/lib/workflow/buckets'
 import type { ProjectId, TaskId, UserId, WorkflowInstanceId } from '@/lib/types/ids'
 import type { WorkflowTemplate } from '@/lib/types/workflow'
 import type { Priority } from '@/lib/types/status'
+import type { LabelColor } from '@/lib/types/label'
 
 export interface BoardCard {
   instanceId: WorkflowInstanceId
@@ -28,6 +29,7 @@ export interface BoardCard {
   taskId?: TaskId
   title: string
   projectName?: string
+  projectColor?: LabelColor
   stageKey: string
   assignees: { userId: UserId; name: string; initials: string }[]
   dueAt?: Date
@@ -95,6 +97,9 @@ export async function getBoard(
   const projectNames = new Map<ProjectId, string>(
     projects.map((project) => [project.projectId, project.name]),
   )
+  const projectColors = new Map<ProjectId, LabelColor | undefined>(
+    projects.map((project) => [project.projectId, project.color]),
+  )
 
   function cardFor(run: (typeof runs)[number]): BoardCard {
     const task = openTasks.find((candidate) => candidate.instanceId === run.instanceId)
@@ -109,6 +114,7 @@ export async function getBoard(
       taskId: task?.taskId,
       title: run.title,
       projectName: run.projectId ? projectNames.get(run.projectId) : undefined,
+      projectColor: run.projectId ? projectColors.get(run.projectId) : undefined,
       stageKey: task?.stageKey ?? run.currentStageKeys[0] ?? '',
       assignees,
       dueAt: task?.dueAt,

@@ -7,6 +7,7 @@
  * Major Project -> Workflow -> Instance -> Stage -> Deadline -> Status.
  */
 
+import type { LabelColor } from '@/lib/types/label'
 import 'server-only'
 import { listProjects } from '@/lib/db/repositories/projects'
 import {
@@ -36,6 +37,7 @@ export interface WorkItem {
   instanceId: WorkflowInstanceId
   projectId?: ProjectId
   projectName: string
+  projectColor?: LabelColor
   workflowId: WorkflowTemplateId
   workflowName: string
   instanceTitle: string
@@ -56,6 +58,7 @@ export interface WaitingItem {
   projectId?: ProjectId
   workflowId: WorkflowTemplateId
   projectName: string
+  projectColor?: LabelColor
   workflowName: string
   instanceTitle: string
   stageName: string
@@ -84,6 +87,7 @@ async function directories() {
     projects,
     templates,
     projectName: new Map(projects.map((project) => [project.projectId, project.name])),
+    projectColor: new Map(projects.map((project) => [project.projectId, project.color])),
     workflowName: new Map(
       templates.map((template) => [template.workflowId, template.name]),
     ),
@@ -114,6 +118,9 @@ export async function getMyWork(userId: UserId, now = new Date()): Promise<MyWor
       taskId: task.taskId,
       instanceId: task.instanceId,
       projectId: task.projectId,
+      projectColor: task.projectId
+        ? directory.projectColor.get(task.projectId)
+        : undefined,
       projectName: task.projectId
         ? (directory.projectName.get(task.projectId) ?? 'Unassigned')
         : 'Unassigned',
@@ -186,6 +193,9 @@ async function getWaitingOnOthers(
         instanceId: instance.instanceId,
         projectId: instance.projectId,
         workflowId: instance.workflowId,
+        projectColor: instance.projectId
+          ? directory.projectColor.get(instance.projectId)
+          : undefined,
         projectName: instance.projectId
           ? (directory.projectName.get(instance.projectId) ?? 'Unassigned')
           : 'Unassigned',

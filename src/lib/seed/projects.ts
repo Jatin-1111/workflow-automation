@@ -1,16 +1,21 @@
 /** Seed definitions for Major Projects (spec §54). */
 
+import type { LabelColor } from '@/lib/types/label'
+
 export interface ProjectSeed {
   key: string
   name: string
   description: string
   ownerKey: string
   memberKeys: string[]
+  /** Chosen apart so the demo reads clearly on My Work, which mixes them. */
+  color: LabelColor
 }
 
 export const PROJECT_SEEDS: ProjectSeed[] = [
   {
     key: 'startup_mela_2027',
+    color: 'blue',
     name: 'Startup Mela 2027',
     description: 'Flagship startup event for 2027',
     ownerKey: 'tanu',
@@ -18,6 +23,7 @@ export const PROJECT_SEEDS: ProjectSeed[] = [
   },
   {
     key: 'ai_summit',
+    color: 'purple',
     name: 'AI Summit',
     description: 'AI Summit conference initiative',
     ownerKey: 'nitin',
@@ -25,6 +31,7 @@ export const PROJECT_SEEDS: ProjectSeed[] = [
   },
   {
     key: 'podcast',
+    color: 'amber',
     name: 'Podcast',
     description: 'Business Orbit podcast production',
     ownerKey: 'ananya',
@@ -32,6 +39,7 @@ export const PROJECT_SEEDS: ProjectSeed[] = [
   },
   {
     key: 'sandbox',
+    color: 'slate',
     name: 'Sandbox',
     description: 'Somewhere to practise. Nothing here is real work.',
     ownerKey: 'nitin',
@@ -39,6 +47,7 @@ export const PROJECT_SEEDS: ProjectSeed[] = [
   },
   {
     key: 'general_operations',
+    color: 'teal',
     name: 'Business Orbit General Operations',
     description: 'Hiring, onboarding, finance, HR and other standing processes',
     ownerKey: 'nitin',

@@ -9,6 +9,7 @@
 
 import Link from 'next/link'
 import type { LucideIcon } from 'lucide-react'
+import { fallbackColor, type LabelColor } from '@/lib/types/label'
 
 /* -------------------------------------------------------------------------
  * The shared rules
@@ -321,4 +322,71 @@ export function Hint({ children }: { children: React.ReactNode }) {
 /** An id shown for reference, kept quiet so it never competes with a name. */
 export function Ref({ children }: { children: React.ReactNode }) {
   return <span className="font-mono text-xs text-subtle">{children}</span>
+}
+
+/* -------------------------------------------------------------------------
+ * Labels
+ * ---------------------------------------------------------------------- */
+
+const LABEL_TINTS: Record<LabelColor, string> = {
+  slate: 'bg-label-slate-soft text-label-slate',
+  blue: 'bg-label-blue-soft text-label-blue',
+  teal: 'bg-label-teal-soft text-label-teal',
+  green: 'bg-label-green-soft text-label-green',
+  amber: 'bg-label-amber-soft text-label-amber',
+  rose: 'bg-label-rose-soft text-label-rose',
+  purple: 'bg-label-purple-soft text-label-purple',
+  cyan: 'bg-label-cyan-soft text-label-cyan',
+}
+
+const LABEL_BARS: Record<LabelColor, string> = {
+  slate: 'bg-label-slate',
+  blue: 'bg-label-blue',
+  teal: 'bg-label-teal',
+  green: 'bg-label-green',
+  amber: 'bg-label-amber',
+  rose: 'bg-label-rose',
+  purple: 'bg-label-purple',
+  cyan: 'bg-label-cyan',
+}
+
+/**
+ * A project, shown as itself.
+ *
+ * Colour rather than only a name, because My Work puts work from several
+ * projects on one screen and the name alone makes them a wall of text. The
+ * name is always present: the colour is a second channel, never the only one.
+ */
+export function ProjectTag({
+  name,
+  color,
+  seed,
+}: {
+  name: string
+  color?: LabelColor
+  /** Used to pick a stable colour when the project has not been given one. */
+  seed?: string
+}) {
+  const tone = color ?? fallbackColor(seed ?? name)
+  return (
+    <span
+      className={`inline-flex max-w-full shrink-0 items-center rounded px-1.5 py-0.5 text-xs font-medium ${LABEL_TINTS[tone]}`}
+    >
+      <span className="truncate">{name}</span>
+    </span>
+  )
+}
+
+/** The same colour as a bar, for the edge of a card or a row. */
+export function ProjectBar({
+  color,
+  seed,
+  className = '',
+}: {
+  color?: LabelColor
+  seed?: string
+  className?: string
+}) {
+  const tone = color ?? fallbackColor(seed ?? '')
+  return <span aria-hidden className={`${LABEL_BARS[tone]} ${className}`} />
 }

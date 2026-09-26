@@ -225,6 +225,7 @@ export default async function AdminPage() {
                 status: project.status,
                 ownerId: project.ownerId,
                 memberIds: project.memberIds,
+                color: project.color,
               }))}
               people={users
                 .filter((person) => person.status === 'active')

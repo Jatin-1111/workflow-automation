@@ -159,6 +159,7 @@ export async function seed(options: SeedOptions): Promise<SeedSummary> {
     description: seed.description,
     ownerId: requireId(userIds, seed.ownerKey, 'user'),
     memberIds: seed.memberKeys.map((key) => requireId(userIds, key, 'user')),
+    color: seed.color,
     status: 'active',
     createdAt: now,
     updatedAt: now,

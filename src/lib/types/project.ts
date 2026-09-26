@@ -2,6 +2,7 @@
 
 import type { ProjectId, UserId } from './ids'
 import type { EntityStatus } from './status'
+import type { LabelColor } from './label'
 
 export interface Project {
   projectId: ProjectId
@@ -9,6 +10,8 @@ export interface Project {
   description?: string
   ownerId?: UserId
   memberIds: UserId[]
+  /** How this project is told apart on a screen carrying several (spec §7). */
+  color?: LabelColor
   status: EntityStatus
   startDate?: Date
   endDate?: Date

@@ -9,7 +9,11 @@
 import Link from 'next/link'
 import { StatusBadge } from './status-badge'
 import { formatDeadline } from './format'
-import { Pill } from '@/features/ui/primitives'
+import {
+  Pill,
+  ProjectBar,
+  ProjectTag,
+} from '@/features/ui/primitives'
 import type { WorkItem } from './queries'
 
 export function WorkRow({ item, now }: { item: WorkItem; now: Date }) {
@@ -19,12 +23,23 @@ export function WorkRow({ item, now }: { item: WorkItem; now: Date }) {
     <li>
       <Link
         href={`/tasks/${item.taskId}`}
-        className="flex flex-col gap-2 border-b border-border px-5 py-3.5 transition last:border-b-0 hover:bg-surface-sunken sm:flex-row sm:items-center sm:gap-4"
+        className="flex flex-col gap-2 border-b border-border py-3.5 pl-4 pr-5 transition-ui last:border-b-0 hover:bg-surface-sunken sm:flex-row sm:items-center sm:gap-4"
       >
+        {/* My Work mixes every project the person has work in, so the project
+            is a colour before it is a word. */}
+        <ProjectBar
+          color={item.projectColor}
+          seed={item.projectName}
+          className="hidden w-1 self-stretch rounded-full sm:block"
+        />
+
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-subtle">
-            <span className="font-medium text-muted">{item.projectName}</span>
-            <span aria-hidden>/</span>
+            <ProjectTag
+              name={item.projectName}
+              color={item.projectColor}
+              seed={item.projectName}
+            />
             <span>{item.workflowName}</span>
             <span aria-hidden>/</span>
             <span className="truncate">{item.instanceTitle}</span>

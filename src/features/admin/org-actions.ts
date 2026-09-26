@@ -63,6 +63,7 @@ import {
   roleUses,
   teamUses,
 } from './references'
+import { isLabelColor, type LabelColor } from '@/lib/types/label'
 import { safePhotoUrl } from './validation'
 import type { AdminActionState } from './actions'
 
@@ -100,6 +101,11 @@ function readId<K extends 'department' | 'team' | 'user' | 'project' | 'role'>(
   if (!value) return undefined
   if (!isEntityId(value, kind) || !known.has(value)) return undefined
   return value
+}
+
+function readColor(formData: FormData): LabelColor | undefined {
+  const value = String(formData.get('color') ?? '')
+  return isLabelColor(value) ? value : undefined
 }
 
 function readStatus(formData: FormData): EntityStatus | null {
@@ -242,6 +248,7 @@ export async function createProjectAction(
     description: readOptional(formData, 'description'),
     ownerId: readId(formData, 'ownerId', 'user', people) as UserId | undefined,
     memberIds: readMembers(formData, people),
+    color: readColor(formData),
     status: 'active',
     createdAt: now,
     updatedAt: now,
@@ -269,6 +276,7 @@ export async function updateProjectAction(formData: FormData): Promise<void> {
   await updateProject(projectId as ProjectId, {
     ...(name ? { name } : {}),
     ...(status ? { status } : {}),
+    ...(formData.has('color') ? { color: readColor(formData) } : {}),
     ...describedChanges(formData),
     ...(changingPeople
       ? {

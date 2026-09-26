@@ -39,6 +39,37 @@
   --status-complete-soft: #eaf5ef;
   --status-neutral: #545c68;
   --status-neutral-soft: #f2f4f6;
+
+  /**
+   * Labels.
+   *
+   * A project's colour, so work from several of them on one screen can be
+   * told apart at a glance — which is what My Work is for. Eight, because
+   * more than that stops being distinguishable and starts being decoration.
+   *
+   * Each is a readable ink on its own tint, not a block of colour: the
+   * interface stays a light one with colour used to mean something. The inks
+   * clear 4.5:1 on their tints, so a chip is legible rather than merely
+   * pretty, and the set stays distinguishable in the common forms of colour
+   * blindness by pairing hue with position in the palette rather than relying
+   * on red-versus-green alone.
+   */
+  --label-slate: #3f4a5a;
+  --label-slate-soft: #eef0f4;
+  --label-blue: #1d4ed8;
+  --label-blue-soft: #e8eeff;
+  --label-teal: #0f6e66;
+  --label-teal-soft: #e3f4f2;
+  --label-green: #17603d;
+  --label-green-soft: #e6f4ec;
+  --label-amber: #8a4d04;
+  --label-amber-soft: #fdf0dd;
+  --label-rose: #a8265a;
+  --label-rose-soft: #fdeaf1;
+  --label-purple: #6425a8;
+  --label-purple-soft: #f3eafd;
+  --label-cyan: #0b5f8a;
+  --label-cyan-soft: #e4f2f9;
 }
 
 @theme inline {
@@ -67,6 +98,22 @@
   --color-status-complete-soft: var(--status-complete-soft);
   --color-status-neutral: var(--status-neutral);
   --color-status-neutral-soft: var(--status-neutral-soft);
+  --color-label-slate: var(--label-slate);
+  --color-label-slate-soft: var(--label-slate-soft);
+  --color-label-blue: var(--label-blue);
+  --color-label-blue-soft: var(--label-blue-soft);
+  --color-label-teal: var(--label-teal);
+  --color-label-teal-soft: var(--label-teal-soft);
+  --color-label-green: var(--label-green);
+  --color-label-green-soft: var(--label-green-soft);
+  --color-label-amber: var(--label-amber);
+  --color-label-amber-soft: var(--label-amber-soft);
+  --color-label-rose: var(--label-rose);
+  --color-label-rose-soft: var(--label-rose-soft);
+  --color-label-purple: var(--label-purple);
+  --color-label-purple-soft: var(--label-purple-soft);
+  --color-label-cyan: var(--label-cyan);
+  --color-label-cyan-soft: var(--label-cyan-soft);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

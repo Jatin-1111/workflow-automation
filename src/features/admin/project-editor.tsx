@@ -10,7 +10,15 @@
  */
 
 import { useActionState, useState } from 'react'
-import { Button, Pill, buttonClass, controlClass, fieldClass } from '@/features/ui/primitives'
+import {
+  Button,
+  Pill,
+  ProjectBar,
+  buttonClass,
+  controlClass,
+  fieldClass,
+} from '@/features/ui/primitives'
+import { LABEL_COLORS, type LabelColor } from '@/lib/types/label'
 import {
   createProjectAction,
   deleteProjectAction,
@@ -32,6 +40,54 @@ export interface ProjectRow {
   status: 'active' | 'inactive'
   ownerId?: string
   memberIds: string[]
+  color?: LabelColor
+}
+
+const SWATCHES: Record<LabelColor, string> = {
+  slate: 'bg-label-slate',
+  blue: 'bg-label-blue',
+  teal: 'bg-label-teal',
+  green: 'bg-label-green',
+  amber: 'bg-label-amber',
+  rose: 'bg-label-rose',
+  purple: 'bg-label-purple',
+  cyan: 'bg-label-cyan',
+}
+
+/**
+ * Picking the colour.
+ *
+ * Radios rather than a select, so the choice is the colours themselves. Each
+ * carries its name as an accessible label, because a swatch alone says
+ * nothing to somebody who cannot see it.
+ */
+function ColorPicker({ value }: { value?: LabelColor }) {
+  return (
+    <fieldset className="space-y-1.5">
+      <legend className="text-xs font-medium text-muted">
+        Colour — how this project is told apart on shared screens
+      </legend>
+      <div className="flex flex-wrap gap-1.5">
+        {LABEL_COLORS.map((color) => (
+          <label key={color} className="cursor-pointer">
+            <input
+              type="radio"
+              name="color"
+              value={color}
+              defaultChecked={value === color}
+              className="peer sr-only"
+            />
+            <span
+              title={color}
+              className={`block size-7 rounded-md ring-offset-2 transition-ui peer-checked:ring-2 peer-checked:ring-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-accent ${SWATCHES[color]}`}
+            >
+              <span className="sr-only">{color}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )
 }
 
 function PeoplePicker({
@@ -135,6 +191,8 @@ function ProjectRowItem({
             </select>
           </label>
 
+          <ColorPicker value={project.color} />
+
           <PeoplePicker
             people={people}
             owner={project.ownerId}
@@ -156,6 +214,12 @@ function ProjectRowItem({
 
   return (
     <li className="flex flex-wrap items-center gap-3 px-5 py-3">
+      <ProjectBar
+        color={project.color}
+        seed={project.projectId}
+        className="h-8 w-1 shrink-0 rounded-full"
+      />
+
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium">{project.name}</span>
         <span className="font-mono text-xs text-subtle">{project.projectId}</span>
@@ -250,6 +314,8 @@ export function ProjectManager({
               placeholder="What it is for (optional)"
               className={fieldClass}
             />
+
+            <ColorPicker />
 
             <PeoplePicker people={people} members={[]} />
 

@@ -17,7 +17,13 @@ import { useOptimistic, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { CircleAlert, Paperclip, SquareCheck, TriangleAlert } from 'lucide-react'
-import { Button, buttonClass, fieldClass } from '@/features/ui/primitives'
+import {
+  Button,
+  ProjectBar,
+  ProjectTag,
+  buttonClass,
+  fieldClass,
+} from '@/features/ui/primitives'
 import { moveCardAction } from './actions'
 import type { Board, BoardCard } from './queries'
 
@@ -76,21 +82,37 @@ function Card({
     >
       <Link
         href={card.taskId ? `/tasks/${card.taskId}` : '#'}
-        className="block rounded-lg p-3"
+        className="flex gap-2.5 rounded-lg p-3"
       >
-        <span
-          aria-hidden
-          className={`mb-2 block h-1 w-10 rounded-full ${
-            PRIORITY_TINT[card.priority] ?? PRIORITY_TINT.medium
-          }`}
+        {/* The project's colour down the edge, so a board mixing several can
+            be read without stopping to read. */}
+        <ProjectBar
+          color={card.projectColor}
+          seed={card.instanceId}
+          className="w-1 shrink-0 rounded-full"
         />
+
+        <span className="min-w-0 flex-1">
+        <span className="mb-1.5 flex flex-wrap items-center gap-1.5">
+          {card.projectName ? (
+            <ProjectTag
+              name={card.projectName}
+              color={card.projectColor}
+              seed={card.instanceId}
+            />
+          ) : null}
+          <span
+            aria-hidden
+            title={`${card.priority} priority`}
+            className={`h-1.5 w-1.5 rounded-full ${
+              PRIORITY_TINT[card.priority] ?? PRIORITY_TINT.medium
+            }`}
+          />
+        </span>
 
         <span className="block text-sm font-medium leading-snug text-foreground">
           {card.title}
         </span>
-        {card.projectName ? (
-          <span className="mt-0.5 block text-xs text-subtle">{card.projectName}</span>
-        ) : null}
 
         <span className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted">
           {due ? (
@@ -131,6 +153,7 @@ function Card({
           <span className="ml-auto">
             <Avatars people={card.assignees} />
           </span>
+        </span>
         </span>
       </Link>
     </li>
