@@ -94,12 +94,69 @@ table,
   border-radius: 4px;
 }
 
+/* ---------------------------------------------------------------------------
+ * Motion
+ *
+ * One curve and three durations, so movement feels like one system rather
+ * than each component inventing its own. Ease-out only: things should arrive
+ * quickly and settle, never overshoot.
+ * ------------------------------------------------------------------------ */
+:root {
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration: 200ms;
+  --duration-slow: 300ms;
+}
+
+/* The standard transition for anything that reacts to a pointer. */
+.transition-ui {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease);
+}
+
+/* A section arriving. Deliberately small: 4px and a fade, nothing that delays
+ * reading. Panels stagger only by sitting in document order. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise var(--duration) var(--ease) both;
+}
+
+/* A placeholder while a server component is still on its way. */
+@keyframes pulse-soft {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.skeleton {
+  background-color: var(--surface-sunken);
+  border-radius: 0.375rem;
+  animation: pulse-soft 1.6s var(--ease) infinite;
+}
+
 /* The brief asks for no unnecessary animation; honour a stated preference. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* A skeleton that cannot pulse should still read as a placeholder. */
+  .skeleton {
+    opacity: 0.6;
   }
 }

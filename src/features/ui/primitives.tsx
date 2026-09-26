@@ -8,6 +8,49 @@
  */
 
 import Link from 'next/link'
+import type { LucideIcon } from 'lucide-react'
+
+/* -------------------------------------------------------------------------
+ * The shared rules
+ *
+ * Radius says what a thing is: `md` for anything you operate (buttons,
+ * inputs, chips), `xl` for anything that contains (panels, cards). Nothing
+ * else, so the interface reads as one set of parts.
+ *
+ * Focus is `focus-visible` only. A ring on every mouse click is noise, and
+ * globals.css already draws the keyboard outline — components add a ring on
+ * top of it only where the outline alone is hard to see.
+ * ---------------------------------------------------------------------- */
+
+export const RADIUS_CONTROL = 'rounded-md'
+export const RADIUS_CONTAINER = 'rounded-xl'
+
+/** Icons come in three sizes and one stroke, aligned to the text beside them. */
+export const ICON_SIZES = { sm: 14, md: 16, lg: 20 } as const
+
+export function Icon({
+  as: Glyph,
+  size = 'md',
+  className = '',
+}: {
+  as: LucideIcon
+  size?: keyof typeof ICON_SIZES
+  className?: string
+}) {
+  return (
+    <Glyph
+      size={ICON_SIZES[size]}
+      strokeWidth={1.75}
+      aria-hidden
+      className={`shrink-0 ${className}`}
+    />
+  )
+}
+
+/** A block standing in for content still being fetched. */
+export function Skeleton({ className = '' }: { className?: string }) {
+  return <span aria-hidden className={`skeleton block ${className}`} />
+}
 
 /* -------------------------------------------------------------------------
  * Buttons
@@ -17,7 +60,12 @@ type ButtonTone = 'primary' | 'secondary' | 'quiet' | 'danger'
 type ButtonSize = 'sm' | 'md'
 
 const BUTTON_BASE =
-  'inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-ui ' +
+  // Touch needs 44px; a pointer does not, so the floor lifts only on small
+  // screens rather than making every desktop toolbar chunky.
+  'max-sm:min-h-11 ' +
+  'active:translate-y-px ' +
+  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0'
 
 const BUTTON_TONES: Record<ButtonTone, string> = {
   primary: 'bg-accent text-white hover:bg-accent-hover',
@@ -49,15 +97,45 @@ export function Button({
   return <button {...props} className={`${buttonClass(tone, size)} ${className}`} />
 }
 
+/**
+ * A button that is only an icon.
+ *
+ * `label` is required rather than optional: an icon-only control with no
+ * accessible name is invisible to a screen reader, and making the prop
+ * optional is how that happens.
+ */
+export function IconButton({
+  as: glyph,
+  label,
+  tone = 'quiet',
+  className = '',
+  ...props
+}: Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {
+  as: LucideIcon
+  label: string
+  tone?: ButtonTone
+}) {
+  return (
+    <button
+      {...props}
+      aria-label={label}
+      title={label}
+      className={`${BUTTON_BASE} ${BUTTON_TONES[tone]} size-8 max-sm:size-11 p-0 ${className}`}
+    >
+      <Icon as={glyph} size="md" />
+    </button>
+  )
+}
+
 /* -------------------------------------------------------------------------
  * Form controls
  * ---------------------------------------------------------------------- */
 
 export const fieldClass =
-  'w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle transition hover:border-border-strong focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent-ring'
+  'w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle transition-ui max-sm:min-h-11 hover:border-border-strong focus-visible:border-accent'
 
 export const controlClass =
-  'h-9 rounded-md border border-border bg-surface px-2.5 text-sm text-foreground transition hover:border-border-strong focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent-ring'
+  'h-9 rounded-md border border-border bg-surface px-2.5 text-sm text-foreground transition-ui max-sm:min-h-11 hover:border-border-strong focus-visible:border-accent'
 
 export function Label({ children }: { children: React.ReactNode }) {
   return <span className="text-xs font-medium text-muted">{children}</span>
@@ -154,7 +232,7 @@ export function Panel({
 }) {
   return (
     <section
-      className={`overflow-hidden rounded-xl border border-border bg-surface ${className}`}
+      className={`rise overflow-hidden ${RADIUS_CONTAINER} border border-border bg-surface ${className}`}
     >
       {title ? (
         <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-3.5">

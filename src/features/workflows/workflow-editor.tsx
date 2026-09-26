@@ -9,6 +9,8 @@
  * so what the editor shows and what publishing allows never disagree.
  */
 
+import { ArrowDown, ArrowUp, Copy, Trash2 } from 'lucide-react'
+import { IconButton } from '@/features/ui/primitives'
 import { useActionState, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { StageForm } from './stage-form'
@@ -400,22 +402,34 @@ export function WorkflowEditor({
 
                     {editable ? (
                       <span className="flex shrink-0 items-center gap-1">
-                        <IconButton label="Move up" onClick={() => moveStage(index, -1)}>
-                          ↑
-                        </IconButton>
-                        <IconButton label="Move down" onClick={() => moveStage(index, 1)}>
-                          ↓
-                        </IconButton>
-                        <IconButton label="Duplicate" onClick={() => duplicateStage(index)}>
-                          ⧉
-                        </IconButton>
                         <IconButton
-                          label="Delete"
+                          as={ArrowUp}
+                          label="Move stage up"
+                          type="button"
+                          onClick={() => moveStage(index, -1)}
+                          disabled={index === 0}
+                        />
+                        <IconButton
+                          as={ArrowDown}
+                          label="Move stage down"
+                          type="button"
+                          onClick={() => moveStage(index, 1)}
+                          disabled={index === stages.length - 1}
+                        />
+                        <IconButton
+                          as={Copy}
+                          label="Duplicate stage"
+                          type="button"
+                          onClick={() => duplicateStage(index)}
+                        />
+                        <IconButton
+                          as={Trash2}
+                          label="Delete stage"
+                          tone="danger"
+                          type="button"
                           onClick={() => removeStage(index)}
                           disabled={stages.length === 1}
-                        >
-                          ✕
-                        </IconButton>
+                        />
                       </span>
                     ) : null}
                   </div>
@@ -502,30 +516,6 @@ export function WorkflowEditor({
   )
 }
 
-function IconButton({
-  label,
-  onClick,
-  disabled,
-  children,
-}: {
-  label: string
-  onClick: () => void
-  disabled?: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      title={label}
-      className="rounded border border-border px-1.5 py-0.5 text-xs text-muted transition hover:border-border-strong hover:text-foreground disabled:opacity-40"
-    >
-      {children}
-    </button>
-  )
-}
 
 function ReadOnlyStage({ stage }: { stage: StageDefinition }) {
   return (

@@ -61,7 +61,7 @@ export default async function AdminPage() {
 
   return (
     <AppShell user={admin} current="/admin">
-      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight">Administration</h1>
           <p className="mt-1 text-sm text-muted">
@@ -203,6 +203,10 @@ export default async function AdminPage() {
             </ul>
           </Section>
 
+          {/* Four small editors, paired on a wide screen: stacking them made
+              this page scroll for several screens while half the viewport sat
+              empty. */}
+          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
           <Section
             title="Departments"
             count={departments.length}
@@ -290,6 +294,7 @@ export default async function AdminPage() {
               hint="A role with nobody active in it will stall any workflow routing to it."
             />
           </Section>
+          </div>
 
           <Section
             title="Workflows"

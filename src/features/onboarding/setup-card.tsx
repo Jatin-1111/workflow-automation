@@ -7,6 +7,7 @@
  */
 
 import Link from 'next/link'
+import { Check, ChevronRight } from 'lucide-react'
 import { dismissSetupAction, startPracticeAction } from './actions'
 import { buttonClass } from '@/features/ui/primitives'
 import type { SetupStep } from './queries'
@@ -21,34 +22,64 @@ export function SetupCard({
   const done = steps.length - remaining
 
   return (
-    <section className="mb-6 rounded-xl border border-accent-ring bg-accent-soft/50">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-accent-ring px-5 py-3.5">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">Getting started</h2>
-          <p className="mt-0.5 text-xs text-muted">
-            {done} of {steps.length} done. This disappears once everything is set up.
-          </p>
-        </div>
+    <details
+      // Closed by default, and collapsible, because this is scaffolding for a
+      // new organisation while the work below it is the reason people open the
+      // page. Open it by default only while nothing has been set up at all.
+      open={done === 0}
+      className="group mb-6 rounded-xl border border-accent-ring bg-accent-soft/50"
+    >
+      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-5 py-3 transition-ui hover:bg-accent-soft">
+        <span className="flex min-w-0 items-center gap-2">
+          <ChevronRight
+            size={16}
+            strokeWidth={1.75}
+            aria-hidden
+            className="shrink-0 text-muted transition-transform duration-200 group-open:rotate-90"
+          />
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-foreground">
+              Getting started
+            </span>
+            <span className="mt-0.5 block text-xs text-muted">
+              {done} of {steps.length} done. This disappears once everything is set up.
+            </span>
+          </span>
+        </span>
 
+        <span className="flex shrink-0 items-center gap-2">
+          <span
+            aria-hidden
+            className="h-1.5 w-24 overflow-hidden rounded-full bg-surface"
+          >
+            <span
+              className="block h-full rounded-full bg-status-complete transition-all duration-300"
+              style={{ width: `${(done / steps.length) * 100}%` }}
+            />
+          </span>
+        </span>
+      </summary>
+
+      <div className="flex justify-end border-t border-accent-ring px-5 py-2">
         <form action={dismissSetupAction}>
           <button type="submit" className={buttonClass('quiet', 'sm')}>
-            Hide
+            Hide for good
           </button>
         </form>
       </div>
 
-      <ul className="divide-y divide-accent-ring/60">
+      <ul className="divide-y divide-accent-ring/60 border-t border-accent-ring">
         {steps.map((step) => (
           <li key={step.key} className="flex items-start gap-3 px-5 py-3">
             <span
               aria-hidden
-              className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
+              className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full ${
                 step.done
                   ? 'bg-status-complete text-white'
-                  : 'border border-border-strong bg-surface text-transparent'
+                  : 'border border-border-strong bg-surface'
               }`}
             >
-              {step.done ? '✓' : '·'}
+              {step.done ? <Check size={11} strokeWidth={3} /> : null}
             </span>
 
             <span className="min-w-0 flex-1">
@@ -83,6 +114,6 @@ export function SetupCard({
           </li>
         ))}
       </ul>
-    </section>
+    </details>
   )
 }

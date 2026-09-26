@@ -52,12 +52,12 @@ export default async function HelpPage() {
                 Work.
               </p>
 
-              <ol className="space-y-2 rounded-lg border border-border bg-surface-sunken p-4 text-sm">
+              <ol className="space-y-2 rounded-xl border border-border bg-surface-sunken p-4 text-sm">
                 <li className="text-muted">Startup Mela 2027</li>
-                <li className="pl-4 text-muted">↳ Proposal Creation</li>
-                <li className="pl-8 text-muted">↳ Proposal — ABC Technologies</li>
+                <li className="pl-4 text-muted">Proposal Creation</li>
+                <li className="pl-8 text-muted">Proposal — ABC Technologies</li>
                 <li className="pl-12 font-medium text-foreground">
-                  ↳ Design &amp; Formatting — assigned to you
+                  Design &amp; Formatting — assigned to you
                 </li>
               </ol>
 

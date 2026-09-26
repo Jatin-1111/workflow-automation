@@ -7,6 +7,7 @@
  */
 
 import Link from 'next/link'
+import { ChevronDown, SlidersHorizontal } from 'lucide-react'
 import { Count, buttonClass, controlClass } from '@/features/ui/primitives'
 import { activeFilterCount } from './filters'
 import { DUE_WINDOWS, DUE_WINDOW_LABELS } from '@/lib/workflow/due-window'
@@ -63,22 +64,30 @@ export function OverviewFilterBar({
   const active = activeFilterCount(filters)
 
   return (
-    <form
-      method="get"
-      className="mb-6 rounded-xl border border-border bg-surface px-5 py-4"
-    >
-      <div className="mb-3 flex items-center justify-between gap-4">
-        <h2 className="text-sm font-semibold text-foreground">
-          Filter
-          {active > 0 ? <Count value={active} /> : null}
-        </h2>
-        {active > 0 ? (
-          <Link href="/dashboard" className={buttonClass('quiet', 'sm')}>
-            Clear
-          </Link>
-        ) : null}
-      </div>
+    <form method="get" className="mb-6">
+      {/* Open only when something is already narrowing the view. Eight empty
+          selects between a manager and their numbers is the wrong default. */}
+      <details
+        open={active > 0}
+        className="group rounded-xl border border-border bg-surface"
+      >
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 transition-ui hover:bg-surface-sunken">
+          <span className="flex items-center gap-2">
+            <SlidersHorizontal size={16} strokeWidth={1.75} aria-hidden className="text-muted" />
+            <span className="text-sm font-semibold text-foreground">
+              Filter
+              {active > 0 ? <Count value={active} /> : null}
+            </span>
+          </span>
+          <ChevronDown
+            size={16}
+            strokeWidth={1.75}
+            aria-hidden
+            className="shrink-0 text-muted transition-transform duration-200 group-open:rotate-180"
+          />
+        </summary>
 
+        <div className="border-t border-border px-5 py-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Choice name="project" label="Project" value={filters.project} options={projects} />
         <Choice name="workflow" label="Workflow" value={filters.workflow} options={workflows} />
@@ -124,11 +133,18 @@ export function OverviewFilterBar({
           Apply
         </button>
         {active > 0 ? (
-          <p className="text-xs text-subtle">
-            Every figure below counts only the work that matches.
-          </p>
+          <>
+            <Link href="/dashboard" className={buttonClass('quiet', 'sm')}>
+              Clear
+            </Link>
+            <p className="text-xs text-subtle">
+              Every figure below counts only the work that matches.
+            </p>
+          </>
         ) : null}
       </div>
+        </div>
+      </details>
     </form>
   )
 }
