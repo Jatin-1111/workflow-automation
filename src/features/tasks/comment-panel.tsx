@@ -2,6 +2,7 @@
 
 /** Internal discussion, kept with the workflow rather than the stage (spec §40). */
 
+import { buttonClass, fieldClass } from '@/features/ui/primitives'
 import { useActionState } from 'react'
 import { addCommentAction, type TaskActionState } from './actions'
 
@@ -56,7 +57,7 @@ export function CommentPanel({
             name="body"
             rows={2}
             placeholder="Add a comment…"
-            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
+            className={fieldClass}
           />
           {state.ok === false ? (
             <p role="alert" className="text-sm text-status-overdue">
@@ -66,7 +67,7 @@ export function CommentPanel({
           <button
             type="submit"
             disabled={posting}
-            className="rounded-md border border-border-strong bg-surface px-3 py-1.5 text-sm font-medium transition hover:bg-accent-soft disabled:opacity-60"
+            className={buttonClass('secondary', 'md')}
           >
             {posting ? 'Posting…' : 'Post comment'}
           </button>

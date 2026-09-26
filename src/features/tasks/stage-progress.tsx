@@ -54,7 +54,7 @@ export function StageProgressBar({ stages }: { stages: StageProgress[] }) {
             <span className={`mt-1.5 block text-xs leading-snug ${LABEL[stage.state]}`}>
               {stage.name}
               {stage.revisionRound ? (
-                <span className="block text-[11px] text-subtle">
+                <span className="block text-xs text-subtle">
                   pass {stage.revisionRound}
                 </span>
               ) : null}

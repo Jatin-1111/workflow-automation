@@ -38,7 +38,7 @@ export default async function ProjectsPage() {
                     {project.activeInstances} active · {project.completedInstances} completed
                   </span>
                   {project.overdueTasks > 0 ? (
-                    <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-[11px] font-medium text-status-overdue">
+                    <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-xs font-medium text-status-overdue">
                       {project.overdueTasks} overdue
                     </span>
                   ) : null}

@@ -89,7 +89,7 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
                               {hit.context}
                             </span>
                           ) : null}
-                          <span className="block font-mono text-[11px] text-subtle">
+                          <span className="block font-mono text-xs text-subtle">
                             {hit.id}
                           </span>
                         </span>

@@ -7,6 +7,7 @@
  * visible - a revision never replaces what it supersedes.
  */
 
+import { buttonClass, controlClass } from '@/features/ui/primitives'
 import { useActionState } from 'react'
 import { uploadFileAction, type TaskActionState } from './actions'
 import type { TaskFileRow } from './queries'
@@ -57,7 +58,7 @@ export function FilePanel({
                 </span>
               </span>
               {file.isFinalApproved ? (
-                <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-[11px] font-medium text-status-complete">
+                <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-xs font-medium text-status-complete">
                   Final approved
                 </span>
               ) : null}
@@ -78,7 +79,7 @@ export function FilePanel({
               <select
                 name="slotKey"
                 defaultValue={slots[0]?.key ?? ''}
-                className="h-9 rounded-md border border-border bg-surface px-2 text-sm"
+                className={controlClass}
               >
                 {slots.map((slot) => (
                   <option key={slot.key} value={slot.key}>
@@ -106,7 +107,7 @@ export function FilePanel({
           <button
             type="submit"
             disabled={uploading}
-            className="rounded-md border border-border-strong bg-surface px-3 py-1.5 text-sm font-medium transition hover:bg-accent-soft disabled:opacity-60"
+            className={buttonClass('secondary', 'md')}
           >
             {uploading ? 'Uploading…' : 'Upload file'}
           </button>

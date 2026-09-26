@@ -242,7 +242,7 @@ function Labelled({
     <label className="flex flex-col gap-1">
       <span className={label}>{text}</span>
       {children}
-      {hint ? <span className="text-[11px] text-subtle">{hint}</span> : null}
+      {hint ? <span className="text-xs text-subtle">{hint}</span> : null}
     </label>
   )
 }
@@ -265,7 +265,7 @@ function Part({
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <div>
           <h3 className="text-sm font-semibold">{title}</h3>
-          <p className="text-[11px] text-subtle">{hint}</p>
+          <p className="text-xs text-subtle">{hint}</p>
         </div>
         <button
           type="button"
@@ -433,7 +433,7 @@ function ConditionsEditor({
     return (
       <section className="rounded-lg border border-border px-3 py-3">
         <h3 className="text-sm font-semibold">When this stage runs</h3>
-        <p className="mt-0.5 text-[11px] text-subtle">
+        <p className="mt-0.5 text-xs text-subtle">
           The first stage always runs: nothing has been recorded yet to test.
         </p>
       </section>
@@ -529,7 +529,7 @@ function ConditionsEditor({
       )}
 
       {earlierFields.length === 0 ? (
-        <p className="px-3 pb-3 text-[11px] text-subtle">
+        <p className="px-3 pb-3 text-xs text-subtle">
           No earlier stage collects any information yet, so there is nothing to test
           against.
         </p>

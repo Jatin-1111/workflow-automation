@@ -57,7 +57,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
  * ---------------------------------------------------------------------- */
 
 type ButtonTone = 'primary' | 'secondary' | 'quiet' | 'danger'
-type ButtonSize = 'sm' | 'md'
+type ButtonSize = 'sm' | 'md' | 'lg'
 
 const BUTTON_BASE =
   'inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-ui ' +
@@ -79,6 +79,8 @@ const BUTTON_TONES: Record<ButtonTone, string> = {
 const BUTTON_SIZES: Record<ButtonSize, string> = {
   sm: 'h-8 px-2.5 text-xs',
   md: 'h-9 px-4 text-sm',
+  /** The decision at the end of a task: complete, approve, send back. */
+  lg: 'h-11 px-5 text-sm',
 }
 
 export function buttonClass(tone: ButtonTone = 'secondary', size: ButtonSize = 'md') {

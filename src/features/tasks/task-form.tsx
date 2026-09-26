@@ -9,6 +9,7 @@
  * Complete.
  */
 
+import { buttonClass, fieldClass } from '@/features/ui/primitives'
 import { useActionState, useEffect, useRef, useState } from 'react'
 import {
   approveAction,
@@ -127,7 +128,7 @@ export function TaskForm({ taskId, stage, fieldValues, checklist, missingFiles }
             <textarea
               name="comment"
               rows={3}
-              className="rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
+              className={fieldClass}
             />
           </label>
         </section>
@@ -160,7 +161,7 @@ export function TaskForm({ taskId, stage, fieldValues, checklist, missingFiles }
           type="submit"
           formAction={save}
           disabled={busy}
-          className="rounded-md border border-border-strong bg-surface px-5 py-3 text-sm font-medium transition hover:bg-accent-soft disabled:opacity-60"
+          className={buttonClass('secondary', 'lg')}
         >
           {saving ? 'Saving…' : 'Save progress'}
         </button>
@@ -171,7 +172,7 @@ export function TaskForm({ taskId, stage, fieldValues, checklist, missingFiles }
               type="submit"
               formAction={approveNow}
               disabled={busy}
-              className="rounded-md bg-accent px-5 py-3 text-sm font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
+              className={buttonClass('primary', 'lg')}
             >
               {approving ? 'Approving…' : 'Approve final'}
             </button>
@@ -179,7 +180,7 @@ export function TaskForm({ taskId, stage, fieldValues, checklist, missingFiles }
               type="submit"
               formAction={reject}
               disabled={busy}
-              className="rounded-md border border-border-strong bg-surface px-5 py-3 text-sm font-medium text-status-overdue transition hover:bg-accent-soft disabled:opacity-60"
+              className={buttonClass('danger', 'lg')}
             >
               {rejecting ? 'Sending back…' : 'Request changes'}
             </button>
@@ -189,7 +190,7 @@ export function TaskForm({ taskId, stage, fieldValues, checklist, missingFiles }
             type="submit"
             formAction={complete}
             disabled={busy}
-            className="rounded-md bg-accent px-5 py-3 text-sm font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
+            className={buttonClass('primary', 'lg')}
           >
             {completing ? 'Completing…' : `Complete ${stage.name}`}
           </button>

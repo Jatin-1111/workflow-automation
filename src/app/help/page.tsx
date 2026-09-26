@@ -19,7 +19,7 @@ export default async function HelpPage() {
 
   return (
     <AppShell user={user} current="/help">
-      <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <PageHeader
           title="How this works"
           description="The shape of the platform, and the words it uses."
@@ -69,6 +69,9 @@ export default async function HelpPage() {
             </div>
           </Panel>
 
+          {/* Reference panels, paired: reading them is not sequential, so a
+              single column only added scrolling. */}
+          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
           <Panel title="The habit the platform asks for">
             <div className="space-y-3 px-5 py-4 text-sm leading-relaxed text-muted">
               <p>
@@ -157,6 +160,7 @@ export default async function HelpPage() {
               </ul>
             </Panel>
           ) : null}
+          </div>
 
           <Panel title="Try it for real">
             <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4">

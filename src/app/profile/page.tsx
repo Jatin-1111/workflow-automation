@@ -55,7 +55,7 @@ export default async function ProfilePage() {
 
   return (
     <AppShell user={user} current="/profile">
-      <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
         <header className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight">{user.name}</h1>
           <p className="mt-1 text-sm text-muted">
@@ -98,6 +98,11 @@ export default async function ProfilePage() {
         </div>
 
         <div className="space-y-6">
+          {/* Who I am on the left, what I am carrying on the right: the
+              page stacked nine blocks in one column and scrolled for
+              screens on a wide display. */}
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
+            <div className="space-y-6">
           <Section
             title="My workflow roles"
             count={roleNames.length}
@@ -129,14 +134,16 @@ export default async function ProfilePage() {
               {CAPABILITIES_BY_ACCESS_LEVEL[user.accessLevel].map((capability) => (
                 <li
                   key={capability}
-                  className="rounded border border-border px-2 py-1 font-mono text-[11px] text-muted"
+                  className="rounded border border-border px-2 py-1 font-mono text-xs text-muted"
                 >
                   {capability}
                 </li>
               ))}
             </ul>
           </Section>
+            </div>
 
+            <div className="space-y-6">
           <WorkSection
             title="My active work"
             items={active}
@@ -197,6 +204,8 @@ export default async function ProfilePage() {
               </ul>
             )}
           </Section>
+            </div>
+          </div>
         </div>
       </main>
     </AppShell>

@@ -137,7 +137,7 @@ function StatusPill({ status }: { status: WorkflowTemplate['status'] }) {
         : 'text-subtle'
 
   return (
-    <span className={`rounded border border-border px-1.5 py-0.5 text-[11px] font-medium ${tone}`}>
+    <span className={`rounded border border-border px-1.5 py-0.5 text-xs font-medium ${tone}`}>
       {status === 'active' ? 'Live' : status === 'draft' ? 'Draft' : 'Retired'}
     </span>
   )

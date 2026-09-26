@@ -8,6 +8,8 @@
  */
 
 import { useActionState } from 'react'
+import { ChevronRight } from 'lucide-react'
+import { Button } from '@/features/ui/primitives'
 import { updateRolesAction, type AdminActionState } from './actions'
 
 const IDLE: AdminActionState = { ok: null }
@@ -32,11 +34,38 @@ export function RoleEditor({
 }) {
   const [state, save, saving] = useActionState(updateRolesAction, IDLE)
   const held = new Set(assigned)
+  const heldNames = roles.filter((role) => held.has(role.roleId)).map((role) => role.name)
 
   return (
-    <form action={save} className="space-y-3">
+    <form action={save}>
       <input type="hidden" name="userId" value={userId} />
 
+      {/* Twelve checkboxes per person turned this page into several screens
+          of scrolling. What somebody holds is the answer most of the time;
+          changing it is the rarer thing, so it opens on request. */}
+      <details className="group">
+        <summary className="flex cursor-pointer list-none items-center gap-2 py-1 text-xs transition-ui hover:text-foreground">
+          <ChevronRight
+            size={14}
+            strokeWidth={1.75}
+            aria-hidden
+            className="shrink-0 text-subtle transition-transform duration-200 group-open:rotate-90"
+          />
+          <span className="min-w-0 text-muted">
+            {heldNames.length === 0 ? (
+              <span className="text-status-overdue">No workflow roles</span>
+            ) : (
+              <>
+                <span className="font-medium text-foreground">
+                  {heldNames.length} role{heldNames.length === 1 ? '' : 's'}
+                </span>
+                <span className="text-subtle"> — {heldNames.join(', ')}</span>
+              </>
+            )}
+          </span>
+        </summary>
+
+        <div className="space-y-3 pt-3">
       <fieldset className="grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
         <legend className="sr-only">Workflow roles for {userName}</legend>
         {roles.map((role) => (
@@ -61,13 +90,9 @@ export function RoleEditor({
       </fieldset>
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-md border border-border-strong bg-surface px-3 py-1.5 text-sm font-medium transition hover:bg-accent-soft disabled:opacity-60"
-        >
+        <Button type="submit" tone="secondary" size="sm" disabled={saving}>
           {saving ? 'Saving…' : 'Save roles'}
-        </button>
+        </Button>
 
         {state.ok !== null ? (
           <p
@@ -85,6 +110,8 @@ export function RoleEditor({
         Changes apply to work assigned from now on. Stages already open keep the
         people they were given to.
       </p>
+        </div>
+      </details>
     </form>
   )
 }

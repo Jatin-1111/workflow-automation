@@ -8,6 +8,7 @@
  * it — if the same swap is needed every time, the role mapping is the fix.
  */
 
+import { buttonClass, fieldClass } from '@/features/ui/primitives'
 import { useActionState, useState } from 'react'
 import { reassignAction, type TaskActionState } from './actions'
 
@@ -49,13 +50,13 @@ export function ReassignPanel({
         <div>
           <h2 className="text-sm font-semibold">Assignment</h2>
           {stageSource ? (
-            <p className="text-[11px] text-subtle">Normally goes to {stageSource}</p>
+            <p className="text-xs text-subtle">Normally goes to {stageSource}</p>
           ) : null}
         </div>
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
-          className="rounded-md border border-border-strong bg-surface px-2.5 py-1 text-xs font-medium transition hover:bg-accent-soft"
+          className={buttonClass('secondary', 'sm')}
         >
           {open ? 'Cancel' : 'Reassign'}
         </button>
@@ -93,7 +94,7 @@ export function ReassignPanel({
                       </span>
                     </span>
                     {person.roles.length > 0 ? (
-                      <span className="block truncate text-[11px] text-subtle">
+                      <span className="block truncate text-xs text-subtle">
                         {person.roles.join(', ')}
                       </span>
                     ) : null}
@@ -110,7 +111,7 @@ export function ReassignPanel({
             <input
               name="reason"
               placeholder="On leave, workload, handover…"
-              className="rounded-md border border-border bg-surface px-2.5 py-1.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
+              className={fieldClass}
             />
           </label>
 
@@ -123,12 +124,12 @@ export function ReassignPanel({
           <button
             type="submit"
             disabled={working || selected.length === 0}
-            className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
+            className={buttonClass('primary', 'md')}
           >
             {working ? 'Reassigning…' : 'Reassign task'}
           </button>
 
-          <p className="text-[11px] text-subtle">
+          <p className="text-xs text-subtle">
             This affects only this one task. The stage keeps the role it is
             configured with.
           </p>

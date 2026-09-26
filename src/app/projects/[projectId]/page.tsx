@@ -81,7 +81,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
                         {row.hoursWaiting}h at this stage
                       </span>
                       {row.slaBreached ? (
-                        <span className="text-[11px] text-status-overdue">
+                        <span className="text-xs text-status-overdue">
                           SLA breached
                         </span>
                       ) : null}

@@ -372,25 +372,25 @@ export function WorkflowEditor({
                         <span className="tabular-nums text-subtle">{index + 1}</span>
                         {candidate.name || candidate.key}
                         {candidate.key === initialStageKey ? (
-                          <span className="rounded border border-border px-1 text-[10px] text-muted">
+                          <span className="rounded border border-border px-1 text-xs text-muted">
                             start
                           </span>
                         ) : null}
                         {candidate.requiresApproval ? (
-                          <span className="rounded border border-border px-1 text-[10px] text-status-action">
+                          <span className="rounded border border-border px-1 text-xs text-status-action">
                             approval
                           </span>
                         ) : null}
                         {candidate.conditions && candidate.conditions.length > 0 ? (
                           <span
                             title="Only runs when its conditions hold"
-                            className="rounded border border-border px-1 text-[10px] text-muted"
+                            className="rounded border border-border px-1 text-xs text-muted"
                           >
                             conditional
                           </span>
                         ) : null}
                       </span>
-                      <span className="block font-mono text-[11px] text-subtle">
+                      <span className="block font-mono text-xs text-subtle">
                         {candidate.key}
                         {issues > 0 ? (
                           <span className="ml-2 text-status-overdue">
