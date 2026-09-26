@@ -15,6 +15,7 @@
  */
 
 import { useActionState, useState } from 'react'
+import { TriangleAlert } from 'lucide-react'
 import {
   Button,
   Pill,
@@ -33,6 +34,8 @@ export interface OrgEntity {
   detail?: string
   description?: string
   status: 'active' | 'inactive'
+  /** Something is wrong with this record and should be seen, not read for. */
+  alert?: string
 }
 
 export interface SelectField {
@@ -130,11 +133,29 @@ function Row({
   }
 
   return (
-    <li className="flex flex-wrap items-center gap-3 px-5 py-3">
+    <li
+      className={`flex flex-wrap items-center gap-3 bg-surface px-5 py-3 ${
+        entity.alert ? 'bg-status-overdue-soft/40' : ''
+      }`}
+    >
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium">{entity.name}</span>
+        <span className="flex items-center gap-1.5">
+          {entity.alert ? (
+            <TriangleAlert
+              size={14}
+              strokeWidth={1.75}
+              aria-hidden
+              className="shrink-0 text-status-overdue"
+            />
+          ) : null}
+          <span className="truncate text-sm font-medium">{entity.name}</span>
+        </span>
         <span className="font-mono text-xs text-subtle">{entity.id}</span>
-        {entity.detail ? (
+        {entity.alert ? (
+          <span className="mt-0.5 block text-xs font-medium text-status-overdue">
+            {entity.alert}
+          </span>
+        ) : entity.detail ? (
           <span className="mt-0.5 block text-xs text-muted">{entity.detail}</span>
         ) : null}
         {removeState.ok === false ? (
@@ -192,6 +213,7 @@ export function OrgManager({
   deleteAction,
   selectField,
   describable = false,
+  columns = false,
   hint,
 }: {
   /** Singular, as it appears in the form: "Department". */
@@ -210,13 +232,21 @@ export function OrgManager({
   ) => Promise<AdminActionState>
   selectField?: SelectField
   describable?: boolean
+  /** Lay the records out as cards. Worth it past about eight of them. */
+  columns?: boolean
   hint?: string
 }) {
   const [state, create, creating] = useActionState(createAction, IDLE)
 
   return (
     <div className="divide-y divide-border">
-      <ul className="divide-y divide-border">
+      <ul
+        className={
+          columns
+            ? 'grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-3'
+            : 'divide-y divide-border'
+        }
+      >
         {entities.length === 0 ? (
           <li className="px-5 py-6 text-center text-sm text-muted">
             No {label.toLowerCase()} yet.

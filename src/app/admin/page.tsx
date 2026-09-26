@@ -5,7 +5,6 @@
  * somebody leaving, which is the promise §6 makes.
  */
 
-import { TriangleAlert } from 'lucide-react'
 import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
 import { Section } from '@/features/management/section'
@@ -71,63 +70,6 @@ export default async function AdminPage() {
         </div>
 
         <div className="space-y-6">
-          <Section
-            title="Role coverage"
-            count={roles.length}
-            description="A role with nobody holding it will stop any workflow that routes to it."
-          >
-            {/* Cards rather than rows: twelve names down the left of a wide
-                screen with one word on the far right is mostly empty space,
-                and the thing being looked for — a role nobody holds — was the
-                hardest to spot in it. */}
-            <ul className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-3">
-              {roles.map((role) => {
-                const active = activeHoldersOf(role.roleId)
-                const inactive = holdersOf(role.roleId).filter(
-                  (user) => user.status !== 'active',
-                )
-                const uncovered = active.length === 0
-
-                return (
-                  <li
-                    key={role.roleId}
-                    className={`flex flex-col gap-1 bg-surface px-4 py-3 ${
-                      uncovered ? 'bg-status-overdue-soft/40' : ''
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      {uncovered ? (
-                        <TriangleAlert
-                          size={14}
-                          strokeWidth={1.75}
-                          aria-hidden
-                          className="shrink-0 text-status-overdue"
-                        />
-                      ) : null}
-                      <span className="truncate text-sm font-medium">{role.name}</span>
-                    </span>
-
-                    <span
-                      className={`text-xs ${
-                        uncovered ? 'font-medium text-status-overdue' : 'text-muted'
-                      }`}
-                    >
-                      {uncovered
-                        ? 'Nobody assigned'
-                        : active.map((user) => user.name).join(', ')}
-                    </span>
-
-                    {inactive.length > 0 ? (
-                      <span className="text-xs text-subtle">
-                        {inactive.map((user) => user.name).join(', ')} (deactivated)
-                      </span>
-                    ) : null}
-                  </li>
-                )
-              })}
-            </ul>
-          </Section>
-
           <Section title="People" count={users.length}>
             <div className="px-5 pt-4">
               <Hint>
@@ -219,9 +161,9 @@ export default async function AdminPage() {
             </ul>
           </Section>
 
-          {/* Four small editors, paired on a wide screen: stacking them made
-              this page scroll for several screens while half the viewport sat
-              empty. */}
+          {/* Departments and teams are short lists and pair well. Everything
+              longer stays full width: pairing a five-row section against a
+              twelve-row one left a column's worth of empty space. */}
           <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
           <Section
             title="Departments"
@@ -268,6 +210,8 @@ export default async function AdminPage() {
             />
           </Section>
 
+          </div>
+
           <Section
             title="Major Projects"
             count={projects.length}
@@ -288,29 +232,36 @@ export default async function AdminPage() {
             />
           </Section>
 
+
+
           <Section
             title="Workflow roles"
             count={roles.length}
-            description="What a stage is assigned to. The key is derived from the name and never changes, because templates refer to it."
+            description="What a stage is assigned to, and who currently holds it. The key is derived from the name and never changes, because templates refer to it."
           >
             <OrgManager
               label="Role"
               idField="roleId"
-              entities={roles.map((role) => ({
-                id: role.roleId,
-                name: role.name,
-                detail: `${role.key} · ${activeHoldersOf(role.roleId).length} active holder(s)`,
-                description: role.description,
-                status: role.status,
-              }))}
+              entities={roles.map((role) => {
+                const active = activeHoldersOf(role.roleId)
+                return {
+                  id: role.roleId,
+                  name: role.name,
+                  detail: `${role.key} · ${active.map((user) => user.name).join(', ')}`,
+                  description: role.description,
+                  status: role.status,
+                  // The one thing this section exists to surface.
+                  alert: active.length === 0 ? 'Nobody assigned' : undefined,
+                }
+              })}
               createAction={createRoleAction}
               updateAction={updateRoleAction}
               deleteAction={deleteRoleAction}
               describable
+              columns
               hint="A role with nobody active in it will stall any workflow routing to it."
             />
           </Section>
-          </div>
 
           <Section
             title="Workflows"

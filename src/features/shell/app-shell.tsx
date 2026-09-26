@@ -6,6 +6,7 @@
  */
 
 import Link from 'next/link'
+import { Bell, CircleHelp, Search } from 'lucide-react'
 import { LogoutButton } from '@/features/auth/logout-button'
 import { can, type Capability } from '@/lib/auth/permissions'
 import { countUnreadNotifications } from '@/lib/db/repositories/notifications'
@@ -52,29 +53,48 @@ export async function AppShell({
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3 sm:gap-4 sm:px-6">
           <Link
             href="/my-work"
-            className="shrink-0 text-sm font-semibold tracking-tight text-foreground"
+            className="shrink-0 text-sm font-semibold tracking-tight text-foreground transition-ui hover:text-accent"
           >
             Business Orbit
           </Link>
 
-          <form method="get" action="/search" className="mx-auto hidden md:block">
+          {/* The search grows into whatever the header is not using, rather
+              than sitting at a fixed width with dead space either side. */}
+          <form
+            method="get"
+            action="/search"
+            className="relative mx-auto hidden w-full max-w-md md:block"
+          >
+            <Search
+              size={16}
+              strokeWidth={1.75}
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
+            />
             <input
               type="search"
               name="q"
               placeholder="Search or paste an ID"
               aria-label="Search Business Orbit"
-              className="h-8 w-72 rounded-md border border-border bg-surface-sunken px-3 text-sm text-foreground transition placeholder:text-subtle hover:border-border-strong focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-ring"
+              className="h-9 w-full rounded-md border border-border bg-surface-sunken pl-9 pr-3 text-sm text-foreground transition-ui placeholder:text-subtle hover:border-border-strong focus-visible:border-accent focus-visible:bg-surface"
             />
           </form>
 
+          {/* Icon-first, so the two utilities read as controls rather than as
+              more navigation competing with the tabs below. */}
           <Link
             href="/notifications"
+            aria-label={
+              unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'
+            }
             aria-current={current === '/notifications' ? 'page' : undefined}
-            className="ml-auto flex shrink-0 items-center gap-1.5 text-sm text-muted transition hover:text-foreground md:ml-0"
+            className={`relative ml-auto flex size-9 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-surface-sunken md:ml-0 ${
+              current === '/notifications' ? 'text-accent' : 'text-muted hover:text-foreground'
+            }`}
           >
-            Notifications
+            <Bell size={18} strokeWidth={1.75} aria-hidden />
             {unread > 0 ? (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-medium tabular-nums text-white">
+              <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-xs font-medium tabular-nums text-white">
                 {unread}
               </span>
             ) : null}
@@ -82,20 +102,29 @@ export async function AppShell({
 
           <Link
             href="/help"
+            aria-label="How this works"
             aria-current={current === '/help' ? 'page' : undefined}
-            className="shrink-0 text-sm text-muted transition hover:text-foreground"
+            className={`flex size-9 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-surface-sunken ${
+              current === '/help' ? 'text-accent' : 'text-muted hover:text-foreground'
+            }`}
           >
-            Help
+            <CircleHelp size={18} strokeWidth={1.75} aria-hidden />
           </Link>
 
-          <span aria-hidden className="hidden h-5 w-px bg-border sm:block" />
+          <span aria-hidden className="hidden h-6 w-px bg-border sm:block" />
 
           <Link
             href="/profile"
             aria-current={current === '/profile' ? 'page' : undefined}
-            className="hidden shrink-0 text-sm text-muted transition hover:text-foreground sm:block"
+            className="flex shrink-0 items-center gap-2 rounded-md py-1 pl-1 pr-2 text-sm transition-ui hover:bg-surface-sunken"
           >
-            {user.name}
+            <span
+              aria-hidden
+              className="flex size-7 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent"
+            >
+              {user.name.slice(0, 1).toUpperCase()}
+            </span>
+            <span className="hidden text-muted sm:block">{user.name}</span>
           </Link>
 
           <LogoutButton />
@@ -110,9 +139,9 @@ export async function AppShell({
                   <Link
                     href={entry.href}
                     aria-current={active ? 'page' : undefined}
-                    className={`block whitespace-nowrap border-b-2 px-3 py-2 text-sm transition ${
+                    className={`block whitespace-nowrap border-b-2 px-3 py-2.5 text-sm transition-ui ${
                       active
-                        ? 'border-accent font-medium text-foreground'
+                        ? 'border-accent font-semibold text-foreground'
                         : 'border-transparent text-muted hover:border-border-strong hover:text-foreground'
                     }`}
                   >
