@@ -310,59 +310,83 @@ export function BoardView({ board }: { board: Board }) {
         }`}
       >
       <div className="flex items-start gap-3">
-        {columns.map((column, index) => (
+        {columns.map((column, index) => {
+          const collapsed = column.cards.length === 0 && over !== column.key
+          return (
           <section
             key={column.key}
+            aria-label={`${column.name}, ${column.cards.length} card${column.cards.length === 1 ? '' : 's'}`}
             onDragOver={(event) => {
               event.preventDefault()
               setOver(column.key)
             }}
             onDragLeave={() => setOver((k) => (k === column.key ? null : k))}
             onDrop={() => onDrop(column.key)}
-            className={`flex w-64 shrink-0 flex-col rounded-xl border bg-surface shadow-sm transition-ui ${
+            /* An empty stage collapses to a spine. A seven-stage workflow
+               otherwise needs 1876px of board for five cards, and an
+               eleven-stage one scrolls past mostly nothing. It stays a drop
+               target, and opens while a card is held over it. */
+            className={`flex shrink-0 flex-col rounded-xl border bg-surface shadow-sm transition-[width,border-color] duration-200 ease-out ${
               over === column.key
-                ? 'border-accent ring-2 ring-accent-ring'
-                : 'border-border'
-            } ${column.cards.length === 0 ? 'opacity-70' : ''}`}
+                ? 'w-64 border-accent ring-2 ring-accent-ring'
+                : column.cards.length === 0
+                  ? 'w-11 border-dashed border-border'
+                  : 'w-64 border-border'
+            }`}
           >
-            <h2 className="flex items-center gap-2 border-b border-border px-3 py-2">
-              <span className="truncate text-sm font-semibold text-foreground">
-                {column.name}
-              </span>
-              <span className="rounded-full bg-surface-sunken px-1.5 text-xs font-medium tabular-nums text-muted">
-                {column.cards.length}
-              </span>
-              {column.requiresApproval ? (
-                <Stamp
-                  size={14}
-                  strokeWidth={1.75}
-                  aria-label="Approval stage"
-                  className="ml-auto shrink-0 text-status-progress"
-                />
-              ) : null}
-            </h2>
+            {collapsed ? (
+              <h2 className="flex flex-1 flex-col items-center gap-2 py-3">
+                <span className="text-xs font-medium tabular-nums text-subtle">0</span>
+                <span
+                  className="whitespace-nowrap text-xs font-medium text-muted"
+                  style={{ writingMode: 'vertical-rl' }}
+                >
+                  {column.name}
+                </span>
+              </h2>
+            ) : (
+              <>
+                <h2 className="flex items-center gap-2 border-b border-border px-3 py-2">
+                  <span className="truncate text-sm font-semibold text-foreground">
+                    {column.name}
+                  </span>
+                  <span className="rounded-full bg-surface-sunken px-1.5 text-xs font-medium tabular-nums text-muted">
+                    {column.cards.length}
+                  </span>
+                  {column.requiresApproval ? (
+                    <Stamp
+                      size={14}
+                      strokeWidth={1.75}
+                      aria-label="Approval stage"
+                      className="ml-auto shrink-0 text-status-progress"
+                    />
+                  ) : null}
+                </h2>
 
             {/* An empty column is a thin strip. Eleven tall empty boxes was
                 most of what the board showed on a quiet workflow. */}
-            {column.cards.length === 0 ? (
-              <p className="px-3 py-2 text-xs text-subtle">
-                {index === 0 ? 'New work starts here' : 'Empty'}
-              </p>
-            ) : (
-              <ul className="flex flex-col gap-2 p-2">
-                {column.cards.map((card) => (
-                  <Card
-                    key={card.instanceId}
-                    card={card}
-                    dragging={dragId === card.instanceId}
-                    onDragStart={() => setDragId(card.instanceId)}
-                    onDragEnd={() => setDragId(null)}
-                  />
-                ))}
-              </ul>
+                {column.cards.length === 0 ? (
+                  <p className="px-3 py-2 text-xs text-subtle">
+                    {index === 0 ? 'New work starts here' : 'Drop here'}
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-2 p-2">
+                    {column.cards.map((card) => (
+                      <Card
+                        key={card.instanceId}
+                        card={card}
+                        dragging={dragId === card.instanceId}
+                        onDragStart={() => setDragId(card.instanceId)}
+                        onDragEnd={() => setDragId(null)}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </>
             )}
           </section>
-        ))}
+          )
+        })}
       </div>
       </div>
     </div>
