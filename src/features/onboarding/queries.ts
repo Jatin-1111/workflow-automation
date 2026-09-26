@@ -140,7 +140,13 @@ export async function getOnboarding(user: PublicUser): Promise<Onboarding> {
 
   return {
     showTour: !user.onboarding?.tourSeenAt,
-    showSetup: remaining > 0 && !user.onboarding?.setupDismissedAt,
+    // Setting up the organisation is an administrator's job. An employee was
+    // being shown a checklist for work that is not theirs to do, above the
+    // work that is.
+    showSetup:
+      can(user.accessLevel, 'admin.manage_users') &&
+      remaining > 0 &&
+      !user.onboarding?.setupDismissedAt,
     steps,
     remaining,
     practiceDone,

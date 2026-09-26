@@ -6,7 +6,7 @@
  */
 
 import Link from 'next/link'
-import { requireUser } from '@/lib/auth/dal'
+import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
 import { Empty, PageHeader, Panel, buttonClass } from '@/features/ui/primitives'
 import { BoardView } from '@/features/board/board'
@@ -17,7 +17,10 @@ import { listProjects } from '@/lib/db/repositories/projects'
 import { StartWorkflow } from '@/features/instances/start-workflow'
 
 export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
-  const user = await requireUser()
+  // A board shows every run of a workflow, including titles that name
+  // clients. That is an oversight view, so it is gated like the dashboard
+  // rather than left open because the nav entry happens to be hidden.
+  const user = await requireCapability('management.view_dashboard')
   const params = await searchParams
   const [templates, projects] = await Promise.all([
     listActiveTemplates(),

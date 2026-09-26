@@ -6,6 +6,7 @@
  */
 
 import Link from 'next/link'
+import { SlidersHorizontal } from 'lucide-react'
 import { BUCKET_LABELS } from '@/lib/workflow/buckets'
 import { DUE_WINDOWS, DUE_WINDOW_LABELS } from '@/lib/workflow/due-window'
 import { WORK_BUCKETS, type WorkBucket } from '@/lib/types/status'
@@ -45,6 +46,11 @@ export function WorkFilters({
   work: MyWork
 }) {
   const tabs: (WorkBucket | 'all')[] = [...WORK_BUCKETS, 'all']
+  // Counted across the sections, not the visible one: switching to an empty
+  // section should not make the controls vanish mid-task.
+  const worthFiltering =
+    Object.values(work.counts).reduce((total, n) => total + n, 0) > 8
+
   const filtered = Boolean(
     filters.project ||
       filters.workflow ||
@@ -96,10 +102,27 @@ export function WorkFilters({
 
       {/* One toolbar rather than a grid of labelled controls: the controls say
           what they are, and stacked captions above each was most of the noise. */}
+      {/* Six controls for a handful of rows is furniture, not help. The bar
+          appears once there is enough to sift, or once something is already
+          narrowing the list. */}
+      <details
+        open={filtered}
+        className={`group ${worthFiltering ? '' : 'hidden'}`}
+      >
+        <summary className="flex cursor-pointer list-none items-center gap-2 py-1 text-xs text-muted transition-ui hover:text-foreground">
+          <SlidersHorizontal size={14} strokeWidth={1.75} aria-hidden />
+          <span>Search and filter</span>
+          {filtered ? (
+            <span className="rounded bg-accent-soft px-1.5 py-0.5 text-xs font-medium text-accent">
+              on
+            </span>
+          ) : null}
+        </summary>
+
       <form
         method="get"
         action="/my-work"
-        className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5"
+        className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5"
       >
         <input type="hidden" name="view" value={filters.view} />
 
@@ -194,6 +217,7 @@ export function WorkFilters({
           </Link>
         ) : null}
       </form>
+      </details>
     </div>
   )
 }

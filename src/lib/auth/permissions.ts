@@ -80,6 +80,15 @@ export function canAll(
 }
 
 /** Where a user lands after login (spec §47). */
-export function landingPath(accessLevel: AccessLevel): string {
-  return can(accessLevel, 'management.view_dashboard') ? '/dashboard' : '/my-work'
+/**
+ * Where a session lands (spec §7).
+ *
+ * My Work, for everybody. Managers used to arrive on the dashboard, which
+ * reports what the organisation is doing and says nothing about what is
+ * waiting on the person reading it — a manager holding an approval was shown
+ * a count of approvals without being told one of them was hers. Oversight is
+ * a place you go; your own work is where you start.
+ */
+export function landingPath(_accessLevel: AccessLevel): string {
+  return '/my-work'
 }

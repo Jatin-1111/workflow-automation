@@ -17,6 +17,7 @@ import { listRoles } from '@/lib/db/repositories/roles'
 import { listUsers } from '@/lib/db/repositories/users'
 import { listActiveTemplates } from '@/lib/db/repositories/workflow-templates'
 import { StatTile } from '@/features/management/stat-tile'
+import { QuickReassign } from '@/features/management/quick-reassign'
 import { EmptyRow, Section } from '@/features/management/section'
 import { formatDeadline } from '@/features/my-work/format'
 
@@ -93,10 +94,13 @@ export default async function ManagementDashboardPage({
               ) : (
                 <ul className="divide-y divide-border">
                   {overview.stuck.map((item) => (
-                    <li key={item.taskId}>
+                    /* The row reads as a link and acts as a row: the reassign
+                       control sits beside the link rather than inside it,
+                       because a button nested in a link is neither. */
+                    <li key={item.taskId} className="px-4 py-3 transition-ui hover:bg-surface-sunken">
                       <Link
                         href={`/tasks/${item.taskId}`}
-                        className="flex items-start gap-4 px-4 py-3 transition hover:bg-accent-soft/60"
+                        className="flex items-start gap-4"
                       >
                         <span className="min-w-0 flex-1">
                           <span className="flex flex-wrap items-center gap-x-2 text-xs text-subtle">
@@ -122,6 +126,18 @@ export default async function ManagementDashboardPage({
                           </span>
                         </span>
                       </Link>
+
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <QuickReassign
+                          taskId={item.taskId}
+                          currentAssignees={item.assigneeIds}
+                          people={overview.workload.map((person) => ({
+                            userId: person.userId,
+                            name: person.name,
+                            openTasks: person.active,
+                          }))}
+                        />
+                      </div>
                     </li>
                   ))}
                 </ul>

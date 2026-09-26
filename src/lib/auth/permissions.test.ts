@@ -60,9 +60,11 @@ describe('canAll', () => {
 })
 
 describe('landingPath', () => {
-  it('sends employees to My Work and oversight roles to the dashboard', () => {
+  it('sends everybody to their own work', () => {
+    // Including the oversight roles: a manager holding an approval was landed
+    // on a dashboard that counted approvals without saying one was hers.
     assert.equal(landingPath('employee'), '/my-work')
-    assert.equal(landingPath('manager'), '/dashboard')
-    assert.equal(landingPath('admin'), '/dashboard')
+    assert.equal(landingPath('manager'), '/my-work')
+    assert.equal(landingPath('admin'), '/my-work')
   })
 })

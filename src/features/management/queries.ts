@@ -51,6 +51,8 @@ export interface StuckItem {
   projectName: string
   stageName: string
   assignees: string[]
+  /** Ids as well as names: a control that moves the task needs both. */
+  assigneeIds: UserId[]
   hoursWaiting: number
   slaHours?: number
   slaBreached: boolean
@@ -181,6 +183,7 @@ export async function getManagementOverview(
       projectName: projectOf(entry.task.projectId),
       stageName: entry.task.stageName,
       assignees: entry.task.assignees.map(nameOf),
+      assigneeIds: entry.task.assignees,
       hoursWaiting: hoursWaiting(entry.task, now),
       slaHours: stageByKey.get(`${entry.task.workflowId}:${entry.task.stageKey}`)?.slaHours,
       slaBreached: entry.slaBreached,

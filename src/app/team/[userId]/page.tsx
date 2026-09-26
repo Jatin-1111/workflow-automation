@@ -9,7 +9,11 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
-import { getPersonWork } from '@/features/management/queries'
+import {
+  getManagementOverview,
+  getPersonWork,
+} from '@/features/management/queries'
+import { QuickReassign } from '@/features/management/quick-reassign'
 import { EmptyRow, Section } from '@/features/management/section'
 import { formatDeadline, humanise } from '@/features/my-work/format'
 import { isEntityId } from '@/lib/ids/format'
@@ -22,6 +26,17 @@ export default async function PersonPage({ params }: PageProps<'/team/[userId]'>
   const now = new Date()
   const person = await getPersonWork(userId, now)
   if (!person) notFound()
+
+  // Everybody else active, with what they are already carrying, so a move is
+  // an informed one rather than a guess.
+  const overview = await getManagementOverview(now)
+  const others = overview.workload
+    .filter((candidate) => candidate.userId !== person.userId)
+    .map((candidate) => ({
+      userId: candidate.userId,
+      name: candidate.name,
+      openTasks: candidate.active,
+    }))
 
   return (
     <AppShell user={viewer} current="/team">
@@ -62,10 +77,13 @@ export default async function PersonPage({ params }: PageProps<'/team/[userId]'>
               {person.tasks.map((task) => {
                 const deadline = formatDeadline(task.dueAt, now)
                 return (
-                  <li key={task.taskId}>
+                  <li
+                    key={task.taskId}
+                    className="px-4 py-3 transition-ui hover:bg-surface-sunken"
+                  >
                     <Link
                       href={`/tasks/${task.taskId}`}
-                      className="flex items-center gap-4 px-4 py-3 transition hover:bg-accent-soft/60"
+                      className="flex items-center gap-4"
                     >
                       <span className="min-w-0 flex-1">
                         <span className="flex flex-wrap items-center gap-x-2 text-xs text-subtle">
@@ -90,6 +108,16 @@ export default async function PersonPage({ params }: PageProps<'/team/[userId]'>
                         {humanise(task.status)}
                       </span>
                     </Link>
+
+                    {/* Looking at somebody's load is usually the moment you
+                        decide to move some of it. */}
+                    <div className="mt-2">
+                      <QuickReassign
+                        taskId={task.taskId}
+                        currentAssignees={[person.userId]}
+                        people={others}
+                      />
+                    </div>
                   </li>
                 )
               })}

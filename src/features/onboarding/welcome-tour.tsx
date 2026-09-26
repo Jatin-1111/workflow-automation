@@ -98,7 +98,32 @@ export function WelcomeTour({
     void completeTourAction()
   }
 
+  const [opened, setOpened] = useState(false)
+
   if (closing) return null
+
+  // Offered, not imposed. A modal over somebody's work on their first visit
+  // asks them to read before they can see what they came for, and the thing
+  // they came for teaches the product better than the tour does.
+  if (!opened) {
+    return (
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-accent-ring bg-accent-soft/50 px-4 py-2.5">
+        <p className="min-w-0 flex-1 text-sm text-foreground">
+          New here? How Business Orbit works, in about a minute.
+        </p>
+        <button
+          type="button"
+          onClick={() => setOpened(true)}
+          className={buttonClass('secondary', 'sm')}
+        >
+          Show me
+        </button>
+        <button type="button" onClick={finish} className={buttonClass('quiet', 'sm')}>
+          No thanks
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div
