@@ -12,15 +12,36 @@ import { Empty, PageHeader, Panel, buttonClass } from '@/features/ui/primitives'
 import { BoardView } from '@/features/board/board'
 import { getBoard } from '@/features/board/queries'
 import { listActiveTemplates } from '@/lib/db/repositories/workflow-templates'
+import { listInstances } from '@/lib/db/repositories/workflow-instances'
+import { listProjects } from '@/lib/db/repositories/projects'
+import { StartWorkflow } from '@/features/instances/start-workflow'
 
 export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
   const user = await requireUser()
   const params = await searchParams
-  const templates = await listActiveTemplates()
+  const [templates, projects] = await Promise.all([
+    listActiveTemplates(),
+    listProjects(),
+  ])
 
   const wanted = typeof params.workflow === 'string' ? params.workflow : undefined
+
+  // Counted once so the tabs can say how much is running on each, and so the
+  // default lands on a board with work rather than the alphabetically first —
+  // which opened on eleven empty columns.
+  const instances = await listInstances()
+  const liveCount = new Map<string, number>()
+  for (const instance of instances) {
+    if (instance.status === 'completed' || instance.status === 'cancelled') continue
+    liveCount.set(instance.workflowId, (liveCount.get(instance.workflowId) ?? 0) + 1)
+  }
+
+  const busiest = [...templates].sort(
+    (a, b) => (liveCount.get(b.workflowId) ?? 0) - (liveCount.get(a.workflowId) ?? 0),
+  )[0]
+
   const template =
-    templates.find((candidate) => candidate.workflowId === wanted) ?? templates[0]
+    templates.find((candidate) => candidate.workflowId === wanted) ?? busiest
 
   if (!template) {
     return (
@@ -45,9 +66,26 @@ export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
       <main className="mx-auto w-full px-4 py-8 sm:px-6">
         <PageHeader
           title={board.name}
-          description={`Version ${board.version}. Drag a card to the next stage to complete it — the workflow decides where it goes next.`}
+          description={`Version ${board.version}. Drag a card you hold to the next stage to complete it; the workflow decides where it goes. Cards on somebody else's stage are marked and stay put.`}
           actions={
-            templates.length > 1 ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <StartWorkflow
+                workflows={[
+                  {
+                    workflowId: template.workflowId,
+                    name: template.name,
+                    projectId: template.projectId,
+                    stageCount: template.stages.length,
+                  },
+                ]}
+                projects={projects
+                  .filter((project) => project.status === 'active')
+                  .map((project) => ({
+                    projectId: project.projectId,
+                    name: project.name,
+                  }))}
+              />
+              {templates.length > 1 ? (
               <nav className="flex flex-wrap items-center gap-1">
                 {templates.map((candidate) => (
                   <Link
@@ -64,10 +102,14 @@ export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
                     )}
                   >
                     {candidate.name}
+                    <span className="ml-1.5 tabular-nums opacity-60">
+                      {liveCount.get(candidate.workflowId) ?? 0}
+                    </span>
                   </Link>
                 ))}
               </nav>
-            ) : null
+              ) : null}
+            </div>
           }
         />
 

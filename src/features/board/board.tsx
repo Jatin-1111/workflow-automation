@@ -16,7 +16,14 @@
 import { useOptimistic, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { CircleAlert, Paperclip, SquareCheck, TriangleAlert } from 'lucide-react'
+import {
+  CircleAlert,
+  Paperclip,
+  SquareCheck,
+  Lock,
+  Stamp,
+  TriangleAlert,
+} from 'lucide-react'
 import {
   Button,
   ProjectBar,
@@ -76,8 +83,15 @@ function Card({
       draggable={card.mine && Boolean(card.taskId)}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      className={`group rounded-lg border border-border bg-surface shadow-sm transition-ui ${
-        card.mine ? 'cursor-grab active:cursor-grabbing hover:border-border-strong' : ''
+      title={
+        card.mine
+          ? 'Drag to the next stage to complete it'
+          : `${card.assignees.map((person) => person.name).join(', ') || 'Somebody else'} holds this stage, so only they can move it`
+      }
+      className={`group rounded-lg border bg-surface transition-ui hover:shadow-sm ${
+        card.mine
+          ? 'cursor-grab border-border hover:border-border-strong active:cursor-grabbing'
+          : 'border-dashed border-border'
       } ${dragging ? 'opacity-40' : ''}`}
     >
       <Link
@@ -150,7 +164,15 @@ function Card({
             </span>
           ) : null}
 
-          <span className="ml-auto">
+          <span className="ml-auto flex items-center gap-1.5">
+            {!card.mine ? (
+              <Lock
+                size={12}
+                strokeWidth={1.75}
+                aria-label="Assigned to somebody else"
+                className="text-subtle"
+              />
+            ) : null}
             <Avatars people={card.assignees} />
           </span>
         </span>
@@ -283,9 +305,12 @@ export function BoardView({ board }: { board: Board }) {
       ) : null}
 
       <div
-        className={`flex gap-4 overflow-x-auto pb-4 ${pending ? 'opacity-90' : ''}`}
+        className={`min-h-[calc(100vh-17rem)] overflow-x-auto rounded-xl border border-border bg-surface-sunken p-3 ${
+          pending ? 'opacity-90' : ''
+        }`}
       >
-        {columns.map((column) => (
+      <div className="flex items-start gap-3">
+        {columns.map((column, index) => (
           <section
             key={column.key}
             onDragOver={(event) => {
@@ -294,42 +319,51 @@ export function BoardView({ board }: { board: Board }) {
             }}
             onDragLeave={() => setOver((k) => (k === column.key ? null : k))}
             onDrop={() => onDrop(column.key)}
-            className={`flex w-72 shrink-0 flex-col rounded-xl border bg-surface-sunken transition-ui ${
+            className={`flex w-64 shrink-0 flex-col rounded-xl border bg-surface shadow-sm transition-ui ${
               over === column.key
-                ? 'border-accent bg-accent-soft/40'
+                ? 'border-accent ring-2 ring-accent-ring'
                 : 'border-border'
-            }`}
+            } ${column.cards.length === 0 ? 'opacity-70' : ''}`}
           >
-            <h2 className="flex items-center gap-2 px-3 py-2.5 text-sm font-semibold text-foreground">
-              <span className="truncate">{column.name}</span>
-              <span className="text-xs font-normal tabular-nums text-subtle">
+            <h2 className="flex items-center gap-2 border-b border-border px-3 py-2">
+              <span className="truncate text-sm font-semibold text-foreground">
+                {column.name}
+              </span>
+              <span className="rounded-full bg-surface-sunken px-1.5 text-xs font-medium tabular-nums text-muted">
                 {column.cards.length}
               </span>
               {column.requiresApproval ? (
-                <span className="ml-auto rounded bg-status-progress-soft px-1.5 py-0.5 text-xs font-medium text-status-progress">
-                  Approval
-                </span>
+                <Stamp
+                  size={14}
+                  strokeWidth={1.75}
+                  aria-label="Approval stage"
+                  className="ml-auto shrink-0 text-status-progress"
+                />
               ) : null}
             </h2>
 
-            <ul className="flex min-h-24 flex-1 flex-col gap-2 px-2 pb-3">
-              {column.cards.map((card) => (
-                <Card
-                  key={card.instanceId}
-                  card={card}
-                  dragging={dragId === card.instanceId}
-                  onDragStart={() => setDragId(card.instanceId)}
-                  onDragEnd={() => setDragId(null)}
-                />
-              ))}
-              {column.cards.length === 0 ? (
-                <li className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-subtle">
-                  Nothing here
-                </li>
-              ) : null}
-            </ul>
+            {/* An empty column is a thin strip. Eleven tall empty boxes was
+                most of what the board showed on a quiet workflow. */}
+            {column.cards.length === 0 ? (
+              <p className="px-3 py-2 text-xs text-subtle">
+                {index === 0 ? 'New work starts here' : 'Empty'}
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-2 p-2">
+                {column.cards.map((card) => (
+                  <Card
+                    key={card.instanceId}
+                    card={card}
+                    dragging={dragId === card.instanceId}
+                    onDragStart={() => setDragId(card.instanceId)}
+                    onDragEnd={() => setDragId(null)}
+                  />
+                ))}
+              </ul>
+            )}
           </section>
         ))}
+      </div>
       </div>
     </div>
   )
