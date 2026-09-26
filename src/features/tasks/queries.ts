@@ -14,6 +14,8 @@ import { listProjects } from '@/lib/db/repositories/projects'
 import { listTimelineForInstance } from '@/lib/db/repositories/timeline-events'
 import { listRoles } from '@/lib/db/repositories/roles'
 import { listAllOpenTasks } from '@/lib/db/repositories/tasks'
+import { resolveActivation, resolveAssignees } from '@/lib/engine'
+import { buildEngineContext } from '@/lib/workflow/engine-context'
 import { listUsers } from '@/lib/db/repositories/users'
 import { loadTaskContext } from '@/lib/workflow/service'
 import { can } from '@/lib/auth/permissions'
@@ -76,6 +78,14 @@ export interface AssignableRow {
   openTasks: number
 }
 
+/** The consequence of a button, in the words the button will use. */
+export interface StageOutcome {
+  kind: 'stage' | 'finish'
+  stageName?: string
+  /** Names, or empty when the stage names a role nobody currently holds. */
+  people: string[]
+}
+
 export interface TaskDetail {
   task: Task
   stage: StageDefinition
@@ -91,6 +101,17 @@ export interface TaskDetail {
   /** Whether the viewer may act, as opposed to merely read (spec §46). */
   canOperate: boolean
   canReassign: boolean
+  /**
+   * Where finishing this stage sends the work, and who receives it.
+   *
+   * The platform's promise is that completing your part hands the work on
+   * without anybody being messaged. That happened invisibly: the button said
+   * what it did and nothing said what followed.
+   */
+  outcome: StageOutcome
+  /** Where an approval stage sends work back to, when it does. */
+  sendBack?: StageOutcome
+
   /** Whether the viewer may call off the whole run (spec §42). */
   canCancel: boolean
   /** Why this task is parked, taken from the hold that put it there. */
@@ -159,6 +180,20 @@ export async function getTaskDetail(
   const stage = template.stages.find((candidate) => candidate.key === task.stageKey)
   if (!stage) return null
 
+  // Resolved the way the engine will resolve it, conditions included, so the
+  // button cannot promise a stage that will actually be skipped.
+  const context = await buildEngineContext(template, now)
+
+  function outcomeFor(startKey: string | null | undefined): StageOutcome {
+    const { stage: next } = resolveActivation(template, startKey, instance.fieldValues)
+    if (!next) return { kind: 'finish', people: [] }
+    return {
+      kind: 'stage',
+      stageName: next.name,
+      people: resolveAssignees(next, instance, tasks, context).map(nameOf),
+    }
+  }
+
   return {
     task,
     stage,
@@ -176,6 +211,10 @@ export async function getTaskDetail(
     // Only an assignee of an open task may change anything.
     canOperate: isAssignee && !task.completedAt,
     canReassign: canReassign && !task.completedAt,
+    outcome: outcomeFor(stage.nextStageKey),
+    sendBack: stage.requiresApproval
+      ? outcomeFor(stage.rejectTargetStageKey)
+      : undefined,
     canCancel:
       can(viewer.accessLevel, 'instance.cancel') &&
       instance.status !== 'completed' &&

@@ -48,11 +48,13 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
   return (
     <AppShell user={user} current="/my-work">
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+        {/* Two levels, not four. The trail used to name the project, the
+            workflow and the piece of work before the heading named the stage
+            — four nouns to walk past to reach what you are doing. Project and
+            workflow are context, so they sit with the title beneath. */}
         <Breadcrumbs
           items={[
             { label: 'My Work', href: '/my-work' },
-            { label: detail.projectName },
-            { label: detail.workflowName },
             { label: detail.instanceTitle },
           ]}
         />
@@ -60,6 +62,13 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
         <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{stage.name}</h1>
+            <p className="mt-1 text-sm text-muted">
+              {detail.instanceTitle}
+              <span className="text-subtle">
+                {' · '}
+                {detail.projectName} · {detail.workflowName}
+              </span>
+            </p>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
               <span>
                 {detail.canOperate
@@ -111,6 +120,8 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
                   fieldValues={task.fieldValues}
                   checklist={task.checklist}
                   missingFiles={missingFiles}
+                outcome={detail.outcome}
+                sendBack={detail.sendBack}
                 />
               ) : (
                 <ReadOnlyNotice

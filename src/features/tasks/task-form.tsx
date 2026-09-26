@@ -24,6 +24,7 @@ import type {
   FieldDefinition,
   StageDefinition,
 } from '@/lib/types/workflow'
+import type { StageOutcome } from './queries'
 import type { FieldValue } from '@/lib/types/instance'
 
 const IDLE: TaskActionState = { ok: null }
@@ -35,9 +36,31 @@ interface Props {
   checklist: ChecklistItemState[]
   /** Whether each required file slot has been satisfied. */
   missingFiles: string[]
+  /** Where completing this sends the work, so the button can say so. */
+  outcome: StageOutcome
+  sendBack?: StageOutcome
 }
 
-export function TaskForm({ taskId, stage, fieldValues, checklist, missingFiles }: Props) {
+/** "goes to Quality Check (Ananya)", or why it cannot be said. */
+function describe(outcome: StageOutcome): string {
+  if (outcome.kind === 'finish') return 'finishes this workflow'
+  if (outcome.people.length === 0) {
+    // The engine will refuse to activate a stage nobody holds, so saying so
+    // here is a warning rather than a promise.
+    return `goes to ${outcome.stageName} — nobody holds it yet`
+  }
+  return `goes to ${outcome.stageName} (${outcome.people.join(', ')})`
+}
+
+export function TaskForm({
+  taskId,
+  stage,
+  fieldValues,
+  checklist,
+  missingFiles,
+  outcome,
+  sendBack,
+}: Props) {
   const [saveState, save, saving] = useActionState(saveProgressAction, IDLE)
   const [completeState, complete, completing] = useActionState(completeStageAction, IDLE)
   const [approveState, approveNow, approving] = useActionState(approveAction, IDLE)
@@ -156,7 +179,21 @@ export function TaskForm({ taskId, stage, fieldValues, checklist, missingFiles }
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
+      {/* What the button will cause, beside the button. The hand-off is the
+          product's whole promise and it used to happen silently. */}
+      <div className="flex flex-col gap-3 border-t border-border pt-4">
+        <p className="text-xs text-muted">
+          {stage.requiresApproval ? (
+            <>
+              Approving {describe(outcome)}.
+              {sendBack ? <> Sending it back {describe(sendBack)}.</> : null}
+            </>
+          ) : (
+            <>Completing this {describe(outcome)}.</>
+          )}
+        </p>
+
+        <div className="flex flex-wrap items-center gap-3">
         <button
           type="submit"
           formAction={save}
@@ -195,6 +232,7 @@ export function TaskForm({ taskId, stage, fieldValues, checklist, missingFiles }
             {completing ? 'Completing…' : `Complete ${stage.name}`}
           </button>
         )}
+        </div>
       </div>
     </form>
   )
