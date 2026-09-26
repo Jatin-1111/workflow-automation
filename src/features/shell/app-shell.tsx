@@ -20,6 +20,7 @@ interface NavEntry {
 
 const NAV: NavEntry[] = [
   { href: '/my-work', label: 'My Work' },
+  { href: '/board', label: 'Board' },
   { href: '/dashboard', label: 'Dashboard', requires: 'management.view_dashboard' },
   { href: '/projects', label: 'Projects', requires: 'project.view_dashboard' },
   { href: '/team', label: 'Team', requires: 'team.view_workload' },
