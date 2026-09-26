@@ -124,7 +124,7 @@ function Card({
           />
         </span>
 
-        <span className="block text-sm font-medium leading-snug text-foreground">
+        <span className="block break-words text-sm font-medium leading-snug text-foreground">
           {card.title}
         </span>
 
@@ -305,11 +305,11 @@ export function BoardView({ board }: { board: Board }) {
       ) : null}
 
       <div
-        className={`min-h-[calc(100vh-17rem)] overflow-x-auto rounded-xl border border-border bg-surface-sunken p-3 ${
+        className={`min-h-[calc(100vh-17rem)] rounded-xl border border-border bg-surface-sunken p-3 ${
           pending ? 'opacity-90' : ''
         }`}
       >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2">
         {columns.map((column, index) => {
           const collapsed = column.cards.length === 0 && over !== column.key
           return (
@@ -326,13 +326,15 @@ export function BoardView({ board }: { board: Board }) {
                otherwise needs 1876px of board for five cards, and an
                eleven-stage one scrolls past mostly nothing. It stays a drop
                target, and opens while a card is held over it. */
-            className={`flex shrink-0 flex-col rounded-xl border bg-surface shadow-sm transition-[width,border-color] duration-200 ease-out ${
-              over === column.key
-                ? 'w-64 border-accent ring-2 ring-accent-ring'
-                : column.cards.length === 0
-                  ? 'w-11 border-dashed border-border'
-                  : 'w-64 border-border'
-            }`}
+            /* A stage holding work takes an equal share of whatever is left;
+               an empty one collapses to a spine. Between them the board is
+               always exactly as wide as the screen, so it never scrolls
+               sideways. */
+            className={`flex flex-col rounded-xl border bg-surface shadow-sm transition-[flex-grow,border-color] duration-200 ease-out ${
+              collapsed
+                ? 'w-11 shrink-0 border-dashed border-border'
+                : 'min-w-0 flex-1 basis-0 border-border'
+            } ${over === column.key ? 'border-accent ring-2 ring-accent-ring' : ''}`}
           >
             {collapsed ? (
               <h2 className="flex flex-1 flex-col items-center gap-2 py-3">
