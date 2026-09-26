@@ -11,15 +11,18 @@ export function Section({
   title,
   count,
   description,
+  className,
   children,
 }: {
   title: string
   count?: number
   description?: string
+  /** For a caller placing this in a grid, e.g. spanning two columns. */
+  className?: string
   children: React.ReactNode
 }) {
   return (
-    <Panel title={title} count={count} description={description}>
+    <Panel title={title} count={count} description={description} className={className}>
       {children}
     </Panel>
   )

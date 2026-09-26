@@ -124,7 +124,8 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
             {report.stages.length === 0 ? (
               <EmptyRow>Nothing finished in this period.</EmptyRow>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+            <table className="w-full min-w-xl text-sm">
                 <thead>
                   <tr className="border-b border-border bg-surface-sunken text-left text-xs font-medium text-muted">
                     <th className="px-5 py-2.5 font-medium">Stage</th>
@@ -168,11 +169,17 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                   ))}
                 </tbody>
               </table>
+            </div>
             )}
           </Section>
 
+          {/* Three short tables. Two columns wraps the third onto a row of
+              its own, so it spans the full width there and only splits three
+              ways once there is room. */}
+          <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
           <Section title="By workflow" count={report.workflows.length}>
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-xl text-sm">
               <thead>
                 <tr className="border-b border-border bg-surface-sunken text-left text-xs font-medium text-muted">
                   <th className="px-5 py-2.5 font-medium">Workflow</th>
@@ -204,9 +211,8 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                 ))}
               </tbody>
             </table>
+            </div>
           </Section>
-
-          <div className="grid gap-6 lg:grid-cols-2">
             <Section
               title="People"
               count={report.people.length}
@@ -215,7 +221,8 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
               {report.people.length === 0 ? (
                 <EmptyRow>Nobody finished anything in this period.</EmptyRow>
               ) : (
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto">
+            <table className="w-full min-w-xl text-sm">
                   <thead>
                     <tr className="border-b border-border bg-surface-sunken text-left text-xs font-medium text-muted">
                       <th className="px-5 py-2.5 font-medium">Person</th>
@@ -245,11 +252,17 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                     ))}
                   </tbody>
                 </table>
+            </div>
               )}
             </Section>
 
-            <Section title="By project" count={report.projects.length}>
-              <table className="w-full text-sm">
+            <Section
+              title="By project"
+              count={report.projects.length}
+              className="lg:col-span-2 xl:col-span-1"
+            >
+              <div className="overflow-x-auto">
+            <table className="w-full min-w-xl text-sm">
                 <thead>
                   <tr className="border-b border-border bg-surface-sunken text-left text-xs font-medium text-muted">
                     <th className="px-5 py-2.5 font-medium">Project</th>
@@ -269,6 +282,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                   ))}
                 </tbody>
               </table>
+            </div>
             </Section>
           </div>
         </div>
