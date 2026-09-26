@@ -8,6 +8,7 @@
 import Link from 'next/link'
 import { Bell, CircleHelp, Search } from 'lucide-react'
 import { LogoutButton } from '@/features/auth/logout-button'
+import { isOverviewPath } from '@/features/management/overview-tabs'
 import { can, type Capability } from '@/lib/auth/permissions'
 import { countUnreadNotifications } from '@/lib/db/repositories/notifications'
 import type { PublicUser } from '@/lib/types/user'
@@ -21,10 +22,9 @@ interface NavEntry {
 const NAV: NavEntry[] = [
   { href: '/my-work', label: 'My Work' },
   { href: '/board', label: 'Board', requires: 'management.view_dashboard' },
-  { href: '/dashboard', label: 'Dashboard', requires: 'management.view_dashboard' },
-  { href: '/projects', label: 'Projects', requires: 'project.view_dashboard' },
-  { href: '/team', label: 'Team', requires: 'team.view_workload' },
-  { href: '/reports', label: 'Reports', requires: 'management.view_dashboard' },
+  // Dashboard, Projects, Team and Reports are one section with its own tabs,
+  // rather than four top-level entries somebody has to choose between.
+  { href: '/dashboard', label: 'Overview', requires: 'management.view_dashboard' },
   { href: '/workflows', label: 'Workflows', requires: 'admin.manage_workflows' },
   { href: '/admin', label: 'Admin', requires: 'admin.manage_users' },
 ]
@@ -134,7 +134,9 @@ export async function AppShell({
         <nav className="mx-auto max-w-7xl px-4 sm:px-6">
           <ul className="-mb-px flex items-center gap-1 overflow-x-auto">
             {entries.map((entry) => {
-              const active = current === entry.href
+              const active =
+                current === entry.href ||
+                (entry.href === '/dashboard' && isOverviewPath(current))
               return (
                 <li key={entry.href}>
                   <Link

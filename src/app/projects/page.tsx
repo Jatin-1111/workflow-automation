@@ -1,5 +1,6 @@
 /** PROJECTS — every Major Project and how it is running (spec §18). */
 
+import { OverviewTabs } from '@/features/management/overview-tabs'
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
@@ -13,6 +14,8 @@ export default async function ProjectsPage() {
   return (
     <AppShell user={user} current="/projects">
       <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
+        <OverviewTabs current="/projects" />
+
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
           <p className="mt-1 text-sm text-muted">

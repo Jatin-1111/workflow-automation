@@ -6,6 +6,7 @@
  * is carrying it.
  */
 
+import { OverviewTabs } from '@/features/management/overview-tabs'
 import { buttonClass } from '@/features/ui/primitives'
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
@@ -31,6 +32,8 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
   return (
     <AppShell user={user} current="/reports">
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
+        <OverviewTabs current="/reports" />
+
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>

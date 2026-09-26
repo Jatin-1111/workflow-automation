@@ -68,18 +68,30 @@ export function SetupCard({
         </form>
       </div>
 
-      <ul className="divide-y divide-accent-ring/60 border-t border-accent-ring">
-        {steps.map((step) => (
-          <li key={step.key} className="flex items-start gap-3 px-5 py-3">
+      <ol className="divide-y divide-accent-ring/60 border-t border-accent-ring">
+        {steps.map((step, index) => {
+          // The first thing not yet done is the one to do. Everything after a
+          // step that is blocked is dimmed rather than hidden, so the shape of
+          // the whole setup stays visible while only one thing is asked for.
+          const isNext = step.key === steps.find((candidate) => !candidate.done)?.key
+          return (
+          <li
+            key={step.key}
+            className={`flex items-start gap-3 px-5 py-3 ${
+              isNext ? 'bg-surface' : ''
+            } ${step.blocked && !step.done ? 'opacity-55' : ''}`}
+          >
             <span
               aria-hidden
-              className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full ${
+              className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                 step.done
                   ? 'bg-status-complete text-white'
-                  : 'border border-border-strong bg-surface'
+                  : isNext
+                    ? 'bg-accent text-white'
+                    : 'border border-border-strong bg-surface text-subtle'
               }`}
             >
-              {step.done ? <Check size={11} strokeWidth={3} /> : null}
+              {step.done ? <Check size={11} strokeWidth={3} /> : index + 1}
             </span>
 
             <span className="min-w-0 flex-1">
@@ -89,6 +101,11 @@ export function SetupCard({
                 }`}
               >
                 {step.title}
+                {isNext ? (
+                  <span className="ml-2 rounded bg-accent-soft px-1.5 py-0.5 text-xs font-medium text-accent">
+                    Do this next
+                  </span>
+                ) : null}
               </span>
               <span className="mt-0.5 block text-xs text-muted">{step.detail}</span>
               {!step.done && step.because ? (
@@ -96,7 +113,7 @@ export function SetupCard({
               ) : null}
             </span>
 
-            {!step.done ? (
+            {!step.done && !step.blocked ? (
               <span className="shrink-0">
                 {step.key === 'practice' ? (
                   <form action={startPracticeAction}>
@@ -110,10 +127,13 @@ export function SetupCard({
                   </Link>
                 ) : null}
               </span>
+            ) : step.blocked && !step.done ? (
+              <span className="shrink-0 text-xs text-subtle">After the step above</span>
             ) : null}
           </li>
-        ))}
-      </ul>
+          )
+        })}
+      </ol>
     </details>
   )
 }

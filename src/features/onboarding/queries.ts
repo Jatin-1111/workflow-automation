@@ -20,6 +20,8 @@ export interface SetupStep {
   title: string
   detail: string
   done: boolean
+  /** Waiting on an earlier step, so it cannot be acted on yet. */
+  blocked?: boolean
   href?: string
   /** Shown as the reason this matters, not as an instruction. */
   because?: string
@@ -53,8 +55,13 @@ export async function getOnboarding(user: PublicUser): Promise<Onboarding> {
   const practiceDone = myPractice.some((instance) => instance.status === 'completed')
   const practiceStarted = myPractice.length > 0
 
-  const steps: SetupStep[] = [
-    {
+  const steps: SetupStep[] = []
+
+  // A fresh organisation created by the bootstrap script has no templates at
+  // all, so offering a practice run there is offering something that cannot
+  // be done.
+  if (practiceTemplate) {
+    steps.push({
       key: 'practice',
       title: practiceDone ? 'You have run a workflow end to end' : 'Run a practice workflow',
       detail: practiceStarted && !practiceDone
@@ -62,11 +69,29 @@ export async function getOnboarding(user: PublicUser): Promise<Onboarding> {
         : 'Three short stages in the Sandbox project. Nothing real is affected.',
       done: practiceDone,
       because: 'The quickest way to understand the product is to run one.',
-    },
-  ]
+    })
+  }
 
   // Only an administrator can act on the rest, so only they are shown it.
   if (can(user.accessLevel, 'admin.manage_roles')) {
+    const colleagues = users.filter(
+      (candidate) => candidate.userId !== user.userId && candidate.status === 'active',
+    )
+    steps.push({
+      key: 'people',
+      title:
+        colleagues.length > 0
+          ? `${colleagues.length} colleague${colleagues.length === 1 ? '' : 's'} can sign in`
+          : 'Add the people who will do the work',
+      detail:
+        colleagues.length > 0
+          ? colleagues.map((person) => person.name).join(', ')
+          : 'A workflow hands work to a person. On your own there is nobody for it to reach.',
+      done: colleagues.length > 0,
+      href: '/admin',
+      because: 'Every later step depends on there being somebody to send work to.',
+    })
+
     const activeHolders = (roleId: string) =>
       users.filter(
         (candidate) => candidate.status === 'active' && candidate.roleIds.includes(roleId as never),
@@ -87,17 +112,31 @@ export async function getOnboarding(user: PublicUser): Promise<Onboarding> {
       (role) => usedRoleIds.has(role.roleId) && activeHolders(role.roleId) === 0,
     )
 
+    // `uncovered` only counts roles a published workflow already uses, so on
+    // an organisation with no roles at all it is empty — which used to read
+    // as "every role has somebody", the most misleading thing to say to
+    // somebody setting up from nothing.
+    const held = roles.filter((role) => activeHolders(role.roleId) > 0)
+    const rolesReady = roles.length > 0 && uncovered.length === 0 && held.length > 0
+
     steps.push({
       key: 'roles',
       title:
-        uncovered.length === 0
-          ? 'Every role a workflow uses has somebody in it'
-          : `${uncovered.length} role${uncovered.length === 1 ? '' : 's'} has nobody in it`,
+        roles.length === 0
+          ? 'Create the roles your processes assign work to'
+          : rolesReady
+            ? 'Every role a workflow uses has somebody in it'
+            : `${uncovered.length || roles.length - held.length} role${
+                (uncovered.length || roles.length - held.length) === 1 ? '' : 's'
+              } has nobody in it`,
       detail:
-        uncovered.length === 0
-          ? 'Work can reach a person at every stage.'
-          : `${uncovered.map((role) => role.name).join(', ')} — a workflow routing here will refuse to move.`,
-      done: uncovered.length === 0,
+        roles.length === 0
+          ? 'A stage is assigned to a role — Proposal Designer, QC Owner — not to a person.'
+          : rolesReady
+            ? 'Work can reach a person at every stage.'
+            : `${(uncovered.length > 0 ? uncovered : roles.filter((role) => activeHolders(role.roleId) === 0)).map((role) => role.name).join(', ')} — a workflow routing here will refuse to move.`,
+      done: rolesReady,
+      blocked: colleagues.length === 0,
       href: '/admin',
       because: 'Workflows send work to roles, and a role with nobody in it stops the work.',
     })
@@ -116,6 +155,7 @@ export async function getOnboarding(user: PublicUser): Promise<Onboarding> {
           ? published.map((template) => template.name).join(', ')
           : 'Build a process in the Workflow Builder, then publish it so work can start.',
       done: published.length > 0,
+      blocked: !rolesReady,
       href: '/workflows',
       because: 'Nothing can run until a workflow is published.',
     })
@@ -132,6 +172,7 @@ export async function getOnboarding(user: PublicUser): Promise<Onboarding> {
           ? `${real.length} started so far.`
           : 'Once a workflow is published, starting one puts it on somebody’s My Work.',
       done: real.length > 0,
+      blocked: published.length === 0,
       because: 'This is the point at which the platform starts replacing the chasing.',
     })
   }
