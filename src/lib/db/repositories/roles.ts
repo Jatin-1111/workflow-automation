@@ -40,3 +40,8 @@ export async function updateRole(
     { $set: { ...changes, updatedAt: new Date() } },
   )
 }
+
+/** Remove a role outright. Callers check for references first. */
+export async function deleteRole(roleId: RoleId): Promise<void> {
+  await (await roles()).deleteOne({ roleId })
+}

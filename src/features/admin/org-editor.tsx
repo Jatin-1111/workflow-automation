@@ -7,12 +7,14 @@
  * they can be attached to, so they share a component rather than four
  * near-identical ones.
  *
- * Retiring an entity deactivates it. Nothing is deleted, because users, tasks
- * and timeline events point at these ids and a delete would turn recorded
- * history into dangling references.
+ * Each row offers Edit and Delete. Deleting is a real delete, refused by the
+ * server when something still points at the record — users carry a department
+ * and a team, workflows name roles and projects — because removing one out
+ * from under them would leave ids resolving to nothing. Retiring something
+ * that is in use is the active/inactive control inside Edit.
  */
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import {
   Button,
   Pill,
@@ -29,9 +31,8 @@ export interface OrgEntity {
   name: string
   /** A second line, such as which department a team sits in. */
   detail?: string
+  description?: string
   status: 'active' | 'inactive'
-  /** Why this one cannot be retired, when it cannot. */
-  lockedReason?: string
 }
 
 export interface SelectField {
@@ -40,19 +41,162 @@ export interface SelectField {
   options: { value: string; label: string }[]
 }
 
+function Answer({ state }: { state: AdminActionState }) {
+  if (state.ok === null) return null
+  return (
+    <p
+      role="status"
+      className={`text-xs ${state.ok ? 'text-status-complete' : 'text-status-overdue'}`}
+    >
+      {state.message}
+    </p>
+  )
+}
+
+function Row({
+  entity,
+  label,
+  idField,
+  updateAction,
+  deleteAction,
+  describable,
+}: {
+  entity: OrgEntity
+  label: string
+  idField: string
+  updateAction: (formData: FormData) => void | Promise<void>
+  deleteAction: (
+    previous: AdminActionState,
+    formData: FormData,
+  ) => Promise<AdminActionState>
+  describable: boolean
+}) {
+  const [editing, setEditing] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [removeState, remove, removing] = useActionState(deleteAction, IDLE)
+
+  if (editing) {
+    return (
+      <li className="bg-surface-sunken px-5 py-4">
+        <form action={updateAction} className="space-y-3">
+          <input type="hidden" name={idField} value={entity.id} />
+
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-muted">Name</span>
+            <input
+              name="name"
+              defaultValue={entity.name}
+              required
+              maxLength={80}
+              className={fieldClass}
+            />
+          </label>
+
+          {describable ? (
+            <label className="block space-y-1">
+              <span className="text-xs font-medium text-muted">What it is for</span>
+              <input
+                name="description"
+                defaultValue={entity.description ?? ''}
+                maxLength={200}
+                className={fieldClass}
+              />
+            </label>
+          ) : null}
+
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-muted">Status</span>
+            <select
+              name="status"
+              defaultValue={entity.status}
+              className={`${controlClass} block w-full max-w-xs`}
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive — kept, but not offered</option>
+            </select>
+          </label>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="submit" tone="primary" size="sm">
+              Save {label.toLowerCase()}
+            </Button>
+            <Button type="button" tone="quiet" size="sm" onClick={() => setEditing(false)}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </li>
+    )
+  }
+
+  return (
+    <li className="flex flex-wrap items-center gap-3 px-5 py-3">
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium">{entity.name}</span>
+        <span className="font-mono text-xs text-subtle">{entity.id}</span>
+        {entity.detail ? (
+          <span className="mt-0.5 block text-xs text-muted">{entity.detail}</span>
+        ) : null}
+        {removeState.ok === false ? (
+          <span className="mt-1 block">
+            <Answer state={removeState} />
+          </span>
+        ) : null}
+      </span>
+
+      {entity.status === 'inactive' ? <Pill tone="neutral">Inactive</Pill> : null}
+
+      {confirming ? (
+        <form action={remove} className="flex shrink-0 items-center gap-2">
+          <input type="hidden" name={idField} value={entity.id} />
+          <span className="text-xs text-muted">Delete {entity.name}?</span>
+          <button type="submit" disabled={removing} className={buttonClass('danger', 'sm')}>
+            {removing ? 'Deleting…' : 'Yes, delete'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirming(false)}
+            className={buttonClass('quiet', 'sm')}
+          >
+            Keep
+          </button>
+        </form>
+      ) : (
+        <span className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className={buttonClass('quiet', 'sm')}
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            className={buttonClass('quiet', 'sm')}
+          >
+            Delete
+          </button>
+        </span>
+      )}
+    </li>
+  )
+}
+
 export function OrgManager({
   label,
   idField,
   entities,
   createAction,
   updateAction,
+  deleteAction,
   selectField,
   describable = false,
   hint,
 }: {
   /** Singular, as it appears in the form: "Department". */
   label: string
-  /** The form field the update action reads the id from. */
+  /** The form field the update and delete actions read the id from. */
   idField: string
   entities: OrgEntity[]
   createAction: (
@@ -60,6 +204,10 @@ export function OrgManager({
     formData: FormData,
   ) => Promise<AdminActionState>
   updateAction: (formData: FormData) => void | Promise<void>
+  deleteAction: (
+    previous: AdminActionState,
+    formData: FormData,
+  ) => Promise<AdminActionState>
   selectField?: SelectField
   describable?: boolean
   hint?: string
@@ -76,33 +224,15 @@ export function OrgManager({
         ) : null}
 
         {entities.map((entity) => (
-          <li key={entity.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-medium">{entity.name}</span>
-              <span className="font-mono text-xs text-subtle">{entity.id}</span>
-              {entity.detail ? (
-                <span className="mt-0.5 block text-xs text-muted">{entity.detail}</span>
-              ) : null}
-            </span>
-
-            {entity.status === 'inactive' ? <Pill tone="neutral">Inactive</Pill> : null}
-
-            {entity.lockedReason ? (
-              <span className="shrink-0 text-xs text-subtle">{entity.lockedReason}</span>
-            ) : (
-              <form action={updateAction} className="shrink-0">
-                <input type="hidden" name={idField} value={entity.id} />
-                <input
-                  type="hidden"
-                  name="status"
-                  value={entity.status === 'active' ? 'inactive' : 'active'}
-                />
-                <button type="submit" className={buttonClass('quiet', 'sm')}>
-                  {entity.status === 'active' ? 'Deactivate' : 'Reactivate'}
-                </button>
-              </form>
-            )}
-          </li>
+          <Row
+            key={entity.id}
+            entity={entity}
+            label={label}
+            idField={idField}
+            updateAction={updateAction}
+            deleteAction={deleteAction}
+            describable={describable}
+          />
         ))}
       </ul>
 
@@ -147,14 +277,7 @@ export function OrgManager({
           />
         ) : null}
 
-        {state.ok !== null ? (
-          <p
-            role="status"
-            className={`text-xs ${state.ok ? 'text-status-complete' : 'text-status-overdue'}`}
-          >
-            {state.message}
-          </p>
-        ) : null}
+        <Answer state={state} />
 
         {hint ? <p className="text-xs text-subtle">{hint}</p> : null}
       </form>

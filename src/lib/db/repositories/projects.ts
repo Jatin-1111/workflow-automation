@@ -42,3 +42,8 @@ export async function updateProject(
     { $set: { ...changes, updatedAt: new Date() } },
   )
 }
+
+/** Remove a project outright. Callers check for references first. */
+export async function deleteProject(projectId: ProjectId): Promise<void> {
+  await (await projects()).deleteOne({ projectId })
+}

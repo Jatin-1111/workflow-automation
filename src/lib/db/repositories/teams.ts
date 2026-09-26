@@ -35,3 +35,8 @@ export async function updateTeam(
     { $set: { ...changes, updatedAt: new Date() } },
   )
 }
+
+/** Remove a team outright. Callers check for references first. */
+export async function deleteTeam(teamId: TeamId): Promise<void> {
+  await (await teams()).deleteOne({ teamId })
+}

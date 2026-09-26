@@ -39,3 +39,8 @@ export async function updateDepartment(
     { $set: { ...changes, updatedAt: new Date() } },
   )
 }
+
+/** Remove a department outright. Callers check for references first. */
+export async function deleteDepartment(departmentId: DepartmentId): Promise<void> {
+  await (await departments()).deleteOne({ departmentId })
+}

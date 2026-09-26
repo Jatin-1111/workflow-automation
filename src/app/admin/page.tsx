@@ -18,6 +18,9 @@ import {
   createDepartmentAction,
   createRoleAction,
   createTeamAction,
+  deleteDepartmentAction,
+  deleteRoleAction,
+  deleteTeamAction,
   updateDepartmentAction,
   updateRoleAction,
   updateTeamAction,
@@ -203,7 +206,7 @@ export default async function AdminPage() {
           <Section
             title="Departments"
             count={departments.length}
-            description="Deactivating keeps the record; nothing that points at it breaks."
+            description="Delete is refused while anybody or any workflow still points at it. Set it inactive instead to retire it."
           >
             <OrgManager
               label="Department"
@@ -212,10 +215,12 @@ export default async function AdminPage() {
                 id: department.departmentId,
                 name: department.name,
                 detail: department.description,
+                description: department.description,
                 status: department.status,
               }))}
               createAction={createDepartmentAction}
               updateAction={updateDepartmentAction}
+              deleteAction={deleteDepartmentAction}
               describable
             />
           </Section>
@@ -234,6 +239,7 @@ export default async function AdminPage() {
               }))}
               createAction={createTeamAction}
               updateAction={updateTeamAction}
+              deleteAction={deleteTeamAction}
               selectField={{
                 name: 'departmentId',
                 label: 'Department',
@@ -274,10 +280,12 @@ export default async function AdminPage() {
                 id: role.roleId,
                 name: role.name,
                 detail: `${role.key} · ${activeHoldersOf(role.roleId).length} active holder(s)`,
+                description: role.description,
                 status: role.status,
               }))}
               createAction={createRoleAction}
               updateAction={updateRoleAction}
+              deleteAction={deleteRoleAction}
               describable
               hint="A role with nobody active in it will stall any workflow routing to it."
             />

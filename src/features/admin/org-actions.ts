@@ -19,17 +19,25 @@ import { createSession } from '@/lib/auth/session'
 import { nextId } from '@/lib/ids/generate'
 import { isEntityId } from '@/lib/ids/format'
 import {
+  deleteDepartment,
   insertDepartment,
   listDepartments,
   updateDepartment,
 } from '@/lib/db/repositories/departments'
-import { insertTeam, listTeams, updateTeam } from '@/lib/db/repositories/teams'
 import {
+  deleteTeam,
+  insertTeam,
+  listTeams,
+  updateTeam,
+} from '@/lib/db/repositories/teams'
+import {
+  deleteProject,
   insertProject,
   listProjects,
   updateProject,
 } from '@/lib/db/repositories/projects'
 import {
+  deleteRole,
   findRoleByKey,
   insertRole,
   listRoles,
@@ -43,9 +51,18 @@ import {
   updateUserPassword,
   updateUserProfile,
 } from '@/lib/db/repositories/users'
+import { listAllTemplates } from '@/lib/db/repositories/workflow-templates'
+import { listInstances } from '@/lib/db/repositories/workflow-instances'
 import { ACCESS_LEVELS } from '@/lib/types/status'
 import type { AccessLevel, EntityStatus } from '@/lib/types/status'
 import type { DepartmentId, ProjectId, RoleId, TeamId, UserId } from '@/lib/types/ids'
+import {
+  blockedMessage,
+  departmentUses,
+  projectUses,
+  roleUses,
+  teamUses,
+} from './references'
 import { safePhotoUrl } from './validation'
 import type { AdminActionState } from './actions'
 
@@ -88,6 +105,13 @@ function readId<K extends 'department' | 'team' | 'user' | 'project' | 'role'>(
 function readStatus(formData: FormData): EntityStatus | null {
   const value = String(formData.get('status') ?? '')
   return value === 'active' || value === 'inactive' ? value : null
+}
+
+/** Only the fields a form actually carried, so a narrow form cannot blank one. */
+function describedChanges(formData: FormData) {
+  return formData.has('description')
+    ? { description: readOptional(formData, 'description') }
+    : {}
 }
 
 function refreshed() {
@@ -140,6 +164,7 @@ export async function updateDepartmentAction(formData: FormData): Promise<void> 
   await updateDepartment(departmentId as DepartmentId, {
     ...(name ? { name } : {}),
     ...(status ? { status } : {}),
+    ...describedChanges(formData),
   })
   refreshed()
 }
@@ -244,6 +269,7 @@ export async function updateProjectAction(formData: FormData): Promise<void> {
   await updateProject(projectId as ProjectId, {
     ...(name ? { name } : {}),
     ...(status ? { status } : {}),
+    ...describedChanges(formData),
     ...(changingPeople
       ? {
           ownerId: readId(formData, 'ownerId', 'user', people) as UserId | undefined,
@@ -320,6 +346,7 @@ export async function updateRoleAction(formData: FormData): Promise<void> {
   await updateRole(roleId as RoleId, {
     ...(name ? { name } : {}),
     ...(status ? { status } : {}),
+    ...describedChanges(formData),
   })
   refreshed()
 }
@@ -461,4 +488,115 @@ export async function resetUserPasswordAction(
     ok: true,
     message: `${target.name} can now sign in with the password you set. Anywhere they were signed in has been signed out.`,
   }
+}
+
+/* -------------------------------------------------------------------------
+ * Deleting
+ *
+ * A real delete, not a hidden deactivation — but only when nothing still
+ * points at the record. Users carry a department and a team, templates name
+ * roles and projects, instances belong to a project: removing one of those
+ * out from under them would turn recorded history into ids that resolve to
+ * nothing. So each of these counts the references first and refuses with the
+ * count, which is a more useful answer than a silent failure.
+ *
+ * To retire something that is in use, set it inactive from its edit panel.
+ * ---------------------------------------------------------------------- */
+
+function blocked(what: string, uses: string[]): AdminActionState {
+  return refuse(blockedMessage(what, uses))
+}
+
+export async function deleteDepartmentAction(
+  _previous: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requireCapability('admin.manage_users')
+
+  const departmentId = String(formData.get('departmentId') ?? '')
+  if (!isEntityId(departmentId, 'department')) {
+    return refuse('That department could not be identified.')
+  }
+
+  const [users, teams, templates, departments] = await Promise.all([
+    listUsers(), listTeams(), listAllTemplates(), listDepartments(),
+  ])
+  const name = departments.find((d) => d.departmentId === departmentId)?.name ?? 'It'
+
+  const uses = departmentUses(departmentId, { users, teams, templates })
+
+  if (uses.length > 0) return blocked(name, uses)
+
+  await deleteDepartment(departmentId as DepartmentId)
+  refreshed()
+  return { ok: true, message: `${name} deleted.` }
+}
+
+export async function deleteTeamAction(
+  _previous: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requireCapability('admin.manage_users')
+
+  const teamId = String(formData.get('teamId') ?? '')
+  if (!isEntityId(teamId, 'team')) return refuse('That team could not be identified.')
+
+  const [users, teams] = await Promise.all([listUsers(), listTeams()])
+  const name = teams.find((t) => t.teamId === teamId)?.name ?? 'It'
+
+  const uses = teamUses(teamId, { users })
+
+  if (uses.length > 0) return blocked(name, uses)
+
+  await deleteTeam(teamId as TeamId)
+  refreshed()
+  return { ok: true, message: `${name} deleted.` }
+}
+
+export async function deleteProjectAction(
+  _previous: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requireCapability('admin.manage_users')
+
+  const projectId = String(formData.get('projectId') ?? '')
+  if (!isEntityId(projectId, 'project')) {
+    return refuse('That project could not be identified.')
+  }
+
+  const [instances, templates, projects] = await Promise.all([
+    listInstances(), listAllTemplates(), listProjects(),
+  ])
+  const name = projects.find((p) => p.projectId === projectId)?.name ?? 'It'
+
+  const uses = projectUses(projectId, { instances, templates })
+
+  if (uses.length > 0) return blocked(name, uses)
+
+  await deleteProject(projectId as ProjectId)
+  refreshed()
+  return { ok: true, message: `${name} deleted.` }
+}
+
+export async function deleteRoleAction(
+  _previous: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requireCapability('admin.manage_roles')
+
+  const roleId = String(formData.get('roleId') ?? '')
+  if (!isEntityId(roleId, 'role')) return refuse('That role could not be identified.')
+
+  const [users, templates, roles] = await Promise.all([
+    listUsers(), listAllTemplates(), listRoles(),
+  ])
+  const name = roles.find((r) => r.roleId === roleId)?.name ?? 'It'
+
+  const uses = roleUses(roleId, { users, templates })
+
+  if (uses.length > 0) return blocked(name, uses)
+
+  await deleteRole(roleId as RoleId)
+  refreshed()
+  return { ok: true, message: `${name} deleted.` }
 }

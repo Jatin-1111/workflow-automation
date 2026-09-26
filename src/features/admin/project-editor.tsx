@@ -11,7 +11,11 @@
 
 import { useActionState, useState } from 'react'
 import { Button, Pill, buttonClass, controlClass, fieldClass } from '@/features/ui/primitives'
-import { createProjectAction, updateProjectAction } from './org-actions'
+import {
+  createProjectAction,
+  deleteProjectAction,
+  updateProjectAction,
+} from './org-actions'
 import type { AdminActionState } from './actions'
 
 const IDLE: AdminActionState = { ok: null }
@@ -88,6 +92,8 @@ function ProjectRowItem({
   people: PersonOption[]
 }) {
   const [editing, setEditing] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [removeState, remove, removing] = useActionState(deleteProjectAction, IDLE)
   const ownerName = people.find((person) => person.value === project.ownerId)?.label
 
   if (editing) {
@@ -105,6 +111,28 @@ function ProjectRowItem({
               maxLength={80}
               className={fieldClass}
             />
+          </label>
+
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-muted">What it is for</span>
+            <input
+              name="description"
+              defaultValue={project.description ?? ''}
+              maxLength={200}
+              className={fieldClass}
+            />
+          </label>
+
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-muted">Status</span>
+            <select
+              name="status"
+              defaultValue={project.status}
+              className={`${controlClass} block w-full max-w-xs`}
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive — kept, but not offered</option>
+            </select>
           </label>
 
           <PeoplePicker
@@ -136,6 +164,11 @@ function ProjectRowItem({
           {` · ${project.memberIds.length} member${project.memberIds.length === 1 ? '' : 's'}`}
           {project.description ? ` · ${project.description}` : ''}
         </span>
+        {removeState.ok === false ? (
+          <span role="status" className="mt-1 block text-xs text-status-overdue">
+            {removeState.message}
+          </span>
+        ) : null}
       </span>
 
       {project.status === 'inactive' ? <Pill tone="neutral">Inactive</Pill> : null}
@@ -148,18 +181,30 @@ function ProjectRowItem({
         Edit
       </button>
 
-      {/* Status alone: this form sends no people, so the team is left as it is. */}
-      <form action={updateProjectAction} className="shrink-0">
-        <input type="hidden" name="projectId" value={project.projectId} />
-        <input
-          type="hidden"
-          name="status"
-          value={project.status === 'active' ? 'inactive' : 'active'}
-        />
-        <button type="submit" className={buttonClass('quiet', 'sm')}>
-          {project.status === 'active' ? 'Deactivate' : 'Reactivate'}
+      {confirming ? (
+        <form action={remove} className="flex shrink-0 items-center gap-2">
+          <input type="hidden" name="projectId" value={project.projectId} />
+          <span className="text-xs text-muted">Delete {project.name}?</span>
+          <button type="submit" disabled={removing} className={buttonClass('danger', 'sm')}>
+            {removing ? 'Deleting…' : 'Yes, delete'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirming(false)}
+            className={buttonClass('quiet', 'sm')}
+          >
+            Keep
+          </button>
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          className={buttonClass('quiet', 'sm')}
+        >
+          Delete
         </button>
-      </form>
+      )}
     </li>
   )
 }
