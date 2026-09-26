@@ -2,6 +2,7 @@
 
 /** Begin the next version of a published workflow (spec §38). */
 
+import { buttonClass } from '@/features/ui/primitives'
 import { useActionState } from 'react'
 import { createVersionAction, type BuilderState } from './actions'
 
@@ -16,7 +17,7 @@ export function NewVersionButton({ workflowId }: { workflowId: string }) {
       <button
         type="submit"
         disabled={working}
-        className="rounded-md border border-border-strong bg-surface px-3 py-1.5 text-xs font-medium transition hover:bg-accent-soft disabled:opacity-60"
+        className={buttonClass('secondary', 'sm')}
       >
         {working ? 'Opening…' : 'Edit as new version'}
       </button>

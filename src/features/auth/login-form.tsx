@@ -1,5 +1,6 @@
 'use client'
 
+import { buttonClass, fieldClass } from '@/features/ui/primitives'
 import { useActionState } from 'react'
 import { login, type LoginState } from './actions'
 
@@ -19,7 +20,7 @@ export function LoginForm({ next }: { next?: string }) {
           name="email"
           autoComplete="email"
           required
-          className="rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
+          className={fieldClass}
         />
       </label>
 
@@ -30,7 +31,7 @@ export function LoginForm({ next }: { next?: string }) {
           name="password"
           autoComplete="current-password"
           required
-          className="rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
+          className={fieldClass}
         />
       </label>
 
@@ -46,7 +47,7 @@ export function LoginForm({ next }: { next?: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-accent px-5 py-3 text-sm font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
+        className={buttonClass('primary', 'lg')}
       >
         {pending ? 'Signing in…' : 'Sign in'}
       </button>

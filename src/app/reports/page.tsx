@@ -6,6 +6,7 @@
  * is carrying it.
  */
 
+import { buttonClass } from '@/features/ui/primitives'
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
@@ -64,7 +65,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
 
             <a
               href={`/api/reports/export?range=${range}`}
-              className="rounded-md border border-border-strong bg-surface px-3 py-1.5 text-xs font-medium transition hover:bg-accent-soft"
+              className={buttonClass('secondary', 'sm')}
             >
               Export CSV
             </a>

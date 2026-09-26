@@ -7,6 +7,7 @@
  * stage is the same act as writing one by hand in a seed file.
  */
 
+import { buttonClass } from '@/features/ui/primitives'
 import type { RoleOption } from './workflow-editor'
 import type {
   AssigneeSource,
@@ -270,7 +271,7 @@ function Part({
         <button
           type="button"
           onClick={onAdd}
-          className="rounded-md border border-border-strong bg-surface px-2.5 py-1 text-xs font-medium transition hover:bg-accent-soft"
+          className={buttonClass('secondary', 'sm')}
         >
           {addLabel}
         </button>

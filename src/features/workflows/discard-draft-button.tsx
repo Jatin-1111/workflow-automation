@@ -2,6 +2,7 @@
 
 /** Throw away a draft nothing runs on. */
 
+import { buttonClass } from '@/features/ui/primitives'
 import { discardDraftAction } from './actions'
 
 export function DiscardDraftButton({
@@ -17,7 +18,7 @@ export function DiscardDraftButton({
       <input type="hidden" name="version" value={version} />
       <button
         type="submit"
-        className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted transition hover:border-border-strong hover:text-status-overdue"
+        className={buttonClass('quiet', 'sm')}
       >
         Discard draft
       </button>

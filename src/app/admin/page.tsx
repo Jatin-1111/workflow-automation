@@ -5,6 +5,7 @@
  * somebody leaving, which is the promise §6 makes.
  */
 
+import { TriangleAlert } from 'lucide-react'
 import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
 import { Section } from '@/features/management/section'
@@ -26,7 +27,7 @@ import {
   updateTeamAction,
 } from '@/features/admin/org-actions'
 import { humanise } from '@/features/my-work/format'
-import { Hint } from '@/features/ui/primitives'
+import { Hint, buttonClass } from '@/features/ui/primitives'
 import { listDepartments } from '@/lib/db/repositories/departments'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listRoles } from '@/lib/db/repositories/roles'
@@ -75,40 +76,52 @@ export default async function AdminPage() {
             count={roles.length}
             description="A role with nobody holding it will stop any workflow that routes to it."
           >
-            <ul className="divide-y divide-border">
+            {/* Cards rather than rows: twelve names down the left of a wide
+                screen with one word on the far right is mostly empty space,
+                and the thing being looked for — a role nobody holds — was the
+                hardest to spot in it. */}
+            <ul className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-3">
               {roles.map((role) => {
                 const active = activeHoldersOf(role.roleId)
                 const inactive = holdersOf(role.roleId).filter(
                   (user) => user.status !== 'active',
                 )
+                const uncovered = active.length === 0
 
                 return (
                   <li
                     key={role.roleId}
-                    className="flex items-center gap-4 px-5 py-3 text-sm"
+                    className={`flex flex-col gap-1 bg-surface px-4 py-3 ${
+                      uncovered ? 'bg-status-overdue-soft/40' : ''
+                    }`}
                   >
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-medium">{role.name}</span>
-                      <span className="font-mono text-xs text-subtle">{role.key}</span>
-                    </span>
-                    <span className="shrink-0 text-right text-xs">
-                      <span
-                        className={
-                          active.length === 0
-                            ? 'font-medium text-status-overdue'
-                            : 'text-muted'
-                        }
-                      >
-                        {active.length === 0
-                          ? 'Nobody assigned'
-                          : active.map((user) => user.name).join(', ')}
-                      </span>
-                      {inactive.length > 0 ? (
-                        <span className="block text-subtle">
-                          {inactive.map((user) => user.name).join(', ')} (deactivated)
-                        </span>
+                    <span className="flex items-center gap-2">
+                      {uncovered ? (
+                        <TriangleAlert
+                          size={14}
+                          strokeWidth={1.75}
+                          aria-hidden
+                          className="shrink-0 text-status-overdue"
+                        />
                       ) : null}
+                      <span className="truncate text-sm font-medium">{role.name}</span>
                     </span>
+
+                    <span
+                      className={`text-xs ${
+                        uncovered ? 'font-medium text-status-overdue' : 'text-muted'
+                      }`}
+                    >
+                      {uncovered
+                        ? 'Nobody assigned'
+                        : active.map((user) => user.name).join(', ')}
+                    </span>
+
+                    {inactive.length > 0 ? (
+                      <span className="text-xs text-subtle">
+                        {inactive.map((user) => user.name).join(', ')} (deactivated)
+                      </span>
+                    ) : null}
                   </li>
                 )
               })}
@@ -132,7 +145,10 @@ export default async function AdminPage() {
               />
             </div>
 
-            <ul className="divide-y divide-border">
+            {/* Cards side by side: one person per full-width row left most of
+                a wide screen empty and made the section taller than everything
+                below it put together. */}
+            <ul className="grid gap-px border-t border-border bg-border lg:grid-cols-2">
               {users.map((user) => {
                 const roleOptions: RoleOption[] = roles.map((role) => ({
                   roleId: role.roleId,
@@ -143,7 +159,7 @@ export default async function AdminPage() {
                 }))
 
                 return (
-                  <li key={user.userId} className="px-4 py-4">
+                  <li key={user.userId} className="bg-surface px-5 py-4">
                     <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-medium">
@@ -183,7 +199,7 @@ export default async function AdminPage() {
                               ? 'You cannot deactivate your own account'
                               : undefined
                           }
-                          className="rounded-md border border-border px-2.5 py-1 text-xs font-medium transition hover:bg-accent-soft disabled:opacity-50"
+                          className={buttonClass('secondary', 'sm')}
                         >
                           {user.status === 'active' ? 'Deactivate' : 'Reactivate'}
                         </button>

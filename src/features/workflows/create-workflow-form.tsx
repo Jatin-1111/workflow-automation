@@ -2,6 +2,7 @@
 
 /** Start a new workflow as a draft (spec §35). */
 
+import { buttonClass } from '@/features/ui/primitives'
 import { useActionState } from 'react'
 import { createWorkflowAction, type BuilderState } from './actions'
 import type { ProjectOption } from './workflow-editor'
@@ -56,7 +57,7 @@ export function CreateWorkflowForm({ projects }: { projects: ProjectOption[] }) 
       <button
         type="submit"
         disabled={creating}
-        className="h-9 rounded-md bg-accent px-4 text-sm font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
+        className={buttonClass('primary', 'md')}
       >
         {creating ? 'Creating…' : 'Create draft'}
       </button>

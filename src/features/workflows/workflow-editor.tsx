@@ -10,7 +10,7 @@
  */
 
 import { ArrowDown, ArrowUp, Copy, Trash2 } from 'lucide-react'
-import { IconButton } from '@/features/ui/primitives'
+import { IconButton, buttonClass } from '@/features/ui/primitives'
 import { useActionState, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { StageForm } from './stage-form'
@@ -346,7 +346,7 @@ export function WorkflowEditor({
               <button
                 type="button"
                 onClick={addStage}
-                className="rounded-md border border-border-strong bg-surface px-2.5 py-1 text-xs font-medium transition hover:bg-accent-soft"
+                className={buttonClass('secondary', 'sm')}
               >
                 Add stage
               </button>
@@ -469,7 +469,7 @@ export function WorkflowEditor({
             <button
               type="submit"
               disabled={saving || publishing}
-              className="rounded-md border border-border-strong bg-surface px-5 py-3 text-sm font-medium transition hover:bg-accent-soft disabled:opacity-60"
+              className={buttonClass('secondary', 'lg')}
             >
               {saving ? 'Saving…' : 'Save draft'}
             </button>
@@ -484,7 +484,7 @@ export function WorkflowEditor({
               title={
                 problems.length > 0 ? 'Fix the problems listed above first' : undefined
               }
-              className="rounded-md bg-accent px-5 py-3 text-sm font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
+              className={buttonClass('primary', 'lg')}
             >
               {publishing ? 'Publishing…' : `Publish version ${template.version}`}
             </button>

@@ -5,6 +5,7 @@
  * person searching is allowed to see.
  */
 
+import { buttonClass, fieldClass } from '@/features/ui/primitives'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth/dal'
@@ -43,11 +44,11 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
             defaultValue={results.parsed.term}
             autoFocus
             placeholder="Client, person, stage, file, or an ID like BO-TSK-00001"
-            className="h-10 flex-1 rounded-md border border-border bg-surface px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft"
+            className={`flex-1 ${fieldClass}`}
           />
           <button
             type="submit"
-            className="h-10 rounded-md bg-accent px-4 text-sm font-medium text-white transition hover:bg-accent-hover"
+            className={buttonClass('primary', 'md')}
           >
             Search
           </button>
