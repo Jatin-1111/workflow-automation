@@ -510,11 +510,16 @@ F.extend(figure("30-approve-or-send-back",
 
 A(Paragraph("Moving work to somebody else", S["h2"]))
 A(Paragraph(
-    "When somebody is away or overloaded, open the task and press <b>Reassign</b>. Each candidate "
-    "is listed with how much they are already carrying, so the choice is an informed one, and the "
-    "reason is recorded on the timeline. Below it, <b>Cancel this workflow</b> stops a run that "
-    "should not continue at all — it ends the whole run rather than this one stage, and the "
-    "history stays readable afterwards.",
+    "You can open any run, whether or not it is yours. Opening somebody else's stage says so — "
+    "you can read it, follow it and comment, but not finish it on their behalf. Looking is not "
+    "the same as taking over.",
+    S["body"]))
+A(Paragraph(
+    "When somebody is away or overloaded, press <b>Reassign</b>. Each candidate is listed with "
+    "how much they are already carrying, so the choice is an informed one, and the reason is "
+    "recorded on the timeline. Below it, <b>Cancel this workflow</b> stops a run that should not "
+    "continue at all — it ends the whole run rather than this one stage, and the history stays "
+    "readable afterwards.",
     S["body"]))
 A(Spacer(1, 4))
 A(callout(
@@ -524,8 +529,9 @@ A(callout(
     "move the role in Admin instead — that is what roles are for."))
 A(Spacer(1, 12))
 F.extend(figure("31-reassign",
-                "Reassigning one task. Cancel this workflow, below it, stops the whole run.",
-                crop=(0.16, 0.58)))
+                "A manager opening a stage somebody else holds. Note the short navigation: no "
+                "Workflows, no Admin. They can move it on or call the run off, but not finish it.",
+                crop=(0.0, 0.56)))
 
 A(Paragraph("The Overview — what is happening right now", S["h2"]))
 A(Paragraph(
