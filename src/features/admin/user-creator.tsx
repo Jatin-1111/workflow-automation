@@ -9,7 +9,7 @@
  */
 
 import { useActionState, useState } from 'react'
-import { PASSWORD, TEXT_LIMITS } from '@/lib/validation/bounds'
+import { DATE_LIMITS, PASSWORD, TEXT_LIMITS } from '@/lib/validation/bounds'
 import {
   Button,
   controlClass,
@@ -57,7 +57,13 @@ export function UserCreator({
 
         <label className="space-y-1">
           <span className="text-xs font-medium text-muted">Email</span>
-          <input name="email" type="email" required className={fieldClass} />
+          <input
+            name="email"
+            type="email"
+            required
+            maxLength={TEXT_LIMITS.email}
+            className={fieldClass}
+          />
         </label>
 
         <label className="space-y-1">
@@ -88,7 +94,13 @@ export function UserCreator({
 
         <label className="space-y-1">
           <span className="text-xs font-medium text-muted">Joining date (optional)</span>
-          <input name="joiningDate" type="date" className={fieldClass} />
+          <input
+            name="joiningDate"
+            type="date"
+            min={DATE_LIMITS.min.toISOString().slice(0, 10)}
+            max={DATE_LIMITS.max.toISOString().slice(0, 10)}
+            className={fieldClass}
+          />
         </label>
 
         <label className="space-y-1 sm:col-span-2">
@@ -98,6 +110,7 @@ export function UserCreator({
           <input
             name="photoUrl"
             type="url"
+            maxLength={TEXT_LIMITS.url}
             placeholder="https://…"
             className={fieldClass}
           />

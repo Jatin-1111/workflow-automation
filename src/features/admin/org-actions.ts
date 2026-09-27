@@ -66,6 +66,7 @@ import {
 } from './references'
 import { isLabelColor, type LabelColor } from '@/lib/types/label'
 import { optionalText, requiredText, tooLong } from '@/lib/validation/form-text'
+import { dateValue, emailValue, phoneValue } from '@/lib/validation/scalars'
 import { PASSWORD, TEXT_LIMITS } from '@/lib/validation/bounds'
 import { safePhotoUrl } from './validation'
 import type { AdminActionState } from './actions'
@@ -422,10 +423,10 @@ export async function createUserAction(
   const name = readName(formData)
   if (!name) return refuse('A person needs a name of 80 characters or fewer.')
 
-  const email = String(formData.get('email') ?? '').trim().toLowerCase()
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return refuse('That does not look like an email address.')
-  }
+  const address = emailValue(formData.get('email'))
+  if (!address.ok) return refuse(address.message)
+  const email = address.value
+
   if (await findUserByEmail(email)) {
     return refuse('Somebody already signs in with that address.')
   }
@@ -448,19 +449,30 @@ export async function createUserAction(
     .filter((value) => knownRoles.has(value)) as RoleId[]
 
   // Optional on purpose: somebody can be added and start receiving work
-  // before anyone has chased them for a photograph.
-  const joining = String(formData.get('joiningDate') ?? '').trim()
-  const joiningDate = joining ? new Date(joining) : undefined
+  // before anyone has chased them for a photograph. Optional means it may
+  // be absent, not that anything goes when it is present.
+  const phone = optionalText(formData.get('phone'))
+  if (phone) {
+    const checked = phoneValue(phone)
+    if (!checked.ok) return refuse(checked.message)
+  }
+
+  const joining = optionalText(formData.get('joiningDate'))
+  let joiningDate: Date | undefined
+  if (joining) {
+    const checked = dateValue(joining, 'Joining date')
+    if (!checked.ok) return refuse(checked.message)
+    joiningDate = checked.value
+  }
 
   const now = new Date()
   await insertUser({
     userId: await nextId('user'),
     name,
     email,
-    phone: readOptional(formData, 'phone'),
+    phone,
     photoUrl: safePhotoUrl(readOptional(formData, 'photoUrl')),
-    joiningDate:
-      joiningDate && !Number.isNaN(joiningDate.getTime()) ? joiningDate : undefined,
+    joiningDate,
     departmentId: readId(formData, 'departmentId', 'department', departments) as
       | DepartmentId
       | undefined,

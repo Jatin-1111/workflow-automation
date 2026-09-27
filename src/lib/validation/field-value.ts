@@ -23,8 +23,8 @@
  * Pure: no database, no request, no React. The engine can call it.
  */
 
-import * as z from 'zod'
-import { DATE_LIMITS, NUMBER_LIMITS, PHONE_LIMITS, TEXT_LIMITS } from './bounds'
+import { NUMBER_LIMITS, TEXT_LIMITS } from './bounds'
+import { dateValue, emailValue, phoneValue } from './scalars'
 import type { FieldDefinition } from '@/lib/types/workflow'
 import type { FieldValue } from '@/lib/types/instance'
 
@@ -94,43 +94,6 @@ function decimalPlaces(value: number): number {
 }
 
 /**
- * A date, in the format an `input type="date"` actually submits.
- *
- * Strict YYYY-MM-DD rather than new Date(string), whose behaviour on
- * anything else is implementation-defined and which reads "01/02/2024" as
- * January in one place and February in another.
- */
-const ISO_DATE = z.iso.date()
-
-function inRange(value: Date, label: string): CoercionResult {
-  if (value < DATE_LIMITS.min || value > DATE_LIMITS.max) {
-    return reject(`${label} must be a year between 1900 and 2100.`)
-  }
-  return accept(value)
-}
-
-function toDate(raw: unknown, label: string): CoercionResult {
-  if (raw instanceof Date) {
-    return Number.isNaN(raw.getTime())
-      ? reject(`${label} is not a real date.`)
-      : inRange(raw, label)
-  }
-  if (typeof raw !== 'string') return reject(`${label} must be a date.`)
-
-  const text = raw.trim()
-  if (!ISO_DATE.safeParse(text).success) {
-    return reject(`${label} must be a date, as day, month and year.`)
-  }
-  // Read as UTC midnight so a stored date does not shift by a day for
-  // somebody in a different timezone.
-  const parsed = new Date(`${text}T00:00:00.000Z`)
-  if (Number.isNaN(parsed.getTime())) return reject(`${label} is not a real date.`)
-  return inRange(parsed, label)
-}
-
-const EMAIL = z.email()
-
-/**
  * A tick, read strictly.
  *
  * Boolean('false') is true, so coercing this the obvious way records the
@@ -148,25 +111,6 @@ function toBoolean(raw: unknown, label: string): CoercionResult {
   if (TRUE_WORDS.has(text)) return accept(true)
   if (FALSE_WORDS.has(text)) return accept(false)
   return reject(`${label} must be ticked or left clear.`)
-}
-
-/** Only dialling characters, and a plausible number of actual digits. */
-const PHONE_SHAPE = /^[+()\-.\s\d]+$/
-
-function toPhone(raw: unknown, label: string): CoercionResult {
-  if (typeof raw !== 'string') return reject(`${label} must be a phone number.`)
-
-  const text = raw.trim()
-  if (!PHONE_SHAPE.test(text)) {
-    return reject(`${label} must be a phone number — digits, spaces and + ( ) - only.`)
-  }
-  const digits = text.replace(/\D/g, '').length
-  if (digits < PHONE_LIMITS.minDigits || digits > PHONE_LIMITS.maxDigits) {
-    return reject(
-      `${label} must have between ${PHONE_LIMITS.minDigits} and ${PHONE_LIMITS.maxDigits} digits.`,
-    )
-  }
-  return accept(text)
 }
 
 function bounded(raw: unknown, label: string, limit: number): CoercionResult {
@@ -224,20 +168,13 @@ export function coerceFieldValue(field: FieldDefinition, raw: unknown): Coercion
     }
 
     case 'date':
-      return toDate(raw, label)
+      return dateValue(raw, label)
 
-    case 'email': {
-      const text = typeof raw === 'string' ? raw.trim().toLowerCase() : ''
-      if (text.length > TEXT_LIMITS.email) {
-        return reject(`${label} must be ${TEXT_LIMITS.email} characters or fewer.`)
-      }
-      return EMAIL.safeParse(text).success
-        ? accept(text)
-        : reject(`${label} must be an email address.`)
-    }
+    case 'email':
+      return emailValue(raw, label)
 
     case 'phone':
-      return toPhone(raw, label)
+      return phoneValue(raw, label)
 
     case 'select': {
       const options = field.options ?? []
