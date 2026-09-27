@@ -193,8 +193,27 @@ describe('reporting', () => {
   })
 })
 
+/** A field a stage collects, so a condition has something real to test. */
+function askFor(key: string): StageDefinition['fields'] {
+  return [{ key, label: key, type: 'checkbox', required: false }]
+}
+
 describe('conditional stages', () => {
   it('accepts a condition on a later stage', () => {
+    const d = draft([
+      stage({ key: 'request', nextStageKey: 'nda', fields: askFor('nda_required') }),
+      stage({
+        key: 'nda',
+        conditions: [{ fieldKey: 'nda_required', operator: 'eq', value: true }],
+      }),
+    ])
+    assert.deepEqual(validateTemplate(d), [])
+  })
+
+  it('refuses a condition on a field no stage collects', () => {
+    // The engine fails closed on a condition it cannot evaluate, so this
+    // stage is skipped on every single run. The workflow would look like
+    // it works while quietly never doing this step.
     const d = draft([
       stage({ key: 'request', nextStageKey: 'nda' }),
       stage({
@@ -202,7 +221,9 @@ describe('conditional stages', () => {
         conditions: [{ fieldKey: 'nda_required', operator: 'eq', value: true }],
       }),
     ])
-    assert.deepEqual(validateTemplate(d), [])
+    assert.deepEqual(messages(d), [
+      '"nda" is skipped unless "nda_required" says so, but no stage collects that. It would never run.',
+    ])
   })
 
   it('refuses a condition on the first stage', () => {
@@ -214,5 +235,72 @@ describe('conditional stages', () => {
       }),
     ])
     assert.ok(messages(d).some((m) => m.includes('first stage cannot be conditional')))
+  })
+})
+
+describe('inputs somebody would be unable to answer', () => {
+  it('refuses a list with nothing to choose from', () => {
+    // Nothing would be accepted in it, so the stage could never complete.
+    const d = draft([
+      stage({
+        key: 'only',
+        fields: [{ key: 'kind', label: 'Kind', type: 'select', required: true }],
+      }),
+    ])
+    assert.deepEqual(messages(d), [
+      '"Kind" on "only" is a list with nothing to choose from.',
+    ])
+  })
+
+  it('refuses a list that offers the same choice twice', () => {
+    const d = draft([
+      stage({
+        key: 'only',
+        fields: [
+          {
+            key: 'kind',
+            label: 'Kind',
+            type: 'select',
+            required: true,
+            options: ['Yes', 'No', 'Yes'],
+          },
+        ],
+      }),
+    ])
+    assert.deepEqual(messages(d), ['"Kind" on "only" lists "Yes" twice.'])
+  })
+
+  it('refuses a field with no label', () => {
+    const d = draft([
+      stage({
+        key: 'only',
+        fields: [{ key: 'kind', label: '  ', type: 'text', required: true }],
+      }),
+    ])
+    assert.deepEqual(messages(d), [
+      'A field on "only" has no label, so nobody would know what to enter.',
+    ])
+  })
+
+  it('refuses a field key that would not survive being a form input name', () => {
+    const d = draft([
+      stage({
+        key: 'only',
+        fields: [{ key: 'Deal Value', label: 'Deal value', type: 'number', required: false }],
+      }),
+    ])
+    assert.match(messages(d)[0], /Field key "Deal Value".*lower case letters/)
+  })
+
+  it('accepts a well-formed select', () => {
+    const d = draft([
+      stage({
+        key: 'only',
+        fields: [
+          { key: 'kind', label: 'Kind', type: 'select', required: true, options: ['Yes', 'No'] },
+        ],
+      }),
+    ])
+    assert.deepEqual(messages(d), [])
   })
 })

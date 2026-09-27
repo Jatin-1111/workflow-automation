@@ -491,12 +491,29 @@ export function WorkflowEditor({
           </form>
 
           {status && status.ok !== null ? (
-            <p
-              role="status"
-              className={`text-sm ${status.ok ? 'text-status-complete' : 'text-status-overdue'}`}
-            >
-              {status.message}
-            </p>
+            <div role="status" className="space-y-1">
+              <p
+                className={`text-sm ${
+                  status.ok ? 'text-status-complete' : 'text-status-overdue'
+                }`}
+              >
+                {status.message}
+              </p>
+              {/* The detail behind a refusal. It was always carried back and
+                  never shown, so a rejected publish said only that it had
+                  been rejected, and a document the server could not read
+                  said nothing about which part of it. */}
+              {!status.ok && status.problems && status.problems.length > 0 ? (
+                <ul className="list-inside list-disc space-y-0.5 text-xs text-muted">
+                  {status.problems.slice(0, 8).map((problem) => (
+                    <li key={problem}>{problem}</li>
+                  ))}
+                  {status.problems.length > 8 ? (
+                    <li>and {status.problems.length - 8} more.</li>
+                  ) : null}
+                </ul>
+              ) : null}
+            </div>
           ) : (
             <p className="text-sm text-subtle">
               Publishing only affects work started afterwards.

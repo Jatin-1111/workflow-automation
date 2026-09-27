@@ -18,6 +18,10 @@ import {
 } from '@/lib/db/repositories/workflow-templates'
 import { listInstances } from '@/lib/db/repositories/workflow-instances'
 import { validateTemplate } from '@/lib/workflow/template-validation'
+import {
+  asStageDefinitions,
+  parseSubmittedTemplate,
+} from '@/lib/workflow/template-schema'
 import type { DepartmentId, ProjectId, RoleId, WorkflowTemplateId } from '@/lib/types/ids'
 import type { StageDefinition, WorkflowTemplate } from '@/lib/types/workflow'
 
@@ -81,25 +85,7 @@ export async function createWorkflowAction(
   redirect(`/workflows/${workflowId}/1`)
 }
 
-/** Everything the editor sends back, as the shape the template stores. */
-interface SubmittedTemplate {
-  name: string
-  description?: string
-  projectId?: string
-  departmentId?: string
-  stages: StageDefinition[]
-  initialStageKey: string
-}
 
-function parseSubmission(formData: FormData): SubmittedTemplate | null {
-  const raw = formData.get('template')
-  if (typeof raw !== 'string') return null
-  try {
-    return JSON.parse(raw) as SubmittedTemplate
-  } catch {
-    return null
-  }
-}
 
 /**
  * Narrow what arrived from the browser to roles that actually exist.
@@ -151,21 +137,24 @@ export async function saveWorkflowAction(
   const loaded = await loadEditableDraft(workflowId, version)
   if ('error' in loaded) return loaded.error
 
-  const submitted = parseSubmission(formData)
-  if (!submitted) return fail('The workflow could not be read. Try saving again.')
+  // Read the document before anything touches it. This used to be a cast,
+  // so a post of `{}` reached `stages.map` and became a 500, and a document
+  // carrying a negative deadline or an unknown priority was written to the
+  // database and only inspected afterwards.
+  const submission = parseSubmittedTemplate(formData.get('template'))
+  if (!submission.ok || !submission.template) {
+    return fail('The workflow could not be saved as sent.', submission.problems)
+  }
+  const submitted = submission.template
 
-  const stages = await withKnownRoles(submitted.stages)
+  const stages = await withKnownRoles(asStageDefinitions(submitted.stages))
 
   await replaceTemplateVersion({
     ...loaded,
     name: submitted.name.trim(),
     description: submitted.description?.trim() || undefined,
-    projectId: isEntityId(String(submitted.projectId ?? ''), 'project')
-      ? (submitted.projectId as ProjectId)
-      : undefined,
-    departmentId: isEntityId(String(submitted.departmentId ?? ''), 'department')
-      ? (submitted.departmentId as DepartmentId)
-      : undefined,
+    projectId: submitted.projectId as ProjectId | undefined,
+    departmentId: submitted.departmentId as DepartmentId | undefined,
     stages,
     initialStageKey: submitted.initialStageKey,
     updatedAt: new Date(),
