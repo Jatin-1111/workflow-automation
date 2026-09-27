@@ -104,9 +104,36 @@ export async function launch({ width = 1280, height = 900 } = {}) {
       `)
     },
 
-    /** Sign in through the real form, so the session is a real one. */
+    /**
+     * Sign in through the real form, so the session is a real one.
+     *
+     * The browser profile is reused between runs, so somebody may already
+     * be signed in — /login then redirects away and there is no form to
+     * fill. Sign whoever it is out first.
+     */
     async login(email, password) {
       await page.goto('http://localhost:3000/login', 1600)
+
+      const needsSignOut = await page.evaluate(`
+        (() => {
+          const form = document.querySelector('form')
+          return !(form && form.elements['email'])
+        })()
+      `)
+      if (needsSignOut) {
+        await page.goto('http://localhost:3000/my-work', 1600)
+        await page.evaluate(`
+          (() => {
+            const b = Array.from(document.querySelectorAll('button'))
+              .find(x => x.textContent.trim() === 'Sign out')
+            if (b) b.click()
+            return Boolean(b)
+          })()
+        `)
+        await sleep(2400)
+        await page.goto('http://localhost:3000/login', 1600)
+      }
+
       await page.evaluate(`
         (() => {
           const form = document.querySelector('form')

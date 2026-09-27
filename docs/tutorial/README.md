@@ -34,6 +34,8 @@ node docs/tutorial/capture-7.mjs    # complete it, hand it on
 npx tsx --env-file=.env.local docs/tutorial/retime.ts
 node docs/tutorial/capture-8.mjs    # the approval
 node docs/tutorial/capture-10.mjs   # more runs, then oversight
+node docs/tutorial/capture-11.mjs   # notifications, profile, search, help
+node docs/tutorial/capture-12.mjs   # reassignment and the admin screens
 
 # 3. Build the document
 python docs/tutorial/build-pdf.py

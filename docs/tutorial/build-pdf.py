@@ -426,6 +426,59 @@ A(callout(
     "whoever did that earlier stage, with the note attached. Nothing is lost and nothing is "
     "started again from scratch."))
 
+A(PageBreak())
+A(Paragraph("Step 5 — The panels beside your work", S["h2"]))
+A(Paragraph(
+    "The right-hand side of a task page is the same on every stage, and it is where everything "
+    "that is not a form lives.",
+    S["body"]))
+A(steps([
+    "<b>Files</b> — anything attached to this run, not just to your stage. Some stages require a "
+    "file before they can be finished, and say so. Uploading another copy of the same thing keeps "
+    "both, numbered, rather than overwriting the first.",
+    "<b>Comments</b> — a conversation attached to the work rather than to a chat thread. Anybody "
+    "involved in the run can read it and add to it.",
+    "<b>Activity history</b> — who did what, and when. It is added to and never edited, so it is "
+    "the answer to what actually happened here.",
+    "<b>If this cannot move</b> — put the work on hold when you are blocked. That says so "
+    "publicly, instead of letting it quietly go late.",
+]))
+A(Spacer(1, 12))
+
+A(Paragraph("Step 6 — Being told", S["h2"]))
+A(Paragraph(
+    "You do not have to keep checking. The bell in the header carries a count, and "
+    "<b>Notifications</b> lists what has happened to work you are part of — a stage arriving with "
+    "you, an approval you asked for, something sent back.",
+    S["body"]))
+A(Spacer(1, 4))
+F.extend(figure("28-notifications", "Notifications. The bell in the header carries the unread count.",
+                crop=(0.0, 0.34)))
+
+A(Paragraph("Step 7 — Your own account", S["h2"]))
+A(Paragraph(
+    "<b>Profile</b>, under your name, is your own summary: what you are carrying, the workflow "
+    "roles you hold, and what your access level lets you do. It is also where you change your "
+    "password — do that as soon as somebody sets one up for you.",
+    S["body"]))
+A(Spacer(1, 4))
+A(callout(
+    "Changing your password signs you out everywhere else",
+    "Every other session is ended, which is the point: if somebody else had the old password, "
+    "they lose it. You stay signed in where you are."))
+A(Spacer(1, 12))
+F.extend(figure("29-profile", "Your profile, with the password panel open.", crop=(0.0, 0.46)))
+
+A(Paragraph("Step 8 — Finding something again", S["h2"]))
+A(Paragraph(
+    "The box at the top of every page searches people, projects, workflows, work, stages and "
+    "files at once. Paste a permanent ID — anything shaped like BO-TSK-00012 — and it goes "
+    "straight there.",
+    S["body"]))
+A(Spacer(1, 4))
+F.extend(figure("32-search", "One box for everything. An ID jumps straight to the record.",
+                crop=(0.0, 0.42)))
+
 # ========================================================== PART THREE
 A(Paragraph("Part 3 — Keeping it moving", S["part"]))
 A(Paragraph("For managers and administrators.", S["partsub"]))
@@ -443,6 +496,36 @@ A(Paragraph(
 A(Spacer(1, 4))
 F.extend(figure("20-approval", "An approval waiting. The checklist must be completed first.",
                 crop=(0.0, 0.52)))
+
+A(Paragraph("Sending work back", S["h2"]))
+A(Paragraph(
+    "<b>Request changes</b> is the other half of an approval. It needs a note saying what is "
+    "wrong, and it returns the work to the earlier stage the workflow nominates — with everything "
+    "already entered still there. It is another pass, not a fresh start.",
+    S["body"]))
+A(Spacer(1, 4))
+F.extend(figure("30-approve-or-send-back",
+                "The decision. The line above the buttons says where each choice sends the work.",
+                crop=(0.30, 0.66)))
+
+A(Paragraph("Moving work to somebody else", S["h2"]))
+A(Paragraph(
+    "When somebody is away or overloaded, open the task and press <b>Reassign</b>. Each candidate "
+    "is listed with how much they are already carrying, so the choice is an informed one, and the "
+    "reason is recorded on the timeline. Below it, <b>Cancel this workflow</b> stops a run that "
+    "should not continue at all — it ends the whole run rather than this one stage, and the "
+    "history stays readable afterwards.",
+    S["body"]))
+A(Spacer(1, 4))
+A(callout(
+    "This moves one task, not the role",
+    "Reassigning affects that single piece of work. The stage still points at the role it was "
+    "configured with, so the next run goes to whoever holds that role. To change it for good, "
+    "move the role in Admin instead — that is what roles are for."))
+A(Spacer(1, 12))
+F.extend(figure("31-reassign",
+                "Reassigning one task. Cancel this workflow, below it, stops the whole run.",
+                crop=(0.16, 0.58)))
 
 A(Paragraph("The Overview — what is happening right now", S["h2"]))
 A(Paragraph(
@@ -479,6 +562,16 @@ A(Spacer(1, 4))
 F.extend(figure("24-team", "Workload across everybody. Click a name to see their work.",
                 crop=(0.0, 0.56)))
 
+A(Paragraph("Projects — one initiative at a time", S["h2"]))
+A(Paragraph(
+    "A <b>Major Project</b> groups runs that belong to the same initiative, and gives it its own "
+    "colour so work from several shows apart on a shared screen. Its page is the same questions "
+    "asked of one project only.",
+    S["body"]))
+A(Spacer(1, 4))
+F.extend(figure("33-project", "One project: what is running inside it, and what has finished.",
+                crop=(0.0, 0.52)))
+
 A(Paragraph("The Reports — how long things really take", S["h2"]))
 A(Paragraph(
     "<b>Reports</b> is the one that changes how you work. <b>Where the time goes</b> lists every "
@@ -490,6 +583,61 @@ F.extend(figure("26-reports", "Slowest stage first. Rework and lateness are coun
                 crop=(0.0, 0.56)))
 
 A(PageBreak())
+
+A(PageBreak())
+A(Paragraph("Part 4 — The administrator's other jobs", S["part"]))
+A(Paragraph("Occasional, but somebody has to know where they are.", S["partsub"]))
+A(Paragraph(
+    "Setting up is the long part and it happens once. These are the things that come up "
+    "afterwards, a few times a year each.",
+    S["body"]))
+A(Spacer(1, 10))
+
+A(Paragraph("When somebody joins, leaves or forgets their password", S["h2"]))
+A(steps([
+    "<b>Set password</b> gives somebody a new one when they are locked out. There is no reset "
+    "email, so this is the way back in. Tell them out of band, and they can change it themselves.",
+    "<b>Deactivate</b> is how somebody leaves. Nothing is deleted — their name stays on the "
+    "history they made — but they cannot sign in, and work stops being routed to them.",
+    "Before deactivating, move their roles to whoever is taking over. A role with nobody active "
+    "in it stalls every workflow that routes to it.",
+]))
+A(Spacer(1, 8))
+F.extend(figure("35-admin-people", "Each person carries their roles, and the two buttons above.",
+                crop=(0.13, 0.42)))
+
+A(Paragraph("Departments, teams and projects", S["h2"]))
+A(Paragraph(
+    "None of these are required to run work, which is why setting up skips them. They are for "
+    "grouping: departments and teams describe the organisation, and a <b>Major Project</b> groups "
+    "runs that belong to the same initiative. Nothing here can be deleted while a person or a "
+    "workflow still points at it — set it inactive instead, and the history stays readable.",
+    S["body"]))
+A(Spacer(1, 4))
+F.extend(figure("36-admin-structure", "The optional structure, below the people.",
+                crop=(0.42, 0.72)))
+
+A(Paragraph("Changing a workflow that is already live", S["h2"]))
+A(Paragraph(
+    "Press <b>Edit as new version</b>. You get a draft copy to change and publish, and anything "
+    "already running carries on under the version it started with. That is deliberate: nobody "
+    "should have the process change halfway through their job.",
+    S["body"]))
+A(Spacer(1, 4))
+F.extend(figure("37-new-version", "A live workflow. Editing it makes version 2, never changes version 1.",
+                crop=(0.0, 0.60)))
+
+A(PageBreak())
+A(Paragraph("Help inside the product", S["part"]))
+A(Paragraph("For when this guide is not to hand.", S["partsub"]))
+A(Paragraph(
+    "The <b>?</b> in the header opens <b>How this works</b> — the same ideas as this guide, kept "
+    "beside the product so it cannot drift out of date on somebody's desktop. It also offers a "
+    "practice run: a sandbox workflow that behaves like a real one and can be thrown away.",
+    S["body"]))
+A(Spacer(1, 4))
+F.extend(figure("34-help", "The built-in explanation, and the practice run beside it.",
+                crop=(0.0, 0.50)))
 
 # ------------------------------------------------------------ glossary
 A(Paragraph("The words this guide uses", S["part"]))
