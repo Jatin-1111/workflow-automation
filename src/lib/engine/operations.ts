@@ -15,9 +15,9 @@ import type { StageDefinition } from '@/lib/types/workflow'
 import { activateStage } from './activate'
 import { resolveActivation } from './conditions'
 import { resolveAssignees } from './assignees'
-import { accept, refuse, type EngineOutcome } from './errors'
+import { accept, refuse, type EngineError, type EngineOutcome } from './errors'
 import { buildTaskDraft, findStage } from './stages'
-import { pickDeclaredFields, validateCompletion } from './validation'
+import { coerceDeclaredFields, validateCompletion } from './validation'
 import type {
   EngineContext,
   EngineResult,
@@ -75,6 +75,34 @@ interface MergedSubmission {
   fieldValues: Record<string, FieldValue>
   checkedItemKeys: string[]
   uploadedSlotKeys: string[]
+  /** Answers that are not the type their field declared. */
+  fieldErrors: EngineError[]
+}
+
+/**
+ * Everything blocking this stage, each thing said once.
+ *
+ * An answer that fails its type is not stored, so validateCompletion then
+ * finds the field empty and calls it missing as well. Both are true and
+ * only one is useful: "must be one of: Yes, No" tells somebody what to do,
+ * and "is required" underneath it just makes the form look angrier than
+ * the problem warrants. The type error wins for that field.
+ */
+function blockersFor(stage: StageDefinition, merged: MergedSubmission): EngineError[] {
+  const alreadyReported = new Set(
+    merged.fieldErrors.map((error) => error.key).filter(Boolean),
+  )
+  return [
+    ...merged.fieldErrors,
+    ...validateCompletion(stage, merged).filter(
+      (error) =>
+        !(
+          error.code === 'missing_required_field' &&
+          error.key &&
+          alreadyReported.has(error.key)
+        ),
+    ),
+  ]
 }
 
 /** Merge a submission over a task's saved state without mutating either. */
@@ -84,11 +112,16 @@ function mergeSubmission(
   submission: StageSubmission | undefined,
 ): MergedSubmission {
   const declaredItems = new Set(stage.checklist.map((item) => item.key))
+  const declared = coerceDeclaredFields(stage, submission?.fieldValues)
 
   return {
+    fieldErrors: declared.errors,
+    // What is already recorded is kept as it stands. Only the incoming
+    // answers are read against the field's type, so a value stored before
+    // types were enforced is never retrospectively rejected.
     fieldValues: {
       ...task.fieldValues,
-      ...pickDeclaredFields(stage, submission?.fieldValues),
+      ...declared.values,
     },
     // A submission carries the complete set of ticked items, not a delta.
     checkedItemKeys: submission?.checkedItemKeys
@@ -141,7 +174,9 @@ export function startInstance(
     })
   }
 
-  const seededValues = pickDeclaredFields(stage, fieldValues)
+  const seeded = coerceDeclaredFields(stage, fieldValues)
+  if (seeded.errors.length > 0) return { ok: false, errors: seeded.errors }
+  const seededValues = seeded.values
 
   const instance: StartResult['instance'] = {
     workflowId: template.workflowId,
@@ -226,6 +261,7 @@ export function saveProgress(
   const { task, stage } = loaded.result
   const { context } = request
   const merged = mergeSubmission(stage, task, request.submission)
+  if (merged.fieldErrors.length > 0) return { ok: false, errors: merged.fieldErrors }
 
   return accept({
     instance: request.instance,
@@ -328,7 +364,7 @@ export function completeStage(
   const { context } = request
   const merged = mergeSubmission(stage, task, request.submission)
 
-  const blockers = validateCompletion(stage, merged)
+  const blockers = blockersFor(stage, merged)
   if (blockers.length > 0) return { ok: false, errors: blockers }
 
   const completedBy = task.completedBy.includes(request.actor)
@@ -415,7 +451,7 @@ export function approve(
   }
 
   const merged = mergeSubmission(stage, task, request.submission)
-  const blockers = validateCompletion(stage, merged)
+  const blockers = blockersFor(stage, merged)
   if (blockers.length > 0) return { ok: false, errors: blockers }
 
   const completion: TaskUpdate = {

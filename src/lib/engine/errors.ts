@@ -13,6 +13,7 @@ export const ENGINE_ERROR_CODES = [
   'not_assigned',
   'instance_not_active',
   'missing_required_field',
+  'invalid_field_value',
   'missing_required_file',
   'incomplete_checklist',
   'comment_required',

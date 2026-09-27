@@ -18,6 +18,12 @@ import {
   saveProgressAction,
   type TaskActionState,
 } from './actions'
+import {
+  DATE_LIMITS,
+  NUMBER_LIMITS,
+  PHONE_LIMITS,
+  TEXT_LIMITS,
+} from '@/lib/validation/bounds'
 import type { ChecklistItemState } from '@/lib/types/task'
 import type {
   ChecklistItemDefinition,
@@ -71,6 +77,16 @@ export function TaskForm({
     (candidate) => candidate.ok !== null,
   )
 
+  // A refusal that names a field is shown on that field. The summary above
+  // the buttons still lists everything, because a problem scrolled out of
+  // view is a form that looks as though it did nothing.
+  const problems = new Map<string, string>()
+  if (state && state.ok === false) {
+    for (const error of state.errors) {
+      if (error.key && !problems.has(error.key)) problems.set(error.key, error.message)
+    }
+  }
+
   // Held in component state so a refused completion keeps what the user
   // ticked: losing seventeen checks to one missing file would be punishing.
   const [checked, setChecked] = useState(
@@ -112,7 +128,12 @@ export function TaskForm({
         <section className="space-y-4">
           <h2 className="text-sm font-semibold">What you need to record</h2>
           {stage.fields.map((field) => (
-            <Field key={field.key} field={field} value={fieldValues[field.key]} />
+            <Field
+              key={field.key}
+              field={field}
+              value={fieldValues[field.key]}
+              problem={problems.get(field.key)}
+            />
           ))}
         </section>
       ) : null}
@@ -238,8 +259,51 @@ export function TaskForm({
   )
 }
 
-function Field({ field, value }: { field: FieldDefinition; value: FieldValue }) {
+/**
+ * What the browser should enforce, taken from the same table the server uses.
+ *
+ * Not a second opinion: if the two disagree, a form either rejects work the
+ * server would have taken or takes work the server will refuse after
+ * somebody has typed it. These are the same constants coerceFieldValue
+ * checks against.
+ */
+function constraintsFor(field: FieldDefinition): Record<string, string | number> {
+  switch (field.type) {
+    case 'text':
+      return { maxLength: TEXT_LIMITS.shortText }
+    case 'email':
+      return { maxLength: TEXT_LIMITS.email }
+    case 'phone':
+      // No pattern: numbers arrive from several countries with every
+      // convention, and a strict one rejects real numbers.
+      return { maxLength: PHONE_LIMITS.maxDigits * 2 }
+    case 'number':
+      return { min: NUMBER_LIMITS.min, max: NUMBER_LIMITS.max, step: 'any' }
+    case 'currency':
+      // Two decimal places, matching the server, so the browser's own
+      // stepper cannot produce an amount the server will refuse.
+      return { min: NUMBER_LIMITS.min, max: NUMBER_LIMITS.max, step: '0.01' }
+    case 'date':
+      return {
+        min: DATE_LIMITS.min.toISOString().slice(0, 10),
+        max: DATE_LIMITS.max.toISOString().slice(0, 10),
+      }
+    default:
+      return {}
+  }
+}
+
+function Field({
+  field,
+  value,
+  problem,
+}: {
+  field: FieldDefinition
+  value: FieldValue
+  problem?: string
+}) {
   const name = `field:${field.key}`
+  const describedBy = problem ? `${field.key}-problem` : undefined
   const defaultValue =
     value === null || value === undefined
       ? ''
@@ -247,8 +311,11 @@ function Field({ field, value }: { field: FieldDefinition; value: FieldValue }) 
         ? value.toISOString().slice(0, 10)
         : String(value)
 
-  const shared =
-    'rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-soft'
+  const shared = `rounded-md border bg-surface px-3 py-2 text-sm outline-none transition focus:ring-2 ${
+    problem
+      ? 'border-status-overdue focus:border-status-overdue focus:ring-status-overdue-soft'
+      : 'border-border focus:border-accent focus:ring-accent-soft'
+  }`
 
   return (
     <label className="flex flex-col gap-1.5">
@@ -261,9 +328,23 @@ function Field({ field, value }: { field: FieldDefinition; value: FieldValue }) 
       ) : null}
 
       {field.type === 'textarea' ? (
-        <textarea name={name} rows={5} defaultValue={defaultValue} className={shared} />
+        <textarea
+          name={name}
+          rows={5}
+          maxLength={TEXT_LIMITS.longText}
+          defaultValue={defaultValue}
+          aria-invalid={problem ? true : undefined}
+          aria-describedby={describedBy}
+          className={shared}
+        />
       ) : field.type === 'select' ? (
-        <select name={name} defaultValue={defaultValue} className={shared}>
+        <select
+          name={name}
+          defaultValue={defaultValue}
+          aria-invalid={problem ? true : undefined}
+          aria-describedby={describedBy}
+          className={shared}
+        >
           <option value="">Select…</option>
           {(field.options ?? []).map((option) => (
             <option key={option} value={option}>
@@ -271,14 +352,42 @@ function Field({ field, value }: { field: FieldDefinition; value: FieldValue }) 
             </option>
           ))}
         </select>
+      ) : field.type === 'checkbox' ? (
+        /* A tick, as a tick. This rendered as a free-text box, which asked
+           somebody to type a boolean and then refused most of what they
+           could type. The hidden field carries the unticked answer: an
+           unticked box sends nothing at all, which would read as "not
+           answered" rather than "no". */
+        <span className="flex items-center gap-2">
+          <input type="hidden" name={name} value="false" />
+          <input
+            type="checkbox"
+            name={name}
+            value="true"
+            defaultChecked={defaultValue === 'true'}
+            aria-invalid={problem ? true : undefined}
+            aria-describedby={describedBy}
+            className="size-4 accent-[var(--accent)]"
+          />
+          <span className="text-sm text-muted">Yes</span>
+        </span>
       ) : (
         <input
           name={name}
           type={inputType(field.type)}
           defaultValue={defaultValue}
+          aria-invalid={problem ? true : undefined}
+          aria-describedby={describedBy}
           className={shared}
+          {...constraintsFor(field)}
         />
       )}
+
+      {problem ? (
+        <span id={describedBy} className="text-xs font-medium text-status-overdue">
+          {problem}
+        </span>
+      ) : null}
     </label>
   )
 }
