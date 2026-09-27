@@ -18,12 +18,7 @@ import {
   saveProgressAction,
   type TaskActionState,
 } from './actions'
-import {
-  DATE_LIMITS,
-  NUMBER_LIMITS,
-  PHONE_LIMITS,
-  TEXT_LIMITS,
-} from '@/lib/validation/bounds'
+import { DATE_LIMITS, NUMBER_LIMITS, TEXT_LIMITS } from '@/lib/validation/bounds'
 import type { ChecklistItemState } from '@/lib/types/task'
 import type {
   ChecklistItemDefinition,
@@ -276,7 +271,7 @@ function constraintsFor(field: FieldDefinition): Record<string, string | number>
     case 'phone':
       // No pattern: numbers arrive from several countries with every
       // convention, and a strict one rejects real numbers.
-      return { maxLength: PHONE_LIMITS.maxDigits * 2 }
+      return { maxLength: TEXT_LIMITS.phone }
     case 'number':
       return { min: NUMBER_LIMITS.min, max: NUMBER_LIMITS.max, step: 'any' }
     case 'currency':

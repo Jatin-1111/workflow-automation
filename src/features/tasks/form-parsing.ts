@@ -8,6 +8,7 @@
  */
 
 import { isEntityId } from '@/lib/ids/format'
+import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import type { StageSubmission } from '@/lib/engine'
 import type { FileId, TaskId, UserId } from '@/lib/types/ids'
 import type { FieldValue } from '@/lib/types/instance'
@@ -64,8 +65,21 @@ export function readAssignees(formData: FormData, name = 'assignees'): UserId[] 
   ]
 }
 
-/** A free-text reason, or nothing when it was left blank. */
+/**
+ * A free-text reason, or nothing when it was left blank.
+ *
+ * Over-length is refused by the action before this is reached, so this
+ * does not truncate: a reason that came back shortened would be a record
+ * of why work moved that is missing the why.
+ */
 export function readReason(formData: FormData, name = 'reason'): string | undefined {
   const value = String(formData.get(name) ?? '').trim()
   return value || undefined
 }
+
+/** The fixed text a task form carries, and how long each may be. */
+export const TASK_TEXT_FIELDS = {
+  comment: TEXT_LIMITS.comment,
+  body: TEXT_LIMITS.comment,
+  reason: TEXT_LIMITS.reason,
+} as const

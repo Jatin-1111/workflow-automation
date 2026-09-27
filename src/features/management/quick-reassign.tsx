@@ -14,6 +14,7 @@
  */
 
 import { useActionState, useState } from 'react'
+import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { UserRoundCog } from 'lucide-react'
 import { Button, buttonClass, controlClass, fieldClass } from '@/features/ui/primitives'
 import { reassignAction, type TaskActionState } from '@/features/tasks/actions'
@@ -81,7 +82,7 @@ export function QuickReassign({
       <input
         name="reason"
         placeholder="Why (optional)"
-        maxLength={200}
+        maxLength={TEXT_LIMITS.reason}
         className={`${fieldClass} w-auto min-w-40 flex-1`}
       />
 

@@ -10,6 +10,7 @@
  */
 
 import { useActionState, useState } from 'react'
+import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import {
   Button,
   Pill,
@@ -164,7 +165,7 @@ function ProjectRowItem({
               name="name"
               defaultValue={project.name}
               required
-              maxLength={80}
+              maxLength={TEXT_LIMITS.name}
               className={fieldClass}
             />
           </label>
@@ -174,7 +175,7 @@ function ProjectRowItem({
             <input
               name="description"
               defaultValue={project.description ?? ''}
-              maxLength={200}
+              maxLength={TEXT_LIMITS.description}
               className={fieldClass}
             />
           </label>
@@ -302,7 +303,7 @@ export function ProjectManager({
               <input
                 name="name"
                 required
-                maxLength={80}
+                maxLength={TEXT_LIMITS.name}
                 placeholder="Project name"
                 className={fieldClass}
               />
@@ -310,7 +311,7 @@ export function ProjectManager({
 
             <input
               name="description"
-              maxLength={200}
+              maxLength={TEXT_LIMITS.description}
               placeholder="What it is for (optional)"
               className={fieldClass}
             />

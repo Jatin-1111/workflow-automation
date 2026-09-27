@@ -10,6 +10,7 @@
  */
 
 import { useActionState, useState } from 'react'
+import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { Button, Panel, controlClass, fieldClass } from '@/features/ui/primitives'
 import { startWorkflowAction, type StartActionState } from './actions'
 
@@ -88,7 +89,7 @@ export function StartWorkflow({
           <input
             name="title"
             required
-            maxLength={120}
+            maxLength={TEXT_LIMITS.title}
             placeholder="ABC Technologies"
             className={fieldClass}
           />

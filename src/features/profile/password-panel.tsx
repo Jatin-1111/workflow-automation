@@ -8,6 +8,7 @@
  */
 
 import { useActionState, useState } from 'react'
+import { PASSWORD } from '@/lib/validation/bounds'
 import { Button, Panel, fieldClass } from '@/features/ui/primitives'
 import { changePasswordAction, type PasswordActionState } from './actions'
 
@@ -42,7 +43,8 @@ export function PasswordPanel() {
                 name="newPassword"
                 type="password"
                 required
-                minLength={8}
+                minLength={PASSWORD.min}
+                maxLength={PASSWORD.max}
                 autoComplete="new-password"
                 className={fieldClass}
               />
@@ -54,7 +56,8 @@ export function PasswordPanel() {
                 name="confirmPassword"
                 type="password"
                 required
-                minLength={8}
+                minLength={PASSWORD.min}
+                maxLength={PASSWORD.max}
                 autoComplete="new-password"
                 className={fieldClass}
               />

@@ -8,6 +8,7 @@
  * password means editing the database by hand.
  */
 
+import { PASSWORD } from '@/lib/validation/bounds'
 import { useActionState, useState } from 'react'
 import { Button, buttonClass, fieldClass } from '@/features/ui/primitives'
 import { resetUserPasswordAction } from './org-actions'
@@ -47,9 +48,10 @@ export function PasswordReset({
         </span>
         <input
           name="password"
+          minLength={PASSWORD.min}
+          maxLength={PASSWORD.max}
           type="password"
           required
-          minLength={8}
           autoComplete="new-password"
           className={`${fieldClass} max-w-sm`}
         />

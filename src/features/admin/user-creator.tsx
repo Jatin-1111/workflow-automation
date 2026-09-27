@@ -9,6 +9,7 @@
  */
 
 import { useActionState, useState } from 'react'
+import { PASSWORD, TEXT_LIMITS } from '@/lib/validation/bounds'
 import {
   Button,
   controlClass,
@@ -51,7 +52,7 @@ export function UserCreator({
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="space-y-1">
           <span className="text-xs font-medium text-muted">Name</span>
-          <input name="name" required maxLength={80} className={fieldClass} />
+          <input name="name" required maxLength={TEXT_LIMITS.name} className={fieldClass} />
         </label>
 
         <label className="space-y-1">
@@ -65,7 +66,8 @@ export function UserCreator({
             name="password"
             type="password"
             required
-            minLength={8}
+            minLength={PASSWORD.min}
+            maxLength={PASSWORD.max}
             className={fieldClass}
           />
         </label>
@@ -81,7 +83,7 @@ export function UserCreator({
 
         <label className="space-y-1">
           <span className="text-xs font-medium text-muted">Phone (optional)</span>
-          <input name="phone" type="tel" maxLength={40} className={fieldClass} />
+          <input name="phone" type="tel" maxLength={TEXT_LIMITS.phone} className={fieldClass} />
         </label>
 
         <label className="space-y-1">

@@ -15,6 +15,7 @@
  */
 
 import { useActionState, useState } from 'react'
+import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { TriangleAlert } from 'lucide-react'
 import {
   Button,
@@ -90,7 +91,7 @@ function Row({
               name="name"
               defaultValue={entity.name}
               required
-              maxLength={80}
+              maxLength={TEXT_LIMITS.name}
               className={fieldClass}
             />
           </label>
@@ -101,7 +102,7 @@ function Row({
               <input
                 name="description"
                 defaultValue={entity.description ?? ''}
-                maxLength={200}
+                maxLength={TEXT_LIMITS.description}
                 className={fieldClass}
               />
             </label>
@@ -273,7 +274,7 @@ export function OrgManager({
             <input
               name="name"
               required
-              maxLength={80}
+              maxLength={TEXT_LIMITS.name}
               placeholder={`${label} name`}
               className={fieldClass}
             />
@@ -301,7 +302,7 @@ export function OrgManager({
         {describable ? (
           <input
             name="description"
-            maxLength={200}
+            maxLength={TEXT_LIMITS.description}
             placeholder="What it is for (optional)"
             className={fieldClass}
           />

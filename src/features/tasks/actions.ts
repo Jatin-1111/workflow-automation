@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireCapability, requireUser } from '@/lib/auth/dal'
+import { tooLong } from '@/lib/validation/form-text'
 import { nextId } from '@/lib/ids/generate'
 import { insertComment } from '@/lib/db/repositories/comments'
 import { insertFile, nextVersionForSlot } from '@/lib/db/repositories/files'
@@ -25,6 +26,7 @@ import {
   readFileId,
   readReason,
   readSubmission,
+  TASK_TEXT_FIELDS,
   readTaskId,
 } from './form-parsing'
 import type { StageSubmission } from '@/lib/engine'
@@ -48,6 +50,9 @@ async function operate(
   action: (taskId: TaskId, actor: Awaited<ReturnType<typeof requireUser>>['userId'], submission: StageSubmission) => Promise<OperationOutcome>,
 ): Promise<TaskActionState> {
   const user = await requireUser()
+  const overflow = tooLong(formData, TASK_TEXT_FIELDS)
+  if (overflow) return refuse('too_long', overflow)
+
   const taskId = readTaskId(formData)
   if (!taskId) return refuse('task_not_found', 'That task could not be identified.')
 
@@ -182,6 +187,9 @@ export async function reassignAction(
 ): Promise<TaskActionState> {
   const actor = await requireCapability('task.reassign')
 
+  const overflow = tooLong(formData, TASK_TEXT_FIELDS)
+  if (overflow) return refuse('too_long', overflow)
+
   const taskId = readTaskId(formData)
   if (!taskId) return refuse('task_not_found', 'That task could not be identified.')
 
@@ -212,6 +220,9 @@ export async function addCommentAction(
   formData: FormData,
 ): Promise<TaskActionState> {
   const user = await requireUser()
+
+  const overflow = tooLong(formData, TASK_TEXT_FIELDS)
+  if (overflow) return refuse('too_long', overflow)
   const taskId = readTaskId(formData)
   if (!taskId) return refuse('task_not_found', 'That task could not be identified.')
 
@@ -268,6 +279,9 @@ export async function holdTaskAction(
   formData: FormData,
 ): Promise<TaskActionState> {
   const user = await requireUser()
+
+  const overflow = tooLong(formData, TASK_TEXT_FIELDS)
+  if (overflow) return refuse('too_long', overflow)
   const taskId = readTaskId(formData)
   if (!taskId) return refuse('task_not_found', 'That task could not be identified.')
 
@@ -291,6 +305,9 @@ export async function resumeTaskAction(
   formData: FormData,
 ): Promise<TaskActionState> {
   const user = await requireUser()
+
+  const overflow = tooLong(formData, TASK_TEXT_FIELDS)
+  if (overflow) return refuse('too_long', overflow)
   const taskId = readTaskId(formData)
   if (!taskId) return refuse('task_not_found', 'That task could not be identified.')
 
@@ -310,6 +327,9 @@ export async function cancelInstanceAction(
   formData: FormData,
 ): Promise<TaskActionState> {
   const user = await requireCapability('instance.cancel')
+
+  const overflow = tooLong(formData, TASK_TEXT_FIELDS)
+  if (overflow) return refuse('too_long', overflow)
 
   const instanceId = String(formData.get('instanceId') ?? '')
   if (!isEntityId(instanceId, 'workflowInstance')) {

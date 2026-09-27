@@ -64,11 +64,33 @@ import {
   teamUses,
 } from './references'
 import { isLabelColor, type LabelColor } from '@/lib/types/label'
+import { optionalText, requiredText, tooLong } from '@/lib/validation/form-text'
+import { PASSWORD, TEXT_LIMITS } from '@/lib/validation/bounds'
 import { safePhotoUrl } from './validation'
 import type { AdminActionState } from './actions'
 
-const MAX_NAME = 80
-const MIN_PASSWORD = 8
+const MAX_NAME = TEXT_LIMITS.name
+const MIN_PASSWORD = PASSWORD.min
+
+/**
+ * What every form on this page is allowed to send.
+ *
+ * Listed per action rather than globally so a form that does not carry a
+ * field is never told anything about it, and so adding a field to a form
+ * means deciding its bound in the same change.
+ */
+const TEXT_FIELDS = {
+  name: TEXT_LIMITS.name,
+  description: TEXT_LIMITS.description,
+} as const
+
+const PERSON_FIELDS = {
+  ...TEXT_FIELDS,
+  email: TEXT_LIMITS.email,
+  phone: TEXT_LIMITS.phone,
+  photoUrl: TEXT_LIMITS.url,
+  password: PASSWORD.max,
+} as const
 
 function refuse(message: string): AdminActionState {
   return { ok: false, message }
@@ -76,14 +98,11 @@ function refuse(message: string): AdminActionState {
 
 /** A required free-text name, trimmed and bounded. */
 function readName(formData: FormData, field = 'name'): string | null {
-  const value = String(formData.get(field) ?? '').trim()
-  if (value.length === 0 || value.length > MAX_NAME) return null
-  return value
+  return requiredText(formData.get(field), MAX_NAME)
 }
 
 function readOptional(formData: FormData, field: string): string | undefined {
-  const value = String(formData.get(field) ?? '').trim()
-  return value.length > 0 ? value : undefined
+  return optionalText(formData.get(field))
 }
 
 /**
@@ -136,6 +155,9 @@ export async function createDepartmentAction(
 ): Promise<AdminActionState> {
   await requireCapability('admin.manage_users')
 
+  const overflow = tooLong(formData, TEXT_FIELDS)
+  if (overflow) return refuse(overflow)
+
   const name = readName(formData)
   if (!name) return refuse('A department needs a name of 80 characters or fewer.')
 
@@ -161,6 +183,10 @@ export async function createDepartmentAction(
 export async function updateDepartmentAction(formData: FormData): Promise<void> {
   await requireCapability('admin.manage_users')
 
+  // A void action has no way to answer, so it declines the write
+  // rather than storing a truncated version of what was sent.
+  if (tooLong(formData, TEXT_FIELDS)) return
+
   const departmentId = String(formData.get('departmentId') ?? '')
   if (!isEntityId(departmentId, 'department')) return
 
@@ -185,6 +211,9 @@ export async function createTeamAction(
 ): Promise<AdminActionState> {
   await requireCapability('admin.manage_users')
 
+  const overflow = tooLong(formData, TEXT_FIELDS)
+  if (overflow) return refuse(overflow)
+
   const name = readName(formData)
   if (!name) return refuse('A team needs a name of 80 characters or fewer.')
 
@@ -208,6 +237,10 @@ export async function createTeamAction(
 export async function updateTeamAction(formData: FormData): Promise<void> {
   await requireCapability('admin.manage_users')
 
+  // A void action has no way to answer, so it declines the write
+  // rather than storing a truncated version of what was sent.
+  if (tooLong(formData, TEXT_FIELDS)) return
+
   const teamId = String(formData.get('teamId') ?? '')
   if (!isEntityId(teamId, 'team')) return
 
@@ -230,6 +263,9 @@ export async function createProjectAction(
   formData: FormData,
 ): Promise<AdminActionState> {
   await requireCapability('admin.manage_users')
+
+  const overflow = tooLong(formData, TEXT_FIELDS)
+  if (overflow) return refuse(overflow)
 
   const name = readName(formData)
   if (!name) return refuse('A project needs a name of 80 characters or fewer.')
@@ -260,6 +296,10 @@ export async function createProjectAction(
 
 export async function updateProjectAction(formData: FormData): Promise<void> {
   await requireCapability('admin.manage_users')
+
+  // A void action has no way to answer, so it declines the write
+  // rather than storing a truncated version of what was sent.
+  if (tooLong(formData, TEXT_FIELDS)) return
 
   const projectId = String(formData.get('projectId') ?? '')
   if (!isEntityId(projectId, 'project')) return
@@ -316,6 +356,9 @@ export async function createRoleAction(
 ): Promise<AdminActionState> {
   await requireCapability('admin.manage_roles')
 
+  const overflow = tooLong(formData, TEXT_FIELDS)
+  if (overflow) return refuse(overflow)
+
   const name = readName(formData)
   if (!name) return refuse('A role needs a name of 80 characters or fewer.')
 
@@ -343,6 +386,10 @@ export async function createRoleAction(
 export async function updateRoleAction(formData: FormData): Promise<void> {
   await requireCapability('admin.manage_roles')
 
+  // A void action has no way to answer, so it declines the write
+  // rather than storing a truncated version of what was sent.
+  if (tooLong(formData, TEXT_FIELDS)) return
+
   const roleId = String(formData.get('roleId') ?? '')
   if (!isEntityId(roleId, 'role')) return
 
@@ -368,6 +415,9 @@ export async function createUserAction(
   formData: FormData,
 ): Promise<AdminActionState> {
   await requireCapability('admin.manage_users')
+
+  const overflow = tooLong(formData, PERSON_FIELDS)
+  if (overflow) return refuse(overflow)
 
   const name = readName(formData)
   if (!name) return refuse('A person needs a name of 80 characters or fewer.')
@@ -434,6 +484,10 @@ export async function createUserAction(
 export async function updateUserProfileAction(formData: FormData): Promise<void> {
   const admin = await requireCapability('admin.manage_users')
 
+  // A void action has no way to answer, so it declines the write
+  // rather than storing a truncated version of what was sent.
+  if (tooLong(formData, PERSON_FIELDS)) return
+
   const userId = String(formData.get('userId') ?? '')
   if (!isEntityId(userId, 'user')) return
 
@@ -471,6 +525,9 @@ export async function resetUserPasswordAction(
   formData: FormData,
 ): Promise<AdminActionState> {
   const admin = await requireCapability('admin.manage_users')
+
+  const overflow = tooLong(formData, PERSON_FIELDS)
+  if (overflow) return refuse(overflow)
 
   const userId = String(formData.get('userId') ?? '')
   if (!isEntityId(userId, 'user')) {

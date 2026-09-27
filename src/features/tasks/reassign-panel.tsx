@@ -9,6 +9,7 @@
  */
 
 import { buttonClass, fieldClass } from '@/features/ui/primitives'
+import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { useActionState, useState } from 'react'
 import { reassignAction, type TaskActionState } from './actions'
 
@@ -110,6 +111,7 @@ export function ReassignPanel({
             </span>
             <input
               name="reason"
+              maxLength={TEXT_LIMITS.reason}
               placeholder="On leave, workload, handover…"
               className={fieldClass}
             />

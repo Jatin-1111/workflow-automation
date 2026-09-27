@@ -41,6 +41,10 @@ export const TEXT_LIMITS = {
   email: 254,
   /** One option in a select field. */
   option: 120,
+  /** A telephone number with its spaces, dashes and country code. */
+  phone: 40,
+  /** A link to a photograph. */
+  url: 2048,
 } as const
 
 export type TextLimit = keyof typeof TEXT_LIMITS

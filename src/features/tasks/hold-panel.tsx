@@ -9,6 +9,7 @@
  */
 
 import { useActionState, useState } from 'react'
+import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import {
   Button,
   Panel,
@@ -136,7 +137,7 @@ export function HoldPanel({
                 <input
                   name="reason"
                   required
-                  maxLength={200}
+                  maxLength={TEXT_LIMITS.reason}
                   placeholder="Client has not returned the signed brief"
                   className={fieldClass}
                 />
@@ -189,7 +190,7 @@ export function HoldPanel({
                   <input
                     name="reason"
                     required
-                    maxLength={200}
+                    maxLength={TEXT_LIMITS.reason}
                     placeholder="Client withdrew the brief"
                     className={fieldClass}
                   />

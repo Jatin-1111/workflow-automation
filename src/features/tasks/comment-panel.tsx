@@ -3,6 +3,7 @@
 /** Internal discussion, kept with the workflow rather than the stage (spec §40). */
 
 import { buttonClass, fieldClass } from '@/features/ui/primitives'
+import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { useActionState } from 'react'
 import { addCommentAction, type TaskActionState } from './actions'
 
@@ -55,6 +56,7 @@ export function CommentPanel({
           <input type="hidden" name="taskId" value={taskId} />
           <textarea
             name="body"
+            maxLength={TEXT_LIMITS.comment}
             rows={2}
             placeholder="Add a comment…"
             className={fieldClass}

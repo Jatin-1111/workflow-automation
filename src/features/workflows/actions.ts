@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 import { requireCapability } from '@/lib/auth/dal'
 import { nextId } from '@/lib/ids/generate'
 import { isEntityId } from '@/lib/ids/format'
+import { tooLong } from '@/lib/validation/form-text'
+import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { listRoles } from '@/lib/db/repositories/roles'
 import {
   deleteTemplateVersion,
@@ -57,6 +59,13 @@ export async function createWorkflowAction(
   formData: FormData,
 ): Promise<BuilderState> {
   const admin = await requireCapability('admin.manage_workflows')
+
+  // The editor's saves go through the schema; this form does not.
+  const overflow = tooLong(formData, {
+    name: TEXT_LIMITS.name,
+    description: TEXT_LIMITS.description,
+  })
+  if (overflow) return fail(overflow)
 
   const name = String(formData.get('name') ?? '').trim()
   if (!name) return fail('Give the workflow a name.')

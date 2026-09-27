@@ -11,6 +11,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth/dal'
 import { isEntityId } from '@/lib/ids/format'
+import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { startWorkflow } from '@/lib/workflow/service'
 import type { ProjectId, WorkflowTemplateId } from '@/lib/types/ids'
@@ -31,7 +32,7 @@ export async function startWorkflowAction(
   }
 
   const title = String(formData.get('title') ?? '').trim()
-  if (!title || title.length > 120) {
+  if (!title || title.length > TEXT_LIMITS.title) {
     return {
       ok: false,
       message: 'Give this run a name — the client, the episode, the vendor.',
