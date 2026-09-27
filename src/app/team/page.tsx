@@ -36,7 +36,7 @@ export default async function TeamPage() {
                 <th className="px-5 py-2.5 text-right font-medium">To approve</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
               {workload.map((person) => (
                 <tr key={person.userId}>
                   <td className="px-5 py-3">

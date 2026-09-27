@@ -6,7 +6,7 @@
  */
 
 import Link from 'next/link'
-import { Bell, CircleHelp, Search } from 'lucide-react'
+import { Bell, CircleHelp, Orbit, Search } from 'lucide-react'
 import { LogoutButton } from '@/features/auth/logout-button'
 import { isOverviewPath } from '@/features/management/overview-tabs'
 import { can, type Capability } from '@/lib/auth/permissions'
@@ -54,9 +54,15 @@ export async function AppShell({
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3 sm:gap-4 sm:px-6">
           <Link
             href="/my-work"
-            className="shrink-0 text-sm font-semibold tracking-tight text-foreground transition-ui hover:text-accent"
+            className="group flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-ui hover:text-accent"
           >
-            Business Orbit
+            <span
+              aria-hidden
+              className="flex size-7 items-center justify-center rounded-lg bg-accent text-white shadow-sm transition-ui group-hover:bg-accent-hover"
+            >
+              <Orbit size={16} strokeWidth={2} />
+            </span>
+            <span className="hidden sm:block">Business Orbit</span>
           </Link>
 
           {/* The search grows into whatever the header is not using, rather
@@ -144,7 +150,7 @@ export async function AppShell({
                     aria-current={active ? 'page' : undefined}
                     className={`block whitespace-nowrap border-b-2 px-3 py-2.5 text-sm transition-ui ${
                       active
-                        ? 'border-accent font-semibold text-foreground'
+                        ? 'border-accent font-semibold text-accent'
                         : 'border-transparent text-muted hover:border-border-strong hover:text-foreground'
                     }`}
                   >

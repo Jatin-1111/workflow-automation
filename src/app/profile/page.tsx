@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { requireUser } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
 import { EmptyRow, Section } from '@/features/management/section'
+import { Activity, CircleCheckBig, Stamp, TriangleAlert } from 'lucide-react'
 import { StatTile } from '@/features/management/stat-tile'
 import { PasswordPanel } from '@/features/profile/password-panel'
 import { getMyWork } from '@/features/my-work/queries'
@@ -77,22 +78,31 @@ export default async function ProfilePage() {
         </header>
 
         <div className="mb-6 grid gap-4 sm:grid-cols-4">
-          <StatTile label="Active work" value={active.length} href="/my-work?view=all" />
+          <StatTile
+            label="Active work"
+            value={active.length}
+            tone="progress"
+            icon={Activity}
+            href="/my-work?view=all"
+          />
           <StatTile
             label="Overdue"
             value={overdue.length}
-            tone={overdue.length > 0 ? 'alert' : 'neutral'}
+            tone="alert"
+            icon={TriangleAlert}
             href="/my-work?view=overdue"
           />
           <StatTile
             label="Awaiting my approval"
             value={approvals.length}
-            tone={approvals.length > 0 ? 'action' : 'neutral'}
+            tone="action"
+            icon={Stamp}
           />
           <StatTile
             label="Completed"
             value={completed.length}
             tone="good"
+            icon={CircleCheckBig}
             href="/my-work?view=completed"
           />
         </div>

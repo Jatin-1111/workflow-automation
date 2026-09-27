@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
 import { EmptyRow, Section } from '@/features/management/section'
+import { Activity, CircleCheckBig, CirclePlay, Undo2 } from 'lucide-react'
 import { StatTile } from '@/features/management/stat-tile'
 import { getReport } from '@/features/reports/queries'
 import { formatHours, REPORT_RANGES, type ReportRange } from '@/lib/workflow/metrics'
@@ -76,13 +77,24 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatTile label="Started" value={totals.started} />
-          <StatTile label="Completed" value={totals.completed} tone="good" />
-          <StatTile label="Still running" value={totals.inFlight} />
+          <StatTile label="Started" value={totals.started} icon={CirclePlay} />
+          <StatTile
+            label="Completed"
+            value={totals.completed}
+            tone="good"
+            icon={CircleCheckBig}
+          />
+          <StatTile
+            label="Still running"
+            value={totals.inFlight}
+            tone="progress"
+            icon={Activity}
+          />
           <StatTile
             label="Sent back for changes"
             value={totals.rejections}
-            tone={totals.rejections > 0 ? 'action' : 'neutral'}
+            tone="action"
+            icon={Undo2}
           />
         </div>
 
@@ -140,7 +152,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                     <th className="px-5 py-2.5 text-right font-medium">Late</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
                   {report.stages.map((stage) => (
                     <tr key={`${stage.workflowId}-${stage.stageKey}`}>
                       <td className="px-5 py-2.5 font-medium">{stage.stageName}</td>
@@ -193,7 +205,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                   <th className="px-5 py-2.5 text-right font-medium">On time</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
                 {report.workflows.map((workflow) => (
                   <tr key={workflow.workflowId}>
                     <td className="px-5 py-2.5 font-medium">{workflow.name}</td>
@@ -234,7 +246,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                       <th className="px-5 py-2.5 text-right font-medium">Median</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
                     {report.people.map((person) => (
                       <tr key={person.userId}>
                         <td className="px-5 py-3">{person.name}</td>
@@ -273,7 +285,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                     <th className="px-5 py-2.5 text-right font-medium">Completed</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
                   {report.projects.map((project) => (
                     <tr key={project.name}>
                       <td className="px-5 py-3">{project.name}</td>

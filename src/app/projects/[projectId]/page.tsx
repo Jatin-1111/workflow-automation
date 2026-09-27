@@ -6,6 +6,7 @@ import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
 import { getProjectDashboard } from '@/features/management/queries'
 import { EmptyRow, Section } from '@/features/management/section'
+import { Activity, CircleCheckBig, TriangleAlert } from 'lucide-react'
 import { StatTile } from '@/features/management/stat-tile'
 import { humanise } from '@/features/my-work/format'
 import { isEntityId } from '@/lib/ids/format'
@@ -45,13 +46,24 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
         </header>
 
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
-          <StatTile label="Active workflows" value={active.length} />
+          <StatTile
+            label="Active workflows"
+            value={active.length}
+            tone="progress"
+            icon={Activity}
+          />
           <StatTile
             label="Overdue"
             value={active.filter((row) => row.overdue).length}
-            tone={active.some((row) => row.overdue) ? 'alert' : 'neutral'}
+            tone="alert"
+            icon={TriangleAlert}
           />
-          <StatTile label="Completed" value={completed.length} tone="good" />
+          <StatTile
+            label="Completed"
+            value={completed.length}
+            tone="good"
+            icon={CircleCheckBig}
+          />
         </div>
 
         <div className="space-y-6">

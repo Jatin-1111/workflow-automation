@@ -6,39 +6,85 @@
  * Restrained, light, desktop-first — a premium internal operating system, not a
  * consumer app (spec §50). No dark scheme: the brief asks for a clean light
  * interface, so the palette stays deliberate rather than reacting to the OS.
+ *
+ * Colour has three jobs here and never more:
+ *   1. the brand, which marks what you can act on;
+ *   2. status, which says what a thing means;
+ *   3. identity, which tells one project or stage from another.
+ * A colour that is doing none of those is decoration, and does not belong in a
+ * screen somebody reads for eight hours.
  */
 :root {
-  /* Surfaces. A faintly cool page behind white cards gives depth without shadow. */
-  --background: #f6f7f9;
+  /* Surfaces. A faintly indigo page behind white cards gives depth without
+     shadow, and ties the canvas to the brand rather than sitting beside it. */
+  --background: #f4f5fa;
   --surface: #ffffff;
-  --surface-sunken: #fafbfc;
+  --surface-sunken: #f9fafd;
 
-  /* Text. Four steps is enough hierarchy and keeps contrast honest. */
-  --foreground: #14171c;
-  --muted: #545c68;
-  --subtle: #858d9a;
+  /* Text. Four steps is enough hierarchy, and every one of them clears AA
+     on white, on the canvas and on a sunken panel — checked, not assumed.
+     `subtle` was the exception and was darkened until it was not: an ID or
+     a timestamp is still text, and 3.4:1 asked people to squint at it. */
+  --foreground: #14161f;
+  --muted: #565e70;
+  --subtle: #696f7e;
 
-  --border: #e6e8ec;
-  --border-strong: #cfd4db;
+  --border: #e5e7ef;
+  --border-strong: #cdd1de;
 
-  --accent: #1e3a8a;
-  --accent-hover: #172e6e;
-  --accent-soft: #eef2fb;
-  --accent-ring: #c7d4f0;
+  /**
+   * The brand.
+   *
+   * Indigo rather than the navy this started with: navy sat on top of the
+   * blue that means "in progress", so the one colour marking what you can
+   * press was the same colour as a status you cannot. Indigo is nobody
+   * else's colour in this palette, which is the whole requirement.
+   *
+   * #4f46e5 carries white at 6.3:1, so a primary button is legible rather
+   * than merely branded.
+   */
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-strong: #3730a3;
+  --accent-soft: #eef1ff;
+  --accent-soft-hover: #e0e5ff;
+  --accent-ring: #c7cbf7;
 
-  /* Status. Each has a tint so a pill reads at a glance without shouting. */
-  --status-action: #9a4a08;
-  --status-action-soft: #fdf1e5;
-  --status-progress: #1e3a8a;
-  --status-progress-soft: #eef2fb;
-  --status-waiting: #5b5566;
-  --status-waiting-soft: #f3f2f5;
-  --status-overdue: #a51f18;
-  --status-overdue-soft: #fdeceb;
-  --status-complete: #17603d;
-  --status-complete-soft: #eaf5ef;
-  --status-neutral: #545c68;
-  --status-neutral-soft: #f2f4f6;
+  /* Status. Each has a tint so a pill reads at a glance without shouting.
+     Every ink clears 4.5:1 on white and on its own tint. */
+  --status-action: #a8500a;
+  --status-action-soft: #fef3e2;
+  --status-progress: #0369a1;
+  --status-progress-soft: #e4f1fa;
+  --status-waiting: #475569;
+  --status-waiting-soft: #eff1f5;
+  --status-overdue: #b91c1c;
+  --status-overdue-soft: #fdecec;
+  --status-complete: #14713a;
+  --status-complete-soft: #e8f6ed;
+  --status-neutral: #565e70;
+  --status-neutral-soft: #f1f3f7;
+
+  /**
+   * Stages.
+   *
+   * A board of seven identical white columns does not look like a pipeline,
+   * so a stage carries a colour by its position: an arc from the brand's own
+   * indigo through blue and cyan to green, which reads as travel towards
+   * done. Monotonic on purpose — a random colour per column is decoration,
+   * an ordered one is information.
+   *
+   * Used as a cap on a column and a dot beside a stage name, never as text,
+   * so these are chosen for separation rather than contrast. A board with
+   * more stages than stops repeats from the beginning; position within the
+   * workflow is still what the colour encodes.
+   */
+  --stage-1: #4f46e5;
+  --stage-2: #2563eb;
+  --stage-3: #0284c7;
+  --stage-4: #0891b2;
+  --stage-5: #0d9488;
+  --stage-6: #059669;
 
   /**
    * Labels.
@@ -50,25 +96,34 @@
    * Each is a readable ink on its own tint, not a block of colour: the
    * interface stays a light one with colour used to mean something. The inks
    * clear 4.5:1 on their tints, so a chip is legible rather than merely
-   * pretty, and the set stays distinguishable in the common forms of colour
-   * blindness by pairing hue with position in the palette rather than relying
-   * on red-versus-green alone.
+   * pretty.
+   *
+   * "Distinguishable" used to be an assertion in this comment and nothing
+   * more. Measured, the original eight were not: teal and green sat 18 apart
+   * in Lab, slate and cyan 21 — close enough that two projects could wear
+   * what looks like the same colour. Three names had to move to fix it
+   * (slate off blue-grey onto true grey, green off bottle onto olive, cyan
+   * off navy onto a proper blue), and the closest pair is now 35 apart.
+   * palette.test.ts holds the line.
+   *
+   * The names are the stored values, so they stay whatever happens to the
+   * hex behind them; a project keeps its colour across this change.
    */
-  --label-slate: #3f4a5a;
+  --label-slate: #3f3f46;
   --label-slate-soft: #eef0f4;
   --label-blue: #1d4ed8;
   --label-blue-soft: #e8eeff;
-  --label-teal: #0f6e66;
+  --label-teal: #0f766e;
   --label-teal-soft: #e3f4f2;
-  --label-green: #17603d;
-  --label-green-soft: #e6f4ec;
+  --label-green: #3d7317;
+  --label-green-soft: #e9f3e2;
   --label-amber: #8a4d04;
   --label-amber-soft: #fdf0dd;
   --label-rose: #a8265a;
   --label-rose-soft: #fdeaf1;
-  --label-purple: #6425a8;
+  --label-purple: #701a75;
   --label-purple-soft: #f3eafd;
-  --label-cyan: #0b5f8a;
+  --label-cyan: #0369a1;
   --label-cyan-soft: #e4f2f9;
 }
 
@@ -83,7 +138,9 @@
   --color-border-strong: var(--border-strong);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-hover: var(--accent-soft-hover);
   --color-accent-ring: var(--accent-ring);
 
   --color-status-action: var(--status-action);
@@ -98,6 +155,12 @@
   --color-status-complete-soft: var(--status-complete-soft);
   --color-status-neutral: var(--status-neutral);
   --color-status-neutral-soft: var(--status-neutral-soft);
+  --color-stage-1: var(--stage-1);
+  --color-stage-2: var(--stage-2);
+  --color-stage-3: var(--stage-3);
+  --color-stage-4: var(--stage-4);
+  --color-stage-5: var(--stage-5);
+  --color-stage-6: var(--stage-6);
   --color-label-slate: var(--label-slate);
   --color-label-slate-soft: var(--label-slate-soft);
   --color-label-blue: var(--label-blue);

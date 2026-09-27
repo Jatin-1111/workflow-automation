@@ -17,6 +17,16 @@ import { listProjects } from '@/lib/db/repositories/projects'
 import { listRoles } from '@/lib/db/repositories/roles'
 import { listUsers } from '@/lib/db/repositories/users'
 import { listActiveTemplates } from '@/lib/db/repositories/workflow-templates'
+import {
+  Activity,
+  CalendarClock,
+  CheckCheck,
+  CircleCheckBig,
+  CircleSlash,
+  FolderKanban,
+  Stamp,
+  TriangleAlert,
+} from 'lucide-react'
 import { StatTile } from '@/features/management/stat-tile'
 import { QuickReassign } from '@/features/management/quick-reassign'
 import { EmptyRow, Section } from '@/features/management/section'
@@ -67,22 +77,53 @@ export default async function ManagementDashboardPage({
         />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatTile label="Active workflows" value={counts.activeWorkflows} />
+          <StatTile
+            label="Active workflows"
+            value={counts.activeWorkflows}
+            tone="progress"
+            icon={Activity}
+          />
           <StatTile
             label="Pending approvals"
             value={counts.pendingApprovals}
-            tone={counts.pendingApprovals > 0 ? 'action' : 'neutral'}
+            tone="action"
+            icon={Stamp}
           />
           <StatTile
             label="Overdue tasks"
             value={counts.overdueTasks}
-            tone={counts.overdueTasks > 0 ? 'alert' : 'neutral'}
+            tone="alert"
+            icon={TriangleAlert}
           />
-          <StatTile label="Due today" value={counts.dueToday} />
-          <StatTile label="Blocked" value={counts.blocked} tone={counts.blocked > 0 ? 'alert' : 'neutral'} />
-          <StatTile label="Completed this week" value={counts.completedThisWeek} tone="good" />
-          <StatTile label="Completed overall" value={counts.completedTotal} tone="good" />
-          <StatTile label="Projects" value={overview.projects.length} />
+          <StatTile
+            label="Due today"
+            value={counts.dueToday}
+            tone="action"
+            icon={CalendarClock}
+          />
+          <StatTile
+            label="Blocked"
+            value={counts.blocked}
+            tone="alert"
+            icon={CircleSlash}
+          />
+          <StatTile
+            label="Completed this week"
+            value={counts.completedThisWeek}
+            tone="good"
+            icon={CircleCheckBig}
+          />
+          <StatTile
+            label="Completed overall"
+            value={counts.completedTotal}
+            tone="good"
+            icon={CheckCheck}
+          />
+          <StatTile
+            label="Projects"
+            value={overview.projects.length}
+            icon={FolderKanban}
+          />
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -158,7 +199,7 @@ export default async function ManagementDashboardPage({
                     <th className="px-5 py-2.5 text-right font-medium">Completed</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
                   {overview.projects.map((project) => (
                     <tr key={project.projectId}>
                       <td className="px-5 py-3">
@@ -207,7 +248,7 @@ export default async function ManagementDashboardPage({
                     <th className="px-5 py-2.5 text-right font-medium">Approve</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
                   {overview.workload.map((person) => (
                     <tr key={person.userId}>
                       <td className="px-5 py-3">

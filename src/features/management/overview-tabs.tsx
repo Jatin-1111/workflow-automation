@@ -45,7 +45,7 @@ export function OverviewTabs({ current }: { current: string }) {
                 title={tab.answers}
                 className={`-mb-px block border-b-2 px-3 py-2 text-sm transition-ui ${
                   active
-                    ? 'border-accent font-semibold text-foreground'
+                    ? 'border-accent font-semibold text-accent'
                     : 'border-transparent text-muted hover:border-border-strong hover:text-foreground'
                 }`}
               >

@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { Orbit } from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth/dal'
 import { landingPath } from '@/lib/auth/permissions'
 import { LoginForm } from '@/features/auth/login-form'
@@ -15,7 +16,13 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
-        <div className="mb-8">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <span
+            aria-hidden
+            className="mb-4 flex size-12 items-center justify-center rounded-xl bg-accent text-white shadow-sm"
+          >
+            <Orbit size={26} strokeWidth={1.75} />
+          </span>
           <h1 className="text-2xl font-semibold tracking-tight">Business Orbit</h1>
           <p className="mt-1 text-sm text-muted">
             Internal workflow operating system

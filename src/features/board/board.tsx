@@ -32,6 +32,7 @@ import {
   fieldClass,
 } from '@/features/ui/primitives'
 import { moveCardAction } from './actions'
+import { stageCap } from './stage-color'
 import type { Board, BoardCard } from './queries'
 
 const PRIORITY_TINT: Record<string, string> = {
@@ -330,7 +331,7 @@ export function BoardView({ board }: { board: Board }) {
                an empty one collapses to a spine. Between them the board is
                always exactly as wide as the screen, so it never scrolls
                sideways. */
-            className={`flex flex-col rounded-xl border bg-surface shadow-sm transition-[flex-grow,border-color] duration-200 ease-out ${
+            className={`flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm transition-[flex-grow,border-color] duration-200 ease-out ${
               collapsed
                 ? 'w-11 shrink-0 border-dashed border-border'
                 : 'min-w-0 flex-1 basis-0 border-border'
@@ -338,6 +339,10 @@ export function BoardView({ board }: { board: Board }) {
           >
             {collapsed ? (
               <h2 className="flex flex-1 flex-col items-center gap-2 py-3">
+                <span
+                  aria-hidden
+                  className={`size-1.5 rounded-full ${stageCap(index)} opacity-40`}
+                />
                 <span className="text-xs font-medium tabular-nums text-subtle">0</span>
                 <span
                   className="whitespace-nowrap text-xs font-medium text-muted"
@@ -348,6 +353,10 @@ export function BoardView({ board }: { board: Board }) {
               </h2>
             ) : (
               <>
+                <span
+                  aria-hidden
+                  className={`h-1 rounded-t-xl ${stageCap(index)}`}
+                />
                 <h2 className="flex items-center gap-2 border-b border-border px-3 py-2">
                   <span className="truncate text-sm font-semibold text-foreground">
                     {column.name}
