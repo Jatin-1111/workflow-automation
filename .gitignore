@@ -45,3 +45,7 @@ next-env.d.ts
 
 # uploaded files (local storage)
 /uploads
+
+# tutorial captures — regenerate with docs/tutorial/README.md
+/docs/tutorial/shots
+/.tutorial
