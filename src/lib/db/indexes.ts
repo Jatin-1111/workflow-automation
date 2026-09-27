@@ -11,6 +11,18 @@ import { COLLECTIONS } from './collections'
 export async function ensureIndexes(): Promise<void> {
   const db = await getDb()
 
+  await db.collection(COLLECTIONS.loginFailures).createIndexes([
+    { key: { subject: 1, kind: 1, at: -1 }, name: 'login_failure_by_subject' },
+    // These exist to slow guessing down, not to keep a record of it. An
+    // hour is well past the window the policy reads, and Mongo removes
+    // them without anything having to remember to.
+    {
+      key: { at: 1 },
+      name: 'login_failure_expiry',
+      expireAfterSeconds: 60 * 60,
+    },
+  ])
+
   await db.collection(COLLECTIONS.users).createIndexes([
     { key: { userId: 1 }, unique: true, name: 'user_id_unique' },
     { key: { email: 1 }, unique: true, name: 'user_email_unique' },

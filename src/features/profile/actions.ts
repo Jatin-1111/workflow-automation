@@ -13,10 +13,7 @@ import { requireUser } from '@/lib/auth/dal'
 import { createSession } from '@/lib/auth/session'
 import { hashPassword, verifyPassword } from '@/lib/auth/password'
 import { findUserById, updateUserPassword } from '@/lib/db/repositories/users'
-
-// Not exported: a 'use server' module may only export async functions, and
-// exporting a constant here rejects the whole file at build time.
-const MIN_PASSWORD = 8
+import { passwordProblem } from '@/lib/auth/password-policy'
 
 export type PasswordActionState = { ok: boolean; message: string } | { ok: null }
 
@@ -34,9 +31,9 @@ export async function changePasswordAction(
   const next = String(formData.get('newPassword') ?? '')
   const confirm = String(formData.get('confirmPassword') ?? '')
 
-  if (next.length < MIN_PASSWORD) {
-    return refuse(`A password needs at least ${MIN_PASSWORD} characters.`)
-  }
+  const problem = passwordProblem(next, { email: viewer.email, name: viewer.name })
+  if (problem) return refuse(problem)
+
   if (next !== confirm) {
     return refuse('The two new passwords do not match.')
   }

@@ -14,6 +14,8 @@ export const COLLECTIONS = {
   comments: 'comments',
   notifications: 'notifications',
   timelineEvents: 'timeline_events',
+  /** Failed sign-ins, kept only long enough to slow guessing down. */
+  loginFailures: 'login_failures',
 } as const
 
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS]

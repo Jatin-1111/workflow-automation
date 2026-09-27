@@ -15,6 +15,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireCapability } from '@/lib/auth/dal'
 import { hashPassword } from '@/lib/auth/password'
+import { passwordProblem } from '@/lib/auth/password-policy'
 import { createSession } from '@/lib/auth/session'
 import { nextId } from '@/lib/ids/generate'
 import { isEntityId } from '@/lib/ids/format'
@@ -70,7 +71,6 @@ import { safePhotoUrl } from './validation'
 import type { AdminActionState } from './actions'
 
 const MAX_NAME = TEXT_LIMITS.name
-const MIN_PASSWORD = PASSWORD.min
 
 /**
  * What every form on this page is allowed to send.
@@ -431,9 +431,8 @@ export async function createUserAction(
   }
 
   const password = String(formData.get('password') ?? '')
-  if (password.length < MIN_PASSWORD) {
-    return refuse(`A starting password needs at least ${MIN_PASSWORD} characters.`)
-  }
+  const weak = passwordProblem(password, { email, name })
+  if (weak) return refuse(weak)
 
   const accessLevel = String(formData.get('accessLevel') ?? '')
   if (!ACCESS_LEVELS.includes(accessLevel as AccessLevel)) {
@@ -535,12 +534,14 @@ export async function resetUserPasswordAction(
   }
 
   const password = String(formData.get('password') ?? '')
-  if (password.length < MIN_PASSWORD) {
-    return refuse(`A password needs at least ${MIN_PASSWORD} characters.`)
-  }
 
   const target = await findUserById(userId as UserId)
   if (!target) return refuse('That person could not be found.')
+
+  // Checked against the person it is for, not the administrator setting
+  // it: `harnoor123` handed to Harnoor is the case worth catching.
+  const weak = passwordProblem(password, { email: target.email, name: target.name })
+  if (weak) return refuse(weak)
 
   await updateUserPassword(userId as UserId, await hashPassword(password))
 

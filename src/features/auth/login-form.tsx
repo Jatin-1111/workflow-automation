@@ -1,6 +1,7 @@
 'use client'
 
 import { buttonClass, fieldClass } from '@/features/ui/primitives'
+import { PASSWORD, TEXT_LIMITS } from '@/lib/validation/bounds'
 import { useActionState } from 'react'
 import { login, type LoginState } from './actions'
 
@@ -18,6 +19,7 @@ export function LoginForm({ next }: { next?: string }) {
         <input
           type="email"
           name="email"
+          maxLength={TEXT_LIMITS.email}
           autoComplete="email"
           required
           className={fieldClass}
@@ -31,6 +33,10 @@ export function LoginForm({ next }: { next?: string }) {
           name="password"
           autoComplete="current-password"
           required
+          /* No minimum: this is not where a password is chosen, and a
+             rule here would only announce the policy to a stranger. The
+             maximum stops a megabyte being posted to be hashed. */
+          maxLength={PASSWORD.max}
           className={fieldClass}
         />
       </label>
