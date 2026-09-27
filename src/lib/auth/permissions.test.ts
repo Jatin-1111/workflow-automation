@@ -25,6 +25,23 @@ describe('capability tiers', () => {
     assert.equal(can('manager', 'admin.manage_workflows'), false)
   })
 
+  it('lets a manager read any run, because oversight already shows them one', () => {
+    // The Board, the stuck-work list and the Team page all link a manager
+    // to every run. While this was admin-only those links led nowhere, and
+    // reassigning — which happens on the task page — could not be done.
+    assert.equal(can('manager', 'instance.view_all'), true)
+    assert.equal(can('employee', 'instance.view_all'), false)
+  })
+
+  it('keeps reading separate from acting', () => {
+    // Reading a run does not confer doing anything to it. Completing is
+    // decided by holding the stage, not by a capability at all.
+    assert.equal(can('manager', 'instance.view_all'), true)
+    assert.equal(can('manager', 'admin.manage_users'), false)
+    assert.equal(can('employee', 'task.reassign'), false)
+    assert.equal(can('employee', 'instance.cancel'), false)
+  })
+
   it('gives admins every capability', () => {
     assert.equal(
       CAPABILITIES_BY_ACCESS_LEVEL.admin.length,

@@ -49,11 +49,29 @@ const MANAGER_CAPABILITIES: Capability[] = [
   // Calling off a run stops work for everybody, so it sits with oversight
   // rather than with whoever happens to hold the current stage.
   'instance.cancel',
+  /**
+   * Reading any run, not only their own.
+   *
+   * This was admin-only, which left the oversight screens linking to
+   * pages the manager could not open: every Board card, every stuck-work
+   * row and every deadline led to "Not found". It also left the two
+   * capabilities above mostly unusable, since both are driven from the
+   * task page.
+   *
+   * Not a widening of what a manager is trusted with. The Board already
+   * shows them the project, the title, the stage, the assignee and the
+   * deadline of every run — it is gated behind view_dashboard for exactly
+   * that reason. This lets them open what they are already shown.
+   *
+   * Reading is all it grants. Completing still requires being the
+   * assignee, and reassigning and cancelling are still checked against
+   * their own capabilities.
+   */
+  'instance.view_all',
 ]
 
 const ADMIN_CAPABILITIES: Capability[] = [
   ...MANAGER_CAPABILITIES,
-  'instance.view_all',
   'admin.manage_users',
   'admin.manage_roles',
   'admin.manage_projects',

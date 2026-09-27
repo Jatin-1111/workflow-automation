@@ -18,6 +18,7 @@ import { resolveActivation, resolveAssignees } from '@/lib/engine'
 import { buildEngineContext } from '@/lib/workflow/engine-context'
 import { listUsers } from '@/lib/db/repositories/users'
 import { loadTaskContext } from '@/lib/workflow/service'
+import { canViewTask } from './visibility'
 import { can } from '@/lib/auth/permissions'
 import { stageApplies } from '@/lib/engine'
 import { deriveBucket, hasBreachedSla } from '@/lib/workflow/buckets'
@@ -153,13 +154,17 @@ export async function getTaskDetail(
 
   const { task, instance, template, tasks } = loaded
 
-  const isAssignee = task.assignees.includes(viewer.userId)
-  const participated =
-    instance.initiatedBy === viewer.userId ||
-    tasks.some((candidate) => candidate.assignees.includes(viewer.userId))
-  const oversees = can(viewer.accessLevel, 'instance.view_all')
+  const audience = {
+    assignees: task.assignees,
+    initiatedBy: instance.initiatedBy,
+    everyStageAssignees: tasks.map((candidate) => candidate.assignees),
+  }
+  if (!canViewTask(viewer, audience)) return null
 
-  if (!isAssignee && !participated && !oversees) return null
+  // Reading and acting are separate questions, and the gap between them is
+  // wider now that managers can read any run: holding the stage is still
+  // what decides whether the buttons do anything.
+  const isAssignee = task.assignees.includes(viewer.userId)
 
   const canReassign = can(viewer.accessLevel, 'task.reassign')
 
