@@ -39,7 +39,15 @@ function zoneOffsetMs(at: Date, timeZone: string): number {
     read('minute'),
     read('second'),
   )
-  return asIfUtc - at.getTime()
+
+  // Both sides of this subtraction have to be whole seconds. The formatter
+  // has no milliseconds to give, so differencing against `at` directly
+  // folded `at`'s milliseconds into the offset — and every caller then
+  // inherited them. endOfBusinessDay returned a different instant for two
+  // times on the same day, and for anything with milliseconds it landed
+  // just past midnight, in the following day.
+  const wholeSeconds = at.getTime() - at.getMilliseconds()
+  return asIfUtc - wholeSeconds
 }
 
 /** The last instant of the day `at` falls in, for the given zone. */

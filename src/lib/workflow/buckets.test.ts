@@ -113,6 +113,47 @@ describe('business day boundary', () => {
     assert.equal(deriveBucket(task({ dueAt: due }), NOW, ZONE), 'upcoming')
     assert.equal(deriveBucket(task({ dueAt: due }), NOW, 'UTC'), 'needs_action')
   })
+
+  it('counts a task due at the very end of today as needing action', () => {
+    // The boundary itself, which is where the sections meet. It used to
+    // depend on the milliseconds `now` happened to carry: the comparison
+    // is against endOfBusinessDay(now), and that moved with its input, so
+    // the same task could read either way between two renders.
+    const due = endOfBusinessDay(NOW, ZONE)
+    assert.equal(deriveBucket(task({ dueAt: due }), NOW, ZONE), 'needs_action')
+  })
+
+  it('does not let tomorrow creep into today when the clock has milliseconds', () => {
+    // The boundary is computed from `now`, and `now` used to leak its
+    // milliseconds into it — pushing the end of today up to a second past
+    // midnight. A task due in that sliver belongs to tomorrow and was
+    // read as needing action today.
+    const justAfterMidnight = new Date('2026-03-10T18:30:00.200Z')
+
+    for (const ms of [0, 1, 466, 999]) {
+      const now = new Date(NOW)
+      now.setUTCMilliseconds(ms)
+      assert.equal(
+        deriveBucket(task({ dueAt: justAfterMidnight }), now, ZONE),
+        'upcoming',
+        `asked at .${ms}`,
+      )
+    }
+  })
+
+  it('reads a task due at the boundary the same way whatever millisecond it is asked at', () => {
+    const due = endOfBusinessDay(NOW, ZONE)
+    for (const ms of [0, 1, 466, 999]) {
+      const now = new Date(NOW)
+      now.setUTCMilliseconds(ms)
+      assert.equal(deriveBucket(task({ dueAt: due }), now, ZONE), 'needs_action', `ms=${ms}`)
+    }
+  })
+
+  it('still puts the millisecond after the boundary in Upcoming', () => {
+    const justAfter = new Date(endOfBusinessDay(NOW, ZONE).getTime() + 1)
+    assert.equal(deriveBucket(task({ dueAt: justAfter }), NOW, ZONE), 'upcoming')
+  })
 })
 
 describe('sla and waiting time', () => {
