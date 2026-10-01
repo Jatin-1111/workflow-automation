@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireCapability } from '@/lib/auth/dal'
 import { listRoles } from '@/lib/db/repositories/roles'
-import { updateUserRoles, updateUserStatus } from '@/lib/db/repositories/users'
+import { findUserById, updateUserRoles, updateUserStatus } from '@/lib/db/repositories/users'
 import { isEntityId } from '@/lib/ids/format'
 import type { RoleId, UserId } from '@/lib/types/ids'
 
@@ -24,6 +24,19 @@ export async function updateRolesAction(
   const rawUserId = String(formData.get('userId') ?? '')
   if (!isEntityId(rawUserId, 'user')) {
     return { ok: false, message: 'That user could not be identified.' }
+  }
+
+  // A deactivated person receives no work whatever roles they hold — the
+  // engine only resolves a role to active holders — so changing them here
+  // would do nothing except suggest otherwise. Their roles are kept as they
+  // were, so reactivating somebody puts them back exactly where they stood.
+  const person = await findUserById(rawUserId as UserId)
+  if (!person) return { ok: false, message: 'That person no longer exists.' }
+  if (person.status !== 'active') {
+    return {
+      ok: false,
+      message: `${person.name} is deactivated, so their roles cannot be changed. Reactivate them first.`,
+    }
   }
 
   // Only accept roles that actually exist, whatever the form submitted.

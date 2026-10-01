@@ -100,8 +100,11 @@ export default async function AdminPage() {
                 const roleOptions: RoleOption[] = roles.map((role) => ({
                   roleId: role.roleId,
                   name: role.name,
+                  // Active holders only. "Also held by" is read as "somebody else
+                  // will pick this up", and a deactivated holder will not.
                   otherHolders: holdersOf(role.roleId)
                     .filter((holder) => holder.userId !== user.userId)
+                    .filter((holder) => holder.status === 'active')
                     .map((holder) => holder.name),
                 }))
 
@@ -168,6 +171,7 @@ export default async function AdminPage() {
                       userName={user.name}
                       roles={roleOptions}
                       assigned={user.roleIds}
+                      active={user.status === 'active'}
                     />
                     </PersonDeleteScope>
                   </li>

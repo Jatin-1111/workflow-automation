@@ -26,15 +26,36 @@ export function RoleEditor({
   userName,
   roles,
   assigned,
+  active,
 }: {
   userId: string
   userName: string
   roles: RoleOption[]
   assigned: string[]
+  /** Whether the person can currently receive work at all. */
+  active: boolean
 }) {
   const [state, save, saving] = useActionState(updateRolesAction, IDLE)
   const held = new Set(assigned)
   const heldNames = roles.filter((role) => held.has(role.roleId)).map((role) => role.name)
+
+  /**
+   * A deactivated person gets no work whatever they hold — roles resolve to
+   * active holders only — so offering the checkboxes suggested that ticking
+   * one would do something. What they held is still shown, because it is
+   * what reactivating them will restore, but it cannot be edited until then.
+   */
+  if (!active) {
+    return (
+      <p className="py-1 text-xs text-subtle">
+        {heldNames.length === 0
+          ? 'No workflow roles'
+          : `${heldNames.length} role${heldNames.length === 1 ? '' : 's'} — ${heldNames.join(', ')}`}
+        {' · '}
+        <span className="text-muted">Deactivated — reactivate to change roles</span>
+      </p>
+    )
+  }
 
   return (
     <form action={save}>
