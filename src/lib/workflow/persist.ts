@@ -7,7 +7,11 @@
  */
 
 import { nextId, nextIds } from '@/lib/ids/generate'
-import { insertNotifications } from '@/lib/db/repositories/notifications'
+import {
+  insertNotifications,
+  markTaskNotificationsSettled,
+} from '@/lib/db/repositories/notifications'
+import { ACTIONABLE_KINDS, settlementsFor } from './settled-notifications'
 import { insertTasks, updateTask } from '@/lib/db/repositories/tasks'
 import { appendTimelineEvents } from '@/lib/db/repositories/timeline-events'
 import {
@@ -100,6 +104,17 @@ export async function persistResult(
   await insertTasks(tasks)
   await appendTimelineEvents(events)
   await insertNotifications(notifications)
+
+  // After inserting, so a reassignment's own "assigned to you" is kept for
+  // the person it now names and nobody else.
+  for (const settlement of settlementsFor(result.taskUpdates)) {
+    await markTaskNotificationsSettled(
+      settlement.taskId,
+      ACTIONABLE_KINDS,
+      settlement.stillHeldBy,
+      now,
+    )
+  }
 
   return result.instance
 }

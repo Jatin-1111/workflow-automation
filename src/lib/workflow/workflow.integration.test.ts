@@ -397,6 +397,16 @@ describe('a workflow written to the database and read back', () => {
     )
     await persistResult(approval, clock)
 
+    // The reviewer was asked twice, and both have been answered, so the bell
+    // must stop asking. It used to keep both unread indefinitely.
+    const asks = (await listNotificationsForUser(REVIEWER)).filter(
+      (notification) =>
+        notification.kind === 'approval_required' &&
+        notification.instanceId === instance.instanceId,
+    )
+    assert.equal(asks.length, 2)
+    assert.ok(asks.every((notification) => notification.readAt), 'answered asks are settled')
+
     // The engine chose which file was approved; something must have applied it.
     const approvedFileId = approval.events.find(
       (event) => event.action === 'approval_granted',
@@ -534,6 +544,7 @@ describe('reassignment against stored state', () => {
     )
     assert.ok(handover, 'the new owner should have been told')
     assert.equal(handover.taskId, task.taskId, 'the notification must link to the task')
+    assert.equal(handover.readAt, undefined, 'the person it now names is still being asked')
   })
 })
 

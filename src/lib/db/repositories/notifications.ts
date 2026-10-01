@@ -3,7 +3,7 @@
 import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { TaskId, UserId } from '@/lib/types/ids'
-import type { Notification } from '@/lib/types/notification'
+import type { Notification, NotificationKind } from '@/lib/types/notification'
 
 async function notifications() {
   return getCollection<Notification>(COLLECTIONS.notifications)
@@ -69,4 +69,38 @@ export async function listSentReminderKeys(taskIds: TaskId[]): Promise<Set<strin
  */
 export async function deleteNotificationsForUser(recipientId: UserId): Promise<void> {
   await (await notifications()).deleteMany({ recipientId })
+}
+
+/**
+ * Mark read what a task's notifications asked of the people no longer
+ * holding it. Never deletes: what was sent stays in the inbox, just quieter.
+ */
+export async function markTaskNotificationsSettled(
+  taskId: TaskId,
+  kinds: readonly NotificationKind[],
+  stillHeldBy: UserId[],
+  at: Date,
+): Promise<number> {
+  const result = await (await notifications()).updateMany(
+    {
+      taskId,
+      kind: { $in: [...kinds] },
+      recipientId: { $nin: stillHeldBy },
+      readAt: { $exists: false },
+    },
+    { $set: { readAt: at } },
+  )
+  return result.modifiedCount
+}
+
+/** Tasks that unread notifications of these kinds point at. */
+export async function listTaskIdsWithUnread(
+  kinds: readonly NotificationKind[],
+): Promise<TaskId[]> {
+  const ids = await (await notifications()).distinct('taskId', {
+    kind: { $in: [...kinds] },
+    readAt: { $exists: false },
+    taskId: { $exists: true },
+  })
+  return ids as TaskId[]
 }

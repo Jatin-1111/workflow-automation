@@ -80,6 +80,9 @@ export async function ensureIndexes(): Promise<void> {
   await db.collection(COLLECTIONS.notifications).createIndexes([
     { key: { notificationId: 1 }, unique: true, name: 'notification_id_unique' },
     { key: { recipientId: 1, readAt: 1, createdAt: -1 }, name: 'notification_inbox' },
+    // Settling a task's notifications when it finishes or moves, and the
+    // reminder scheduler's check for what it already sent.
+    { key: { taskId: 1, kind: 1 }, name: 'notification_by_task' },
   ])
 
   await db.collection(COLLECTIONS.timelineEvents).createIndexes([

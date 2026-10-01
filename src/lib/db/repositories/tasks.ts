@@ -21,6 +21,11 @@ export async function updateTask(
   await (await tasks()).updateOne({ taskId }, { $set: changes })
 }
 
+export async function findTasksByIds(taskIds: TaskId[]): Promise<Task[]> {
+  if (taskIds.length === 0) return []
+  return (await tasks()).find({ taskId: { $in: taskIds } }, WITHOUT_ID).toArray()
+}
+
 export async function findTaskById(taskId: TaskId): Promise<Task | null> {
   return (await tasks()).findOne({ taskId }, WITHOUT_ID)
 }
