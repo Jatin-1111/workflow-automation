@@ -94,19 +94,40 @@ export function TaskForm({
   } as const
   type Intent = keyof typeof dispatchers
 
+  /**
+   * Which button was pressed last, so its answer is the one shown.
+   *
+   * Each button keeps its own result, and the screen used to show whichever
+   * came first in a fixed list. Press Request changes without a note, then
+   * Approve with a checklist item unticked, and the page went on saying a
+   * note was needed — the send-back's old refusal, not Approve's real one.
+   */
+  const [lastIntent, setLastIntent] = useState<Intent | null>(null)
+
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLElement | null
     const intent = submitter?.dataset.intent as Intent | undefined
     // Enter in a text field submits through the first button, which is Save
     // progress. Falling back to it is the safe choice: it never hands work on.
-    const dispatch = (intent && dispatchers[intent]) || save
+    const chosen: Intent = intent && intent in dispatchers ? intent : 'save'
+    setLastIntent(chosen)
     const formData = new FormData(event.currentTarget)
-    startSubmit(() => dispatch(formData))
+    startSubmit(() => dispatchers[chosen](formData))
   }
-  const state = [rejectState, approveState, completeState, saveState].find(
-    (candidate) => candidate.ok !== null,
-  )
+  const states: Record<Intent, typeof saveState> = {
+    save: saveState,
+    complete: completeState,
+    approve: approveState,
+    reject: rejectState,
+  }
+  // Before scripts load, buttons submit through formAction and nothing is
+  // recorded here; only one of them can have answered by then.
+  const state = lastIntent
+    ? states[lastIntent]
+    : [rejectState, approveState, completeState, saveState].find(
+        (candidate) => candidate.ok !== null,
+      )
 
   // A refusal that names a field is shown on that field. The summary above
   // the buttons still lists everything, because a problem scrolled out of
