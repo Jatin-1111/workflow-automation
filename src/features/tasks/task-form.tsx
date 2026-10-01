@@ -10,7 +10,7 @@
  */
 
 import { buttonClass, fieldClass } from '@/features/ui/primitives'
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useActionState, useEffect, useRef, useState, useTransition } from 'react'
 import {
   approveAction,
   completeStageAction,
@@ -68,6 +68,42 @@ export function TaskForm({
   const [rejectState, reject, rejecting] = useActionState(requestChangesAction, IDLE)
 
   const busy = saving || completing || approving || rejecting
+
+  /**
+   * Submitting without letting React reset the form.
+   *
+   * React resets a form after any function action runs — it requests the
+   * reset before calling the action, whatever the action returns, so a
+   * refusal is reset exactly like a success. Every answer typed into this
+   * form was being thrown away the moment the server said one field was
+   * missing: a whole draft gone because the headline was blank, with
+   * nothing saved and no way back.
+   *
+   * Preventing the browser's submit and dispatching here takes that path
+   * away. React sees the event was handled and that a transition started,
+   * and does not reset. The buttons keep their formAction, so the form
+   * still works before the page has finished loading its scripts; once it
+   * has, this takes over.
+   */
+  const [, startSubmit] = useTransition()
+  const dispatchers = {
+    save,
+    complete,
+    approve: approveNow,
+    reject,
+  } as const
+  type Intent = keyof typeof dispatchers
+
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLElement | null
+    const intent = submitter?.dataset.intent as Intent | undefined
+    // Enter in a text field submits through the first button, which is Save
+    // progress. Falling back to it is the safe choice: it never hands work on.
+    const dispatch = (intent && dispatchers[intent]) || save
+    const formData = new FormData(event.currentTarget)
+    startSubmit(() => dispatch(formData))
+  }
   const state = [rejectState, approveState, completeState, saveState].find(
     (candidate) => candidate.ok !== null,
   )
@@ -90,11 +126,12 @@ export function TaskForm({
   const doneCount = checked.size
 
   /**
-   * React clears the form's DOM after an action runs, but its virtual DOM
-   * still holds the old checked values, so it sees no difference and never
-   * repaints: the boxes empty on screen while the count stays right. Writing
-   * the state back onto the inputs after each render keeps what is on screen
-   * equal to what will be submitted.
+   * Keeps the boxes on screen equal to the ticks in state.
+   *
+   * Written when React's form reset emptied the boxes while the count stayed
+   * right. The submit handler above no longer lets that reset happen, so
+   * this is now a guard rather than the fix: anything else that touches the
+   * DOM checkboxes is put back to what will actually be submitted.
    */
   const checklistRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -116,7 +153,7 @@ export function TaskForm({
     })
 
   return (
-    <form className="space-y-6">
+    <form className="space-y-6" onSubmit={submit}>
       <input type="hidden" name="taskId" value={taskId} />
 
       {stage.fields.length > 0 ? (
@@ -213,6 +250,7 @@ export function TaskForm({
         <button
           type="submit"
           formAction={save}
+          data-intent="save"
           disabled={busy}
           className={buttonClass('secondary', 'lg')}
         >
@@ -224,6 +262,7 @@ export function TaskForm({
             <button
               type="submit"
               formAction={approveNow}
+          data-intent="approve"
               disabled={busy}
               className={buttonClass('primary', 'lg')}
             >
@@ -232,6 +271,7 @@ export function TaskForm({
             <button
               type="submit"
               formAction={reject}
+          data-intent="reject"
               disabled={busy}
               className={buttonClass('danger', 'lg')}
             >
@@ -242,6 +282,7 @@ export function TaskForm({
           <button
             type="submit"
             formAction={complete}
+          data-intent="complete"
             disabled={busy}
             className={buttonClass('primary', 'lg')}
           >
