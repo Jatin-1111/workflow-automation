@@ -360,7 +360,7 @@ export function WorkflowEditor({
       {problems.length > 0 ? (
         <section
           id="workflow-problems"
-          className="scroll-mt-4 rounded-lg border border-border bg-accent-soft px-4 py-3"
+          className="scroll-mt-32 rounded-lg border border-border bg-accent-soft px-4 py-3"
         >
           <p className="text-sm font-medium text-status-overdue">
             {problems.length} thing{problems.length === 1 ? '' : 's'} to fix before this can be
@@ -481,7 +481,7 @@ export function WorkflowEditor({
           </ol>
         </section>
 
-        <section id="stage-editor" className="scroll-mt-4 rounded-xl border border-border bg-surface p-4">
+        <section id="stage-editor" className="scroll-mt-32 rounded-xl border border-border bg-surface p-4">
           {stage ? (
             editable ? (
               <StageForm
