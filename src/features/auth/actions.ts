@@ -30,7 +30,18 @@ export interface LoginState {
    * returned: clearing it after a failure is what people expect.
    */
   email?: string
+  /**
+   * The refusal is the kind a forgotten password causes, so the form opens
+   * its "Forgot your password?" help rather than leaving it to be found.
+   * Set for a mismatch whether or not the account exists, so it says
+   * nothing about which addresses are real.
+   */
+  forgotten?: boolean
 }
+
+/** The one answer for a wrong email or password, whichever it was. */
+const MISMATCH: LoginState['error'] =
+  'Those details do not match an account. Check the email and password, or see “Forgot your password?” below.'
 
 /** Only allow post-login redirects to paths inside this app. */
 function safeNextPath(value: FormDataEntryValue | null): string | null {
@@ -71,7 +82,7 @@ export async function login(
   // the rest, but it works through everything it is handed first, so an
   // unbounded field sells the server's CPU for the price of one request.
   if (email.length > TEXT_LIMITS.email || password.length > PASSWORD.max) {
-    return { email, error: 'Those details do not match an account.' }
+    return { email, error: MISMATCH, forgotten: true }
   }
 
   const now = new Date()
@@ -92,6 +103,8 @@ export async function login(
     return {
       email,
       error: `Too many attempts. Try again in ${describeWait(blocked.retryAfterSeconds)}.`,
+      // Somebody locked out by their own guesses has most likely forgotten.
+      forgotten: true,
     }
   }
 
@@ -108,7 +121,7 @@ export async function login(
       recordLoginFailure(email, 'account', now),
       address ? recordLoginFailure(address, 'address', now) : Promise.resolve(),
     ])
-    return { email, error: 'Those details do not match an account.' }
+    return { email, error: MISMATCH, forgotten: true }
   }
 
   if (user.status !== 'active') {

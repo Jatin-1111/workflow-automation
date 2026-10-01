@@ -19,6 +19,7 @@ import { requireCapability } from '@/lib/auth/dal'
 import { hashPassword } from '@/lib/auth/password'
 import { passwordProblem } from '@/lib/auth/password-policy'
 import { createSession } from '@/lib/auth/session'
+import { clearLoginFailures } from '@/lib/db/repositories/login-failures'
 import { nextId } from '@/lib/ids/generate'
 import { isEntityId } from '@/lib/ids/format'
 import {
@@ -564,6 +565,10 @@ export async function resetUserPasswordAction(
   if (weak) return refuse(weak)
 
   await updateUserPassword(userId as UserId, await hashPassword(password))
+  // The wait their own wrong guesses built up belongs to the password that
+  // was just replaced. Only an administrator can trigger this, so it is no
+  // help to somebody guessing. Keyed the way sign-in records it.
+  await clearLoginFailures(target.email.trim().toLowerCase(), 'account')
 
   // Resetting your own password here would retire the session you are using,
   // so re-issue it rather than signing yourself out mid-action.
