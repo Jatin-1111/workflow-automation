@@ -45,6 +45,13 @@ export interface TimelineEvent {
   stageKey?: string
   /** Who acted. Resolve the display name at read time (spec §4). */
   actorId: UserId
+  /**
+   * Who the work went to, on `task_assigned` and `task_reassigned`. The actor
+   * is whoever caused the assignment, which is rarely the person given it, so
+   * without this the history read "Rohan Das task assigned" for a review
+   * that went to Meera. Absent on events written before it existed.
+   */
+  assigneeIds?: UserId[]
   action: TimelineAction
   /** Mandatory on `changes_requested` (spec §29). */
   comment?: string

@@ -150,6 +150,10 @@ describe('conditional stages (spec §36)', () => {
     assert.ok(open, 'the NDA stage should be open')
     assert.deepEqual(open.assignees, [LEGAL])
     assert.deepEqual(skippedKeys(state), [])
+    // The history says who the work went to, not only who caused it.
+    const assigned = state.events.filter((event) => event.action === 'task_assigned')
+    assert.deepEqual(assigned.at(-1)?.assigneeIds, [LEGAL])
+    assert.equal(assigned.at(-1)?.actorId, SALES)
   })
 
   it('skips the NDA stage when no NDA is needed', () => {

@@ -104,6 +104,7 @@ export function activateStage(params: {
       stageKey: stage.key,
       actorId: actor,
       action: 'task_assigned',
+      assigneeIds: assignees,
       at: context.now,
     },
   ]

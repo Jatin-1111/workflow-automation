@@ -20,6 +20,12 @@ import { listUsers } from '@/lib/db/repositories/users'
 import { loadTaskContext } from '@/lib/workflow/service'
 import { canViewTask } from './visibility'
 import { buildProgress, type StageProgress } from './progress'
+import {
+  assignmentRecipients,
+  timelineSentence,
+  type TimelineSentence,
+} from './timeline-wording'
+import { humanise } from '@/features/my-work/format'
 import { can } from '@/lib/auth/permissions'
 import { deriveBucket, hasBreachedSla } from '@/lib/workflow/buckets'
 import type { FieldValue } from '@/lib/types/instance'
@@ -57,8 +63,7 @@ export interface TaskFileRow {
 
 export interface TimelineRow {
   eventId: string
-  action: string
-  actorName: string
+  sentence: TimelineSentence
   stageKey?: string
   comment?: string
   at: Date
@@ -266,8 +271,12 @@ export async function getTaskDetail(
     })),
     timeline: timeline.map((event) => ({
       eventId: event.eventId,
-      action: event.action,
-      actorName: nameOf(event.actorId),
+      sentence: timelineSentence(
+        event.action,
+        nameOf(event.actorId),
+        assignmentRecipients(event, tasks)?.map(nameOf),
+        humanise(event.action).toLowerCase(),
+      ),
       stageKey: event.stageKey,
       comment: event.comment,
       at: event.at,

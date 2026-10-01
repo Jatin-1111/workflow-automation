@@ -139,6 +139,7 @@ describe('reassigning a task', () => {
     assert.ok(event)
     assert.equal(event.actorId, MANAGER)
     assert.equal(event.comment, 'Alice is on leave.')
+    assert.deepEqual(event.assigneeIds, [BEN], 'the history names who it went to')
   })
 
   it('lets the new owner complete the stage', () => {

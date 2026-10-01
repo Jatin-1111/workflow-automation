@@ -13,8 +13,14 @@ export function TimelinePanel({ events }: { events: TimelineRow[] }) {
         {[...events].reverse().map((event) => (
           <li key={event.eventId} className="px-5 py-3">
             <p className="text-sm">
-              <span className="font-medium">{event.actorName}</span>{' '}
-              <span className="text-muted">{humanise(event.action).toLowerCase()}</span>
+              <span className="font-medium">{event.sentence.subject}</span>{' '}
+              <span className="text-muted">{event.sentence.verb}</span>
+              {event.sentence.object ? (
+                <>
+                  {' '}
+                  <span className="font-medium">{event.sentence.object}</span>
+                </>
+              ) : null}
             </p>
             <p className="text-xs text-subtle">
               {event.at.toLocaleString('en-GB', {
