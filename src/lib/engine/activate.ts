@@ -25,6 +25,38 @@ export interface Activation {
   notifications: NotificationDraft[]
 }
 
+/**
+ * What a stage being entered again opens with: the answers from its last
+ * pass.
+ *
+ * A revision opened blank, so somebody sent back to fix one line of a draft
+ * had to write the whole draft again from the history panel. It now starts
+ * from what they handed over, for them to change.
+ *
+ * Approval stages are left blank: a reviewer's note from the last round
+ * describes work that has since changed, and carrying it into the next
+ * decision would let it be recorded against work it was not written about.
+ * Only the stage's own fields are copied, so nothing it does not ask for
+ * appears on its form.
+ */
+export function carriedFieldValues(stage: StageDefinition, tasks: Task[]): Task['fieldValues'] {
+  if (stage.requiresApproval) return {}
+
+  const previous = tasks
+    .filter((task) => task.stageKey === stage.key)
+    .reduce<Task | undefined>(
+      (latest, task) => (!latest || task.revisionRound > latest.revisionRound ? task : latest),
+      undefined,
+    )
+  if (!previous) return {}
+
+  const carried: Task['fieldValues'] = {}
+  for (const field of stage.fields) {
+    if (field.key in previous.fieldValues) carried[field.key] = previous.fieldValues[field.key]
+  }
+  return carried
+}
+
 /** The revision pass a stage is being entered on, counting from 1. */
 export function nextRevisionRound(tasks: Task[], stageKey: string): number {
   const rounds = tasks
@@ -58,6 +90,7 @@ export function activateStage(params: {
     assignees,
     activatedAt: context.now,
     revisionRound: nextRevisionRound(tasks, stage.key),
+    fieldValues: carriedFieldValues(stage, tasks),
   })
 
   const events: TimelineEventDraft[] = [

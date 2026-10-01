@@ -219,6 +219,8 @@ describe('conditional stages (spec §36)', () => {
     const back = openTaskAt(rejected, 'request')
     assert.ok(back)
     assert.equal(back.revisionRound, 2)
+    // The revision starts from what was handed over, not from blank.
+    assert.deepEqual(back.fieldValues, { nda_required: 'No', deal_value: 750000 })
   })
 
   it('completes the workflow when everything after a stage is skipped', () => {

@@ -314,10 +314,10 @@ describe('a workflow written to the database and read back', () => {
     assert.equal(rejection?.actorId, REVIEWER)
 
     // --- Revise, approve, publish ----------------------------------------
-    // A revision is a fresh pass with its own record, so its required field
-    // and file are asked for again rather than inherited from the pass that
-    // was rejected. For a file that is the point (spec §29 expects a revised
-    // upload); for a typed field it is friction worth revisiting.
+    // A revision is a fresh pass with its own record. It starts from the
+    // typed answers it handed over last time, so only the file is asked for
+    // again (spec §29 expects a revised upload).
+    assert.ok(Object.keys(redraft.fieldValues).length > 0, 'a revision starts from last time')
     const bare = completeStage({
       template: stored,
       instance: (await findInstanceById(instance.instanceId))!,
@@ -329,7 +329,7 @@ describe('a workflow written to the database and read back', () => {
     assert.equal(bare.ok, false)
     assert.deepEqual(
       bare.ok ? [] : [...new Set(bare.errors.map((error) => error.code))].sort(),
-      ['missing_required_field', 'missing_required_file'],
+      ['missing_required_file'],
     )
 
     const revisedFileId = await nextId('file')

@@ -500,8 +500,8 @@ F.extend(figure("20-approval", "An approval waiting. The checklist must be compl
 A(Paragraph("Sending work back", S["h2"]))
 A(Paragraph(
     "<b>Request changes</b> is the other half of an approval. It needs a note saying what is "
-    "wrong, and it returns the work to the earlier stage the workflow nominates — with everything "
-    "already entered still there. It is another pass, not a fresh start.",
+    "wrong, and it returns the work to the earlier stage the workflow nominates, with what was "
+    "typed last time already filled in. A required file is uploaded again, as a new version.",
     S["body"]))
 A(Spacer(1, 4))
 F.extend(figure("30-approve-or-send-back",

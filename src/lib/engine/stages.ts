@@ -36,8 +36,10 @@ export function buildTaskDraft(params: {
   assignees: UserId[]
   activatedAt: Date
   revisionRound: number
+  /** What the task opens with; empty on a first pass. */
+  fieldValues?: Task['fieldValues']
 }): TaskDraft {
-  const { stage, instance, assignees, activatedAt, revisionRound } = params
+  const { stage, instance, assignees, activatedAt, revisionRound, fieldValues = {} } = params
 
   return {
     instanceId: instance.instanceId,
@@ -51,7 +53,7 @@ export function buildTaskDraft(params: {
     status: stage.requiresApproval ? 'pending_approval' : 'not_started',
     priority: stage.priority,
     revisionRound,
-    fieldValues: {},
+    fieldValues,
     checklist: stage.checklist.map((item) => ({ key: item.key, checked: false })),
     files: [],
     activatedAt,
