@@ -62,7 +62,20 @@ export function TaskForm({
   outcome,
   sendBack,
 }: Props) {
-  const [saveState, save, saving] = useActionState(saveProgressAction, IDLE)
+  /**
+   * When Save progress last worked. It used to give no sign at all, so the
+   * one button that is always safe to press looked as though it did
+   * nothing, and people pressed Complete to be sure their work was kept.
+   */
+  const [savedAt, setSavedAt] = useState<Date | null>(null)
+  const [saveState, save, saving] = useActionState(
+    async (previous: TaskActionState, formData: FormData) => {
+      const result = await saveProgressAction(previous, formData)
+      if (result.ok) setSavedAt(new Date())
+      return result
+    },
+    IDLE,
+  )
   const [completeState, complete, completing] = useActionState(completeStageAction, IDLE)
   const [approveState, approveNow, approving] = useActionState(approveAction, IDLE)
   const [rejectState, reject, rejecting] = useActionState(requestChangesAction, IDLE)
@@ -311,6 +324,14 @@ export function TaskForm({
           </button>
         )}
         </div>
+
+        {savedAt && lastIntent === 'save' && saveState.ok && !busy ? (
+          <p role="status" className="text-xs text-status-complete">
+            Saved at{' '}
+            {savedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}. It
+            stays with you until you {stage.requiresApproval ? 'decide' : 'complete it'}.
+          </p>
+        ) : null}
       </div>
     </form>
   )

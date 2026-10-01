@@ -71,3 +71,23 @@ export function buildProgress(
     return { key: stage.key, name: stage.name, state: 'upcoming' }
   })
 }
+
+/** A stage the run is waiting on now, and who holds it. */
+export interface NowWith {
+  stageName: string
+  assignees: Task['assignees']
+}
+
+/**
+ * Where the work went after the task on screen.
+ *
+ * Finishing a stage used to end in silence: the form disappeared, and with
+ * it the line saying who would get the work next. This is what the page
+ * says instead, worked out from the run as it stands, so it is still true
+ * when the page is opened again tomorrow.
+ */
+export function whereTheRunIs(tasks: Task[], viewed: Task): NowWith[] {
+  return tasks
+    .filter((task) => task.taskId !== viewed.taskId && isOpen(task))
+    .map((task) => ({ stageName: task.stageName, assignees: task.assignees }))
+}

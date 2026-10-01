@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { buildProgress } from './progress'
+import { buildProgress, whereTheRunIs } from './progress'
 import { formatId } from '@/lib/ids/format'
 import type { Task } from '@/lib/types/task'
 import type { StageDefinition } from '@/lib/types/workflow'
@@ -95,5 +95,26 @@ describe('the trail across a task page', () => {
   it('does not treat a cancelled run as still sitting on a stage', () => {
     const write = task('write', { status: 'cancelled' })
     assert.equal(states(buildProgress(STAGES, [write], write, {}))[0], 'upcoming')
+  })
+})
+
+describe('where the work went', () => {
+  it('names the stage now open and who holds it', () => {
+    const write = task('write', { status: 'completed', completedAt: NOW })
+    const review = task('review', { stageName: 'Review' })
+    assert.deepEqual(whereTheRunIs([write, review], write), [
+      { stageName: 'Review', assignees: review.assignees },
+    ])
+  })
+
+  it('is empty once the run has nowhere left to go', () => {
+    const done = { status: 'completed' as const, completedAt: NOW }
+    const tasks = [task('write', done), task('publish', done)]
+    assert.deepEqual(whereTheRunIs(tasks, tasks[1]), [])
+  })
+
+  it('leaves out work that was called off', () => {
+    const write = task('write', { status: 'completed', completedAt: NOW })
+    assert.deepEqual(whereTheRunIs([write, task('review', { status: 'cancelled' })], write), [])
   })
 })

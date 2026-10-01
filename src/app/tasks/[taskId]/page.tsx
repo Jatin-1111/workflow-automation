@@ -118,28 +118,13 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
               </section>
             ) : null}
 
-            <section className="rounded-xl border border-border bg-surface p-5">
-              {detail.canOperate ? (
-                <TaskForm
-                  taskId={task.taskId}
-                  stage={stage}
-                  fieldValues={task.fieldValues}
-                  checklist={task.checklist}
-                  missingFiles={missingFiles}
-                outcome={detail.outcome}
-                sendBack={detail.sendBack}
-                />
-              ) : (
-                <ReadOnlyNotice
-                  completed={Boolean(task.completedAt)}
-                  assignees={detail.assigneeNames}
-                />
-              )}
-            </section>
-
+            {/* Above the form, so it is read before anything is decided. It
+                sat under the buttons: told "Read it", a reviewer reached
+                Approve first, and on a phone the draft began a screen and a
+                half below the decision. */}
             {detail.priorStages.length > 0 ? (
               <Panel
-                title="Work from earlier stages"
+                title={stage.requiresApproval ? 'The work to review' : 'Work from earlier stages'}
                 description="Everything recorded before this point."
               >
                 <div className="divide-y divide-border">
@@ -169,6 +154,28 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
                 </div>
               </Panel>
             ) : null}
+
+            <section className="rounded-xl border border-border bg-surface p-5">
+              {detail.canOperate ? (
+                <TaskForm
+                  taskId={task.taskId}
+                  stage={stage}
+                  fieldValues={task.fieldValues}
+                  checklist={task.checklist}
+                  missingFiles={missingFiles}
+                outcome={detail.outcome}
+                sendBack={detail.sendBack}
+                />
+              ) : (
+                <ReadOnlyNotice
+                  completed={Boolean(task.completedAt)}
+                  assignees={detail.assigneeNames}
+                  nowWith={detail.nowWith}
+                  runStatus={detail.instanceStatus}
+                />
+              )}
+            </section>
+
           </div>
 
           <aside className="space-y-6">
@@ -215,19 +222,61 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
   )
 }
 
+/**
+ * What a task page says once it is no longer yours to act on.
+ *
+ * Finishing a stage used to end in silence: the form went, and with it the
+ * one line saying who would get the work next. A finished stage now says
+ * where the work is, which is also the answer to "did that work?".
+ */
 function ReadOnlyNotice({
   completed,
   assignees,
+  nowWith,
+  runStatus,
 }: {
   completed: boolean
   assignees: string[]
+  nowWith: { stageName: string; names: string[] }[]
+  runStatus: string
 }) {
+  if (!completed) {
+    return (
+      <p className="text-sm text-muted">
+        This stage is assigned to {assignees.join(', ')}. You can follow it and comment, but
+        only an assignee can complete it.
+      </p>
+    )
+  }
+
   return (
-    <p className="text-sm text-muted">
-      {completed
-        ? 'This stage is complete. It is kept here as part of the workflow record.'
-        : `This stage is assigned to ${assignees.join(', ')}. You can follow it and comment, but only an assignee can complete it.`}
-    </p>
+    <div
+      role="status"
+      className="rounded-lg border border-status-complete/30 bg-status-complete-soft px-4 py-3"
+    >
+      <p className="text-sm font-medium text-foreground">This stage is done.</p>
+      <p className="mt-0.5 text-sm text-muted">
+        {nowWith.length > 0 ? (
+          <>
+            The work is now with{' '}
+            {nowWith.map((open, index) => (
+              <span key={open.stageName}>
+                {index > 0 ? ' and ' : ''}
+                <span className="font-medium text-foreground">{open.names.join(', ')}</span>{' '}
+                for {open.stageName}
+              </span>
+            ))}
+            .
+          </>
+        ) : runStatus === 'completed' ? (
+          'That finished the workflow. Nothing else is waiting on it.'
+        ) : runStatus === 'cancelled' ? (
+          'This run was called off, so nothing else will happen to it.'
+        ) : (
+          'It is kept here as part of the workflow record.'
+        )}
+      </p>
+    </div>
   )
 }
 

@@ -19,7 +19,7 @@ import { buildEngineContext } from '@/lib/workflow/engine-context'
 import { listUsers } from '@/lib/db/repositories/users'
 import { loadTaskContext } from '@/lib/workflow/service'
 import { canViewTask } from './visibility'
-import { buildProgress, type StageProgress } from './progress'
+import { buildProgress, whereTheRunIs, type StageProgress } from './progress'
 import {
   assignmentRecipients,
   timelineSentence,
@@ -122,6 +122,8 @@ export interface TaskDetail {
   assignable: AssignableRow[]
 
   progress: StageProgress[]
+  /** Where the work is now, for a task that is finished. */
+  nowWith: { stageName: string; names: string[] }[]
   priorStages: PriorStage[]
   files: TaskFileRow[]
   comments: { authorName: string; body: string; createdAt: Date }[]
@@ -252,6 +254,10 @@ export async function getTaskDetail(
       : [],
 
     progress: buildProgress(template.stages, tasks, task, instance.fieldValues),
+    nowWith: whereTheRunIs(tasks, task).map((open) => ({
+      stageName: open.stageName,
+      names: open.assignees.map(nameOf),
+    })),
     priorStages: buildPriorStages(template.stages, tasks, task, nameOf),
     files: files.map((file) => ({
       fileId: file.fileId,
