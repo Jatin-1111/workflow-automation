@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { startPracticeAction } from '@/features/onboarding/actions'
 import { buttonClass } from '@/features/ui/primitives'
 import type { WorkBucket } from '@/lib/types/status'
+import { nothingDueToday, type ElsewhereCounts } from './nothing-due'
 
 const EXPLANATIONS: Record<WorkBucket | 'all', { headline: string; detail: string }> = {
   needs_action: {
@@ -53,9 +54,12 @@ const EXPLANATIONS: Record<WorkBucket | 'all', { headline: string; detail: strin
 export function EmptyBucket({
   view,
   filtered,
+  elsewhere,
 }: {
   view: WorkBucket | 'all'
   filtered: boolean
+  /** The person's own work on other tabs, so an empty tab can say so. */
+  elsewhere?: ElsewhereCounts
 }) {
   // A filtered list that finds nothing is a different situation entirely, and
   // explaining the section would be beside the point.
@@ -66,6 +70,32 @@ export function EmptyBucket({
         <p className="mt-1 text-xs text-subtle">
           Clear the filters to see everything in this section.
         </p>
+      </div>
+    )
+  }
+
+  // Empty here, but not idle: say what there is and where, rather than
+  // telling somebody with work that nothing needs them.
+  const busyElsewhere =
+    view === 'needs_action' && elsewhere ? nothingDueToday(elsewhere) : null
+  if (busyElsewhere) {
+    return (
+      <div className="rounded-xl border border-dashed border-border bg-surface px-5 py-12 text-center">
+        <p className="text-sm font-medium text-foreground">{busyElsewhere.headline}</p>
+        <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">
+          {busyElsewhere.detail}
+        </p>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+          {busyElsewhere.links.map((link, index) => (
+            <Link
+              key={link.view}
+              href={`/my-work?view=${link.view}`}
+              className={buttonClass(index === 0 ? 'secondary' : 'quiet', 'sm')}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
       </div>
     )
   }

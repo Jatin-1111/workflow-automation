@@ -64,7 +64,7 @@ export function WorkFilters({
       <nav className="flex flex-wrap items-center gap-1 border-b border-border">
         {tabs.map((tab) => {
           const active = filters.view === tab
-          const count = tab === 'all' ? undefined : work.counts[tab]
+          const count = tab === 'all' ? undefined : work.tabCounts[tab]
 
           return (
             <Link

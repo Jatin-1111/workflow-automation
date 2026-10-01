@@ -5,8 +5,11 @@ import {
   applyWaitingFilters,
   groupItems,
   parseFilters,
+  showsInView,
   sortItems,
+  tabCounts,
 } from './filters'
+import { WORK_BUCKETS } from '@/lib/types/status'
 import { formatId } from '@/lib/ids/format'
 import type { WaitingItem, WorkItem } from './queries'
 
@@ -294,3 +297,75 @@ describe('filtering by deadline (spec §10)', () => {
     assert.equal(applyFilters(all, parseFilters({ view: 'all', due: 'someday' }), NOW).length, 4)
   })
 })
+
+describe('late work is never hidden from the tab people land on', () => {
+  const defaults = parseFilters({})
+
+  it('shows an overdue task under Needs action', () => {
+    // Overdue wins every bucket, so a late task used to leave this tab the
+    // moment it became late. Somebody whose only task was two days overdue
+    // was told "Nothing needs you right now".
+    const late = item({ bucket: 'overdue', dueAt: new Date('2026-04-08T10:00:00Z') })
+    assert.deepEqual(applyFilters([late], defaults, NOW), [late])
+  })
+
+  it('puts the late work first', () => {
+    // The default sort is soonest deadline first, and the soonest deadline
+    // is the one already passed.
+    const today = item({ bucket: 'needs_action', dueAt: new Date('2026-04-10T17:00:00Z') })
+    const late = item({ bucket: 'overdue', dueAt: new Date('2026-04-08T10:00:00Z') })
+    const shown = applyFilters([today, late], defaults, NOW)
+    assert.deepEqual(shown.map((row) => row.taskId), [late.taskId, today.taskId])
+  })
+
+  it('still offers Overdue as the view of only what is late', () => {
+    const late = item({ bucket: 'overdue', dueAt: new Date('2026-04-08T10:00:00Z') })
+    const today = item({ bucket: 'needs_action', dueAt: new Date('2026-04-10T17:00:00Z') })
+    const shown = applyFilters([late, today], parseFilters({ view: 'overdue' }), NOW)
+    assert.deepEqual(shown, [late])
+  })
+
+  it('leaves the other tabs as they were', () => {
+    assert.equal(showsInView('overdue', 'upcoming'), false)
+    assert.equal(showsInView('overdue', 'in_progress'), false)
+    assert.equal(showsInView('upcoming', 'needs_action'), false)
+    assert.equal(showsInView('completed', 'all'), false)
+    assert.equal(showsInView('overdue', 'all'), true)
+  })
+})
+
+describe('tab badges', () => {
+  const buckets = {
+    needs_action: 2,
+    in_progress: 1,
+    waiting: 3,
+    upcoming: 4,
+    overdue: 5,
+    completed: 6,
+  }
+
+  it('count what the tab shows, so Needs action includes late work', () => {
+    const tabs = tabCounts(buckets)
+    assert.equal(tabs.needs_action, 7)
+    assert.equal(tabs.overdue, 5)
+  })
+
+  it('leave single-bucket tabs alone', () => {
+    const tabs = tabCounts(buckets)
+    for (const view of ['in_progress', 'waiting', 'upcoming', 'completed'] as const) {
+      assert.equal(tabs[view], buckets[view], view)
+    }
+  })
+
+  it('agree with the list on every tab, so a badge never promises a different number', () => {
+    const rows = WORK_BUCKETS.flatMap((bucket) =>
+      Array.from({ length: buckets[bucket] }, () => item({ bucket })),
+    )
+    const tabs = tabCounts(buckets)
+    for (const view of WORK_BUCKETS) {
+      const shown = applyFilters(rows, parseFilters({ view }), NOW)
+      assert.equal(shown.length, tabs[view], `the ${view} tab`)
+    }
+  })
+})
+

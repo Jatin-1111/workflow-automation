@@ -91,7 +91,14 @@ export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>
 
         <section className="mt-6 space-y-6">
           {total === 0 ? (
-            <EmptyBucket view={filters.view} filtered={Boolean(filters.search)} />
+            <EmptyBucket
+              view={filters.view}
+              filtered={Boolean(filters.search)}
+              elsewhere={{
+                in_progress: work.tabCounts.in_progress,
+                upcoming: work.tabCounts.upcoming,
+              }}
+            />
           ) : (
             groups.map((group) => (
               <div key={group.key}>

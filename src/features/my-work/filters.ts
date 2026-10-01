@@ -34,6 +34,56 @@ export interface MyWorkFilters {
   sort: Sort
 }
 
+/**
+ * Which buckets each tab shows.
+ *
+ * A task is in exactly one bucket, and "overdue" wins over every other —
+ * which is right for counting, but meant that late work left "Needs action"
+ * the moment it became late. The tab everybody lands on then said "Nothing
+ * needs you right now" to somebody whose only task was two days overdue,
+ * while a separate tab held the work that most needed doing.
+ *
+ * So tabs are no longer one bucket each. "Needs action" shows late work as
+ * well, and the default sort puts it first, since the soonest deadline is
+ * the one already passed. "Overdue" still exists as the focused view of
+ * only what is late. Buckets themselves are untouched: the Overview's
+ * overdue count and the Board's red flags read them and stay correct.
+ */
+export const VIEW_BUCKETS: Record<WorkBucket, readonly WorkBucket[]> = {
+  needs_action: ['overdue', 'needs_action'],
+  in_progress: ['in_progress'],
+  waiting: ['waiting'],
+  upcoming: ['upcoming'],
+  overdue: ['overdue'],
+  completed: ['completed'],
+}
+
+/** Whether a task in `bucket` appears on the tab `view`. */
+export function showsInView(bucket: WorkBucket, view: WorkBucket | 'all'): boolean {
+  // `all` means everything still open, not everything ever.
+  if (view === 'all') return bucket !== 'completed'
+  return VIEW_BUCKETS[view].includes(bucket)
+}
+
+/**
+ * What each tab's badge should say, from the bucket counts.
+ *
+ * Derived from the same table the lists are, so a badge can never promise
+ * a different number of rows than its tab shows. Kept apart from the bucket
+ * counts, which are of distinct tasks, because summing these would count
+ * every late task twice.
+ */
+export function tabCounts(
+  bucketCounts: Record<WorkBucket, number>,
+): Record<WorkBucket, number> {
+  return Object.fromEntries(
+    WORK_BUCKETS.map((view) => [
+      view,
+      VIEW_BUCKETS[view].reduce((total, bucket) => total + bucketCounts[bucket], 0),
+    ]),
+  ) as Record<WorkBucket, number>
+}
+
 const PRIORITY_ORDER: Record<Priority, number> = {
   urgent: 0,
   high: 1,
@@ -93,10 +143,7 @@ export function applyFilters(
   now = new Date(),
 ): WorkItem[] {
   const filtered = items.filter((item) => {
-    // `all` means everything still open, not everything ever.
-    if (filters.view === 'all' ? item.bucket === 'completed' : item.bucket !== filters.view) {
-      return false
-    }
+    if (!showsInView(item.bucket, filters.view)) return false
     if (filters.project && item.projectId !== filters.project) return false
     if (filters.workflow && item.workflowId !== filters.workflow) return false
     if (filters.priority && item.priority !== filters.priority) return false

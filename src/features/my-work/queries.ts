@@ -22,6 +22,7 @@ import {
 } from '@/lib/db/repositories/workflow-instances'
 import { listActiveTemplates } from '@/lib/db/repositories/workflow-templates'
 import { deriveBucket, hasBreachedSla, hoursWaiting } from '@/lib/workflow/buckets'
+import { tabCounts } from './filters'
 import type {
   ProjectId,
   TaskId,
@@ -70,7 +71,10 @@ export interface WaitingItem {
 export interface MyWork {
   items: WorkItem[]
   waitingOnOthers: WaitingItem[]
+  /** Distinct tasks per bucket. */
   counts: Record<WorkBucket, number>
+  /** What each tab's badge shows; a tab can hold more than one bucket. */
+  tabCounts: Record<WorkBucket, number>
   projects: { projectId: ProjectId; name: string }[]
   workflows: { workflowId: WorkflowTemplateId; name: string }[]
 }
@@ -159,6 +163,7 @@ export async function getMyWork(userId: UserId, now = new Date()): Promise<MyWor
     items,
     waitingOnOthers,
     counts,
+    tabCounts: tabCounts(counts),
     projects: directory.projects.map((project) => ({
       projectId: project.projectId,
       name: project.name,
