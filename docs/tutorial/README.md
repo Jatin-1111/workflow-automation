@@ -37,6 +37,7 @@ node docs/tutorial/capture-10.mjs   # more runs, then oversight
 node docs/tutorial/capture-11.mjs   # notifications, profile, search, help
 node docs/tutorial/capture-12.mjs   # the admin screens
 node docs/tutorial/capture-13.mjs   # reassignment, seen by a manager
+node docs/tutorial/capture-14.mjs   # the people list, with Delete
 
 # 3. Build the document
 python docs/tutorial/build-pdf.py

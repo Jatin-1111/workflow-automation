@@ -589,8 +589,6 @@ F.extend(figure("26-reports", "Slowest stage first. Rework and lateness are coun
                 crop=(0.0, 0.56)))
 
 A(PageBreak())
-
-A(PageBreak())
 A(Paragraph("Part 4 — The administrator's other jobs", S["part"]))
 A(Paragraph("Occasional, but somebody has to know where they are.", S["partsub"]))
 A(Paragraph(
@@ -604,13 +602,27 @@ A(steps([
     "<b>Set password</b> gives somebody a new one when they are locked out. There is no reset "
     "email, so this is the way back in. Tell them out of band, and they can change it themselves.",
     "<b>Deactivate</b> is how somebody leaves. Nothing is deleted — their name stays on the "
-    "history they made — but they cannot sign in, and work stops being routed to them.",
-    "Before deactivating, move their roles to whoever is taking over. A role with nobody active "
+    "history they made — but they cannot sign in, and work stops being routed to them. Their "
+    "roles are kept as they were and cannot be changed until they are reactivated, so bringing "
+    "somebody back puts them exactly where they stood.",
+    "Before deactivating, give their roles to whoever is taking over. A role with nobody active "
     "in it stalls every workflow that routes to it.",
+    "<b>Delete</b> is for somebody who should never have been added — a wrong address, a "
+    "duplicate, an account nobody used. It only works for a person with no history at all. For "
+    "anybody who has done or been given work it refuses, says why, and points you at Deactivate.",
 ]))
 A(Spacer(1, 8))
-F.extend(figure("35-admin-people", "Each person carries their roles, and the two buttons above.",
+F.extend(figure("35-admin-people",
+                "Each person carries their roles and three controls. Your own row has no Delete, "
+                "for the same reason it has no Deactivate.",
                 crop=(0.13, 0.42)))
+A(Spacer(1, 4))
+A(callout(
+    "Somebody left — Deactivate or Delete?",
+    "If they ever did any work, Deactivate. Their history has to keep a name on it, and "
+    "Business Orbit will not let it lose one. Delete is only for an account that was a mistake "
+    "from the start."))
+A(Spacer(1, 10))
 
 A(Paragraph("Departments, teams and projects", S["h2"]))
 A(Paragraph(
