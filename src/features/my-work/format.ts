@@ -4,20 +4,37 @@ import { endOfBusinessDay } from '@/lib/workflow/business-day'
 
 const DAY_MS = 86_400_000
 
+/** How far past a deadline, in the units the rest of the product uses. */
+function lateness(dueAt: Date, at: Date): string {
+  const hours = Math.floor((at.getTime() - dueAt.getTime()) / 3_600_000)
+  return hours < 24 ? `${hours}h` : `${Math.floor(hours / 24)}d`
+}
+
 /**
  * A deadline phrased the way someone would say it out loud: Today, Tomorrow,
  * a weekday this week, otherwise a date (spec §8).
+ *
+ * Finished work is measured against when it finished, not against now. It
+ * used to go on counting, so a task done a day late showed "Completed" in
+ * green beside "Overdue 2d" in red, and the red number grew every day after
+ * the work was handed on.
  */
 export function formatDeadline(
   dueAt: Date | undefined,
   now: Date,
+  finishedAt?: Date,
 ): { label: string; overdue: boolean } {
+  if (finishedAt) {
+    if (!dueAt) return { label: 'Finished', overdue: false }
+    return finishedAt.getTime() > dueAt.getTime()
+      ? { label: `Finished ${lateness(dueAt, finishedAt)} late`, overdue: false }
+      : { label: 'Finished on time', overdue: false }
+  }
+
   if (!dueAt) return { label: 'No deadline', overdue: false }
 
   if (dueAt.getTime() < now.getTime()) {
-    const hours = Math.floor((now.getTime() - dueAt.getTime()) / 3_600_000)
-    if (hours < 24) return { label: `Overdue ${hours}h`, overdue: true }
-    return { label: `Overdue ${Math.floor(hours / 24)}d`, overdue: true }
+    return { label: `Overdue ${lateness(dueAt, now)}`, overdue: true }
   }
 
   const endToday = endOfBusinessDay(now).getTime()

@@ -19,21 +19,14 @@ import { buildEngineContext } from '@/lib/workflow/engine-context'
 import { listUsers } from '@/lib/db/repositories/users'
 import { loadTaskContext } from '@/lib/workflow/service'
 import { canViewTask } from './visibility'
+import { buildProgress, type StageProgress } from './progress'
 import { can } from '@/lib/auth/permissions'
-import { stageApplies } from '@/lib/engine'
 import { deriveBucket, hasBreachedSla } from '@/lib/workflow/buckets'
 import type { FieldValue } from '@/lib/types/instance'
 import type { TaskId, UserId } from '@/lib/types/ids'
 import type { Task } from '@/lib/types/task'
 import type { PublicUser } from '@/lib/types/user'
 import type { StageDefinition } from '@/lib/types/workflow'
-
-export interface StageProgress {
-  key: string
-  name: string
-  state: 'done' | 'current' | 'upcoming' | 'skipped'
-  revisionRound?: number
-}
 
 /** What an earlier stage produced, shown as context for the current one. */
 export interface PriorStage {
@@ -296,36 +289,6 @@ function describeAssignment(
     return 'named people'
   })
   return parts.length > 0 ? parts.join(' and ') : undefined
-}
-
-/** Where this stage sits in the workflow (spec §11). */
-function buildProgress(
-  stages: StageDefinition[],
-  tasks: Task[],
-  current: Task,
-  fieldValues: Record<string, FieldValue>,
-): StageProgress[] {
-  return stages.map((stage) => {
-    const latest = tasks.filter((task) => task.stageKey === stage.key).at(-1)
-
-    if (stage.key === current.stageKey) {
-      return {
-        key: stage.key,
-        name: stage.name,
-        state: 'current',
-        revisionRound: current.revisionRound > 1 ? current.revisionRound : undefined,
-      }
-    }
-    if (latest?.completedAt) {
-      return { key: stage.key, name: stage.name, state: 'done' }
-    }
-    // A conditional stage this run will not reach is shown as skipped rather
-    // than pending, so the trail matches what will actually happen (spec §36).
-    if (!latest && !stageApplies(stage, fieldValues)) {
-      return { key: stage.key, name: stage.name, state: 'skipped' }
-    }
-    return { key: stage.key, name: stage.name, state: 'upcoming' }
-  })
 }
 
 /**

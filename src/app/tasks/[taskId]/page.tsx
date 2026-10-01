@@ -36,7 +36,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
   if (!detail) notFound()
 
   const { task, stage } = detail
-  const deadline = formatDeadline(detail.dueAt, now)
+  const deadline = formatDeadline(detail.dueAt, now, task.completedAt)
 
   const uploadedSlots = new Set(
     task.files.map((file) => file.slotKey).filter(Boolean),
@@ -84,19 +84,25 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
 
           <div className="flex items-center gap-3">
             {detail.slaBreached ? <Pill tone="overdue">SLA breached</Pill> : null}
-            <span
-              className={`text-sm ${
-                deadline.overdue ? 'font-medium text-status-overdue' : 'text-muted'
-              }`}
-            >
-              {deadline.label}
-            </span>
+            {/* A cancelled run has no deadline left to meet or miss. */}
+            {task.status !== 'cancelled' ? (
+              <span
+                className={`text-sm ${
+                  deadline.overdue ? 'font-medium text-status-overdue' : 'text-muted'
+                }`}
+              >
+                {deadline.label}
+              </span>
+            ) : null}
             <StatusBadge status={task.status} priority={task.priority} />
           </div>
         </header>
 
         <div className="mb-6 rounded-xl border border-border bg-surface px-5 py-4">
-          <StageProgressBar stages={detail.progress} />
+          <StageProgressBar
+            stages={detail.progress}
+            finished={Boolean(task.completedAt)}
+          />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">

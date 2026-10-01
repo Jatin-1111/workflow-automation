@@ -7,7 +7,7 @@
  * state, with the name beneath it.
  */
 
-import type { StageProgress } from './queries'
+import type { StageProgress } from './progress'
 
 const TRACK: Record<StageProgress['state'], string> = {
   done: 'bg-status-complete',
@@ -23,7 +23,14 @@ const LABEL: Record<StageProgress['state'], string> = {
   skipped: 'text-subtle line-through',
 }
 
-export function StageProgressBar({ stages }: { stages: StageProgress[] }) {
+export function StageProgressBar({
+  stages,
+  finished = false,
+}: {
+  stages: StageProgress[]
+  /** The task on screen is done, so the marked stage is where the run went next. */
+  finished?: boolean
+}) {
   const done = stages.filter((stage) => stage.state === 'done').length
   const position = stages.findIndex((stage) => stage.state === 'current')
 
@@ -31,7 +38,9 @@ export function StageProgressBar({ stages }: { stages: StageProgress[] }) {
     <div>
       <div className="mb-2 flex items-baseline justify-between gap-4">
         <p className="text-xs font-medium text-muted">
-          {position >= 0 ? `Stage ${position + 1} of ${stages.length}` : 'Workflow progress'}
+          {position >= 0
+            ? `${finished ? 'Now at stage' : 'Stage'} ${position + 1} of ${stages.length}`
+            : 'Workflow progress'}
         </p>
         <p className="text-xs tabular-nums text-subtle">
           {done} of {stages.length} complete
