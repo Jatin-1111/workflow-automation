@@ -58,7 +58,7 @@ export async function storeFile(params: {
 
   const allowed = params.allowedExtensions
   if (allowed && allowed.length > 0 && !allowed.includes(extension)) {
-    throw new FileRejected(`This step accepts ${allowed.join(', ')} files.`)
+    throw new FileRejected(`This stage accepts ${allowed.join(', ')} files.`)
   }
 
   return storeBytes({

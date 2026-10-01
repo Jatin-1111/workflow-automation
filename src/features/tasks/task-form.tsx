@@ -117,6 +117,18 @@ export function TaskForm({
    */
   const [lastIntent, setLastIntent] = useState<Intent | null>(null)
 
+  /**
+   * What a refusal is headed, named for what was refused. Every refusal
+   * said "This step cannot be completed yet", including a send-back — the
+   * wrong verb, and "step" where the rest of the product says "stage".
+   */
+  const REFUSED: Record<Intent, string> = {
+    save: 'This could not be saved',
+    complete: 'This stage cannot be completed yet',
+    approve: 'This cannot be approved yet',
+    reject: 'This cannot be sent back yet',
+  }
+
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLElement | null
@@ -135,12 +147,14 @@ export function TaskForm({
     reject: rejectState,
   }
   // Before scripts load, buttons submit through formAction and nothing is
-  // recorded here; only one of them can have answered by then.
-  const state = lastIntent
-    ? states[lastIntent]
-    : [rejectState, approveState, completeState, saveState].find(
-        (candidate) => candidate.ok !== null,
-      )
+  // recorded here; only one of them can have answered by then. Whichever it
+  // was decides both the errors and their heading, so the two always match.
+  const shownIntent: Intent | undefined =
+    lastIntent ??
+    (['reject', 'approve', 'complete', 'save'] as const).find(
+      (intent) => states[intent].ok !== null,
+    )
+  const state = shownIntent ? states[shownIntent] : undefined
 
   // A refusal that names a field is shown on that field. The summary above
   // the buttons still lists everything, because a problem scrolled out of
@@ -250,7 +264,7 @@ export function TaskForm({
           className="rounded-md border border-border bg-accent-soft px-3 py-2 text-sm"
         >
           <p className="font-medium text-status-overdue">
-            This step cannot be completed yet
+            {REFUSED[shownIntent ?? 'save']}
           </p>
           <ul className="mt-1 list-inside list-disc space-y-0.5 text-muted">
             {state.errors.map((error) => (
@@ -300,7 +314,9 @@ export function TaskForm({
               disabled={busy}
               className={buttonClass('primary', 'lg')}
             >
-              {approving ? 'Approving…' : 'Approve final'}
+              {/* Not "Approve final": most approvals are not the last stage,
+                  and the line above already says where approving sends it. */}
+              {approving ? 'Approving…' : 'Approve'}
             </button>
             <button
               type="submit"

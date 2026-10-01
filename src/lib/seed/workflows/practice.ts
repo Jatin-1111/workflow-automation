@@ -72,7 +72,7 @@ export const PRACTICE_WORKFLOW: WorkflowTemplateSeed = {
       name: 'Check and approve',
       description: 'Stands in for quality check and approval together.',
       instructions:
-        'Tick every item, then choose Approve final or Request changes. Requesting changes needs a comment and sends the work back to Attach something as a second pass, exactly as a real rejection does.',
+        'Tick every item, then choose Approve or Request changes. Requesting changes needs a comment and sends the work back to Attach something as a second pass, exactly as a real rejection does.',
       assignees: [{ mode: 'initiator' }],
       completionRule: 'any',
       fields: [],
