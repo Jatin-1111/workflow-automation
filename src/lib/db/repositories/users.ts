@@ -120,3 +120,15 @@ export async function updateUserPassword(
     { $set: { passwordHash, passwordChangedAt: toTheSecond, updatedAt: changedAt } },
   )
 }
+
+/**
+ * Remove a person outright.
+ *
+ * The caller must already have established that nothing points at them:
+ * see userUses in features/admin/references. This does no checking of its
+ * own, because the checks need other collections and a repository only
+ * knows its own.
+ */
+export async function deleteUser(userId: UserId): Promise<void> {
+  await (await users()).deleteOne({ userId })
+}

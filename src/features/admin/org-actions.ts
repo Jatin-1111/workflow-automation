@@ -7,9 +7,11 @@
  * which meant hiring somebody or starting a project needed a developer. These
  * are the paths that let an administrator do it.
  *
- * Nothing here deletes. Every entity has a status, and the way to retire one
- * is to deactivate it: users, tasks and timeline events still point at it, and
- * a delete would turn that history into dangling ids.
+ * Deleting is allowed only when nothing points at the record, and refused
+ * with a reason when something does. Every entity also has a status, and
+ * setting it inactive is the way to retire something that has been used:
+ * tasks and timeline events still point at it, and a delete would turn
+ * that history into dangling ids.
  */
 
 import { revalidatePath } from 'next/cache'
@@ -49,9 +51,13 @@ import {
   findUserById,
   insertUser,
   listUsers,
+  deleteUser,
   updateUserPassword,
   updateUserProfile,
 } from '@/lib/db/repositories/users'
+import { countTimelineForActor } from '@/lib/db/repositories/timeline-events'
+import { listInstanceIdsAssignedTo } from '@/lib/db/repositories/tasks'
+import { deleteNotificationsForUser } from '@/lib/db/repositories/notifications'
 import { listAllTemplates } from '@/lib/db/repositories/workflow-templates'
 import { listInstances } from '@/lib/db/repositories/workflow-instances'
 import { ACCESS_LEVELS } from '@/lib/types/status'
@@ -60,9 +66,11 @@ import type { DepartmentId, ProjectId, RoleId, TeamId, UserId } from '@/lib/type
 import {
   blockedMessage,
   departmentUses,
+  personBlockedMessage,
   projectUses,
   roleUses,
   teamUses,
+  userUses,
 } from './references'
 import { isLabelColor, type LabelColor } from '@/lib/types/label'
 import { optionalText, requiredText, tooLong } from '@/lib/validation/form-text'
@@ -678,3 +686,56 @@ export async function deleteRoleAction(
   refreshed()
   return { ok: true, message: `${name} deleted.` }
 }
+
+/**
+ * Remove somebody who should never have been added.
+ *
+ * Only for a person with no footprint: added with the wrong address, or
+ * created and never used. Anybody who has done anything, or been given
+ * anything to do, is named on history that may not be rewritten — they
+ * are deactivated, not deleted, and the refusal says so.
+ */
+export async function deleteUserAction(
+  _previous: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const admin = await requireCapability('admin.manage_users')
+
+  const userId = String(formData.get('userId') ?? '')
+  if (!isEntityId(userId, 'user')) return refuse('That person could not be identified.')
+
+  // The same rule as deactivating: an administrator who removes themselves
+  // leaves nobody able to undo it.
+  if (userId === admin.userId) return refuse('You cannot delete your own account.')
+
+  const person = await findUserById(userId as UserId)
+  if (!person) return refuse('That person no longer exists.')
+
+  const [actions, assignedRuns, templates, projects, departments, teams] = await Promise.all([
+    countTimelineForActor(userId as UserId),
+    listInstanceIdsAssignedTo(userId as UserId),
+    listAllTemplates(),
+    listProjects(),
+    listDepartments(),
+    listTeams(),
+  ])
+
+  const uses = userUses({
+    actions,
+    assignedRuns: assignedRuns.length,
+    workflowsAuthored: templates.filter((t) => t.createdBy === userId).length,
+    projectsOwned: projects.filter((p) => p.ownerId === userId).length,
+    projectMemberships: projects.filter((p) => p.memberIds.includes(userId as UserId)).length,
+    departmentsHeaded: departments.filter((d) => d.headUserId === userId).length,
+    teamsLed: teams.filter((t) => t.leadUserId === userId).length,
+  })
+
+  const blockedBy = personBlockedMessage(person.name, uses)
+  if (blockedBy) return refuse(blockedBy)
+
+  await deleteNotificationsForUser(userId as UserId)
+  await deleteUser(userId as UserId)
+  refreshed()
+  return { ok: true, message: `${person.name} deleted.` }
+}
+

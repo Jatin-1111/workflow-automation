@@ -13,6 +13,11 @@ import { toggleUserStatusAction } from '@/features/admin/actions'
 import { OrgManager } from '@/features/admin/org-editor'
 import { UserCreator } from '@/features/admin/user-creator'
 import { PasswordReset } from '@/features/admin/password-reset'
+import {
+  PersonDeleteButton,
+  PersonDeleteNotice,
+  PersonDeleteScope,
+} from '@/features/admin/person-delete'
 import { ProjectManager } from '@/features/admin/project-editor'
 import {
   createDepartmentAction,
@@ -102,6 +107,11 @@ export default async function AdminPage() {
 
                 return (
                   <li key={user.userId} className="bg-surface px-5 py-4">
+                    <PersonDeleteScope
+                      userId={user.userId}
+                      userName={user.name}
+                      isSelf={user.userId === admin.userId}
+                    >
                     <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-medium">
@@ -146,8 +156,12 @@ export default async function AdminPage() {
                           {user.status === 'active' ? 'Deactivate' : 'Reactivate'}
                         </button>
                       </form>
+
+                      <PersonDeleteButton />
                       </div>
                     </div>
+
+                    <PersonDeleteNotice />
 
                     <RoleEditor
                       userId={user.userId}
@@ -155,6 +169,7 @@ export default async function AdminPage() {
                       roles={roleOptions}
                       assigned={user.roleIds}
                     />
+                    </PersonDeleteScope>
                   </li>
                 )
               })}

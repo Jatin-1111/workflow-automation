@@ -3,10 +3,13 @@ import { describe, it } from 'node:test'
 import {
   blockedMessage,
   departmentUses,
+  personBlockedMessage,
   projectUses,
   roleUses,
   teamUses,
+  userUses,
   type RefTemplate,
+  type UserFootprint,
 } from './references'
 
 const DESIGN = 'BO-DEP-00004'
@@ -139,3 +142,73 @@ describe('the refusal itself', () => {
     )
   })
 })
+
+const CLEAN: UserFootprint = {
+  actions: 0,
+  assignedRuns: 0,
+  workflowsAuthored: 0,
+  projectsOwned: 0,
+  projectMemberships: 0,
+  departmentsHeaded: 0,
+  teamsLed: 0,
+}
+
+describe('deleting a person', () => {
+  it('is allowed for somebody with no footprint at all', () => {
+    // Added with the wrong address, or never used: the case delete is for.
+    const uses = userUses(CLEAN)
+    assert.deepEqual(uses, { history: [], structure: [] })
+    assert.equal(personBlockedMessage('Sanket', uses), null)
+  })
+
+  it('is refused for somebody who has done anything', () => {
+    // Every action leaves a timeline event with their id on it, and the
+    // timeline is append-only. Removing the person would orphan it.
+    const message = personBlockedMessage('Rohan', userUses({ ...CLEAN, actions: 12 }))
+    assert.match(message ?? '', /has history here — 12 recorded actions/)
+  })
+
+  it('is refused for somebody given work they never touched', () => {
+    // Being assigned is not an action of theirs, so it does not appear as
+    // one — but the task still names them.
+    const message = personBlockedMessage('Rohan', userUses({ ...CLEAN, assignedRuns: 1 }))
+    assert.match(message ?? '', /1 workflow run/)
+  })
+
+  it('is refused for somebody who wrote a workflow', () => {
+    const message = personBlockedMessage('Nitin', userUses({ ...CLEAN, workflowsAuthored: 2 }))
+    assert.match(message ?? '', /2 workflow versions/)
+  })
+
+  it('points at deactivation when the obstacle is history', () => {
+    // "Move those across first" is the advice for a department. It is
+    // meaningless for history, which cannot be moved anywhere.
+    const message = personBlockedMessage('Rohan', userUses({ ...CLEAN, actions: 1 })) ?? ''
+    assert.match(message, /Deactivate them instead/)
+    assert.doesNotMatch(message, /Move those across/)
+  })
+
+  it('asks for the assignment to change when the obstacle is only structure', () => {
+    const message =
+      personBlockedMessage('Meera', userUses({ ...CLEAN, projectsOwned: 1, teamsLed: 2 })) ?? ''
+    assert.match(message, /still named on 1 project they own, 2 teams they lead/)
+    assert.match(message, /Change those first, then delete/)
+    assert.doesNotMatch(message, /Deactivate/)
+  })
+
+  it('gives the history answer when both apply', () => {
+    // Clearing their projects would not make them deletable, so saying
+    // "change those first" would send somebody on a pointless errand.
+    const message =
+      personBlockedMessage('Meera', userUses({ ...CLEAN, actions: 3, projectsOwned: 1 })) ?? ''
+    assert.match(message, /Deactivate them instead/)
+    assert.doesNotMatch(message, /Change those first/)
+  })
+
+  it('reads in the singular when there is one of something', () => {
+    const uses = userUses({ ...CLEAN, actions: 1, departmentsHeaded: 1 })
+    assert.deepEqual(uses.history, ['1 recorded action'])
+    assert.deepEqual(uses.structure, ['1 department they head'])
+  })
+})
+

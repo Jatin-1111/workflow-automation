@@ -42,3 +42,13 @@ export async function listTimelineForActor(
     .limit(limit)
     .toArray()
 }
+
+/**
+ * How many things this person has done, ever.
+ *
+ * A count rather than listTimelineForActor, which is capped for display
+ * and would report a heavy user as having done thirty things.
+ */
+export async function countTimelineForActor(actorId: UserId): Promise<number> {
+  return (await events()).countDocuments({ actorId })
+}

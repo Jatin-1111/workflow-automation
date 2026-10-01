@@ -58,3 +58,15 @@ export async function listSentReminderKeys(taskIds: TaskId[]): Promise<Set<strin
     .toArray()
   return new Set(rows.map((row) => `${row.taskId}:${row.kind}:${row.recipientId}`))
 }
+
+/**
+ * Clear a person's inbox.
+ *
+ * Only ever called when the person themselves is being removed. A
+ * notification is addressed to somebody, not a record of what the
+ * organisation did, so it has no reader once they are gone — unlike the
+ * timeline, which is append-only and is never touched here.
+ */
+export async function deleteNotificationsForUser(recipientId: UserId): Promise<void> {
+  await (await notifications()).deleteMany({ recipientId })
+}
