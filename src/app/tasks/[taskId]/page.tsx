@@ -20,7 +20,7 @@ import { StageProgressBar } from '@/features/tasks/stage-progress'
 import { TimelinePanel } from '@/features/tasks/timeline-panel'
 import { StatusBadge } from '@/features/my-work/status-badge'
 import { formatDeadline } from '@/features/my-work/format'
-import { Breadcrumbs, Panel, Pill, Ref } from '@/features/ui/primitives'
+import { Breadcrumbs, Panel, Pill } from '@/features/ui/primitives'
 import { isEntityId } from '@/lib/ids/format'
 
 export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>) {
@@ -78,7 +78,6 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
               {task.revisionRound > 1 ? (
                 <Pill tone="action">Revision {task.revisionRound}</Pill>
               ) : null}
-              <Ref>{detail.instanceId}</Ref>
             </p>
           </div>
 
@@ -214,7 +213,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
               comments={detail.comments}
               canComment={!task.completedAt}
             />
-            <TimelinePanel events={detail.timeline} />
+            <TimelinePanel events={detail.timeline} reference={detail.instanceId} />
           </aside>
         </div>
       </main>

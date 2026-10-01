@@ -22,6 +22,7 @@ import { canViewTask } from './visibility'
 import { buildProgress, whereTheRunIs, type StageProgress } from './progress'
 import {
   assignmentRecipients,
+  eventsWorthALine,
   timelineSentence,
   type TimelineSentence,
 } from './timeline-wording'
@@ -64,7 +65,6 @@ export interface TaskFileRow {
 export interface TimelineRow {
   eventId: string
   sentence: TimelineSentence
-  stageKey?: string
   comment?: string
   at: Date
 }
@@ -275,15 +275,22 @@ export async function getTaskDetail(
       body: comment.body,
       createdAt: comment.createdAt,
     })),
-    timeline: timeline.map((event) => ({
+    timeline: eventsWorthALine(timeline).map((event) => ({
       eventId: event.eventId,
-      sentence: timelineSentence(
-        event.action,
-        nameOf(event.actorId),
-        assignmentRecipients(event, tasks)?.map(nameOf),
-        humanise(event.action).toLowerCase(),
-      ),
-      stageKey: event.stageKey,
+      sentence: timelineSentence({
+        action: event.action,
+        actorName: nameOf(event.actorId),
+        // The stage's own name, not its key: "Write the draft", not
+        // "Write draft". A key no longer in this version is still shown.
+        stageName: event.stageKey
+          ? (template.stages.find((candidate) => candidate.key === event.stageKey)?.name ??
+            humanise(event.stageKey))
+          : undefined,
+        recipientNames: assignmentRecipients(event, tasks)?.map(nameOf),
+        fileName: event.fileId
+          ? files.find((file) => file.fileId === event.fileId)?.name
+          : undefined,
+      }),
       comment: event.comment,
       at: event.at,
     })),

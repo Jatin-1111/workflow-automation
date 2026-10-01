@@ -17,8 +17,8 @@ import { humanise } from '@/features/my-work/format'
 import { listDepartments } from '@/lib/db/repositories/departments'
 import { listRoles } from '@/lib/db/repositories/roles'
 import { listTeams } from '@/lib/db/repositories/teams'
-import { listTimelineForActor } from '@/lib/db/repositories/timeline-events'
-import { findInstancesByIds } from '@/lib/db/repositories/workflow-instances'
+import { getMyActivity } from '@/features/profile/activity'
+import { SentenceText } from '@/features/tasks/timeline-sentence'
 import { CAPABILITIES_BY_ACCESS_LEVEL } from '@/lib/auth/permissions'
 
 export default async function ProfilePage() {
@@ -30,16 +30,8 @@ export default async function ProfilePage() {
     listRoles(),
     listDepartments(),
     listTeams(),
-    listTimelineForActor(user.userId, 20),
+    getMyActivity(user.userId, 20),
   ])
-
-  // Events name an instance by id; the feed needs its title to read as English.
-  const activityInstances = await findInstancesByIds([
-    ...new Set(activity.map((event) => event.instanceId)),
-  ])
-  const instanceTitle = new Map(
-    activityInstances.map((instance) => [instance.instanceId as string, instance.title]),
-  )
 
   const roleNames = user.roleIds.map(
     (roleId) => roles.find((role) => role.roleId === roleId)?.name ?? roleId,
@@ -189,16 +181,11 @@ export default async function ProfilePage() {
               <ul className="divide-y divide-border">
                 {activity.map((event) => (
                   <li key={event.eventId} className="px-5 py-3">
-                    <p className="text-sm">
-                      <span className="text-muted">
-                        {humanise(event.action).toLowerCase()}
-                      </span>
-                      {event.stageKey ? (
-                        <span className="font-medium"> · {humanise(event.stageKey)}</span>
-                      ) : null}
+                    <p className="text-sm text-muted">
+                      <SentenceText sentence={event.sentence} />
                     </p>
                     <p className="mt-0.5 text-xs text-subtle">
-                      {instanceTitle.get(event.instanceId) ?? event.instanceId} ·{' '}
+                      {event.runTitle} ·{' '}
                       {event.at.toLocaleString('en-GB', {
                         day: 'numeric',
                         month: 'short',
