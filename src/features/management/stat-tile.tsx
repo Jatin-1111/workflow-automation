@@ -42,12 +42,15 @@ export function StatTile({
   tone = 'neutral',
   icon: Glyph,
   href,
+  selected = false,
 }: {
   label: string
   value: number
   tone?: StatTone
   icon?: LucideIcon
   href?: string
+  /** Its list is the one open beneath the tiles. */
+  selected?: boolean
 }) {
   const palette = TONES[tone]
   const valueTone = value > 0 ? palette.value : 'text-foreground'
@@ -71,15 +74,20 @@ export function StatTile({
     </>
   )
 
-  const shared = 'rounded-xl border border-border bg-surface px-5 py-4'
+  // The border colour is chosen once per state: with two colour utilities on
+  // one element, the stylesheet's order decides, and the selected border lost.
+  const shared = 'rounded-xl border bg-surface px-5 py-4'
   return href ? (
     <Link
       href={href}
-      className={`${shared} block transition-ui hover:border-accent-ring hover:shadow-sm`}
+      aria-current={selected ? 'true' : undefined}
+      className={`${shared} block transition-ui hover:shadow-sm ${
+        selected ? 'border-accent ring-2 ring-accent-soft' : 'border-border hover:border-accent-ring'
+      }`}
     >
       {body}
     </Link>
   ) : (
-    <div className={shared}>{body}</div>
+    <div className={`${shared} border-border`}>{body}</div>
   )
 }

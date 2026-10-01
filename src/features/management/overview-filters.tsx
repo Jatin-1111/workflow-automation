@@ -13,6 +13,7 @@ import { activeFilterCount } from './filters'
 import { DUE_WINDOWS, DUE_WINDOW_LABELS } from '@/lib/workflow/due-window'
 import { humanise } from '@/features/my-work/format'
 import { PRIORITIES, TASK_STATUSES } from '@/lib/types/status'
+import { tileHref, type OverviewTile } from './overview-tiles'
 import type { OverviewFilters } from './filters'
 
 export interface FilterOption {
@@ -48,6 +49,7 @@ function Choice({
 
 export function OverviewFilterBar({
   filters,
+  open,
   projects,
   workflows,
   people,
@@ -55,6 +57,8 @@ export function OverviewFilterBar({
   departments,
 }: {
   filters: OverviewFilters
+  /** The tile whose list is open, kept open when the filters change. */
+  open?: OverviewTile
   projects: FilterOption[]
   workflows: FilterOption[]
   people: FilterOption[]
@@ -65,6 +69,7 @@ export function OverviewFilterBar({
 
   return (
     <form method="get" className="mb-6">
+      {open ? <input type="hidden" name="show" value={open} /> : null}
       {/* Open only when something is already narrowing the view. Eight empty
           selects between a manager and their numbers is the wrong default. */}
       <details
@@ -134,7 +139,12 @@ export function OverviewFilterBar({
         </button>
         {active > 0 ? (
           <>
-            <Link href="/dashboard" className={buttonClass('quiet', 'sm')}>
+            {/* Clears the filters, not the list being read: Apply keeps it
+                open, so Clear does too. */}
+            <Link
+              href={open ? tileHref({}, open, undefined) : '/dashboard'}
+              className={buttonClass('quiet', 'sm')}
+            >
               Clear
             </Link>
             <p className="text-xs text-subtle">

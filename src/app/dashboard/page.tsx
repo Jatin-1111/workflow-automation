@@ -31,16 +31,38 @@ import { StatTile } from '@/features/management/stat-tile'
 import { QuickReassign } from '@/features/management/quick-reassign'
 import { EmptyRow, Section } from '@/features/management/section'
 import { formatDeadline } from '@/features/my-work/format'
+import { TileListPanel } from '@/features/management/tile-list'
+import {
+  TILE_LABELS,
+  parseOverviewTile,
+  tileHref,
+  type OverviewTile,
+} from '@/features/management/overview-tiles'
+import type { StatTone } from '@/features/management/stat-tile'
+import type { LucideIcon } from 'lucide-react'
+
+/** How each headline number looks; what it counts lives with the rule. */
+const TILE_LOOK: Record<OverviewTile, { tone: StatTone; icon: LucideIcon }> = {
+  active: { tone: 'progress', icon: Activity },
+  approvals: { tone: 'action', icon: Stamp },
+  overdue: { tone: 'alert', icon: TriangleAlert },
+  due_today: { tone: 'action', icon: CalendarClock },
+  blocked: { tone: 'alert', icon: CircleSlash },
+  completed_week: { tone: 'good', icon: CircleCheckBig },
+  completed: { tone: 'good', icon: CheckCheck },
+}
 
 export default async function ManagementDashboardPage({
   searchParams,
 }: PageProps<'/dashboard'>) {
   const user = await requireCapability('management.view_dashboard')
   const now = new Date()
-  const filters = parseOverviewFilters(await searchParams)
+  const params = await searchParams
+  const filters = parseOverviewFilters(params)
+  const open = parseOverviewTile(params)
 
   const [overview, projects, templates, people, roles, departments] = await Promise.all([
-    getManagementOverview(now, filters),
+    getManagementOverview(now, filters, open),
     listProjects(),
     listActiveTemplates(),
     listUsers(),
@@ -67,6 +89,7 @@ export default async function ManagementDashboardPage({
 
         <OverviewFilterBar
           filters={filters}
+          open={open}
           projects={projects.map((p) => ({ value: p.projectId, label: p.name }))}
           workflows={templates.map((t) => ({ value: t.workflowId, label: t.name }))}
           people={people
@@ -76,55 +99,31 @@ export default async function ManagementDashboardPage({
           departments={departments.map((d) => ({ value: d.departmentId, label: d.name }))}
         />
 
+        {/* Each number opens the list it counts, right here. They were plain
+            boxes: "Overdue tasks 1" looked like a way in and was not one. */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatTile
-            label="Active workflows"
-            value={counts.activeWorkflows}
-            tone="progress"
-            icon={Activity}
-          />
-          <StatTile
-            label="Pending approvals"
-            value={counts.pendingApprovals}
-            tone="action"
-            icon={Stamp}
-          />
-          <StatTile
-            label="Overdue tasks"
-            value={counts.overdueTasks}
-            tone="alert"
-            icon={TriangleAlert}
-          />
-          <StatTile
-            label="Due today"
-            value={counts.dueToday}
-            tone="action"
-            icon={CalendarClock}
-          />
-          <StatTile
-            label="Blocked"
-            value={counts.blocked}
-            tone="alert"
-            icon={CircleSlash}
-          />
-          <StatTile
-            label="Completed this week"
-            value={counts.completedThisWeek}
-            tone="good"
-            icon={CircleCheckBig}
-          />
-          <StatTile
-            label="Completed overall"
-            value={counts.completedTotal}
-            tone="good"
-            icon={CheckCheck}
-          />
+          {(Object.keys(TILE_LOOK) as OverviewTile[]).map((tile) => (
+            <StatTile
+              key={tile}
+              label={TILE_LABELS[tile]}
+              value={counts[tile]}
+              tone={TILE_LOOK[tile].tone}
+              icon={TILE_LOOK[tile].icon}
+              href={tileHref(filters, tile, open)}
+              selected={tile === open}
+            />
+          ))}
           <StatTile
             label="Projects"
             value={overview.projects.length}
             icon={FolderKanban}
+            href="/projects"
           />
         </div>
+
+        {overview.tileList ? (
+          <TileListPanel list={overview.tileList} filters={filters} now={now} />
+        ) : null}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <div className="space-y-6">
