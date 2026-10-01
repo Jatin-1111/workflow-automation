@@ -19,6 +19,7 @@ export function LoginForm({ next }: { next?: string }) {
         <input
           type="email"
           name="email"
+          defaultValue={state.email}
           maxLength={TEXT_LIMITS.email}
           autoComplete="email"
           required

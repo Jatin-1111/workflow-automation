@@ -21,6 +21,15 @@ import { PASSWORD, TEXT_LIMITS } from '@/lib/validation/bounds'
 
 export interface LoginState {
   error?: string
+  /**
+   * The address that was tried, handed back so the form can show it again.
+   *
+   * React resets a form after its action runs, refused or not, so a wrong
+   * password used to empty the email box too — and a mistyped password is
+   * the most common reason sign-in fails. The password is deliberately not
+   * returned: clearing it after a failure is what people expect.
+   */
+  email?: string
 }
 
 /** Only allow post-login redirects to paths inside this app. */
@@ -55,14 +64,14 @@ export async function login(
   const next = safeNextPath(formData.get('next'))
 
   if (!email || !password) {
-    return { error: 'Enter your email and password.' }
+    return { email, error: 'Enter your email and password.' }
   }
 
   // Refused before hashing. bcrypt reads the first 72 bytes and ignores
   // the rest, but it works through everything it is handed first, so an
   // unbounded field sells the server's CPU for the price of one request.
   if (email.length > TEXT_LIMITS.email || password.length > PASSWORD.max) {
-    return { error: 'Those details do not match an account.' }
+    return { email, error: 'Those details do not match an account.' }
   }
 
   const now = new Date()
@@ -81,6 +90,7 @@ export async function login(
     // Said plainly. Hiding the wait would not hide it — the attempt fails
     // either way — and it would leave the real owner guessing at why.
     return {
+      email,
       error: `Too many attempts. Try again in ${describeWait(blocked.retryAfterSeconds)}.`,
     }
   }
@@ -98,11 +108,11 @@ export async function login(
       recordLoginFailure(email, 'account', now),
       address ? recordLoginFailure(address, 'address', now) : Promise.resolve(),
     ])
-    return { error: 'Those details do not match an account.' }
+    return { email, error: 'Those details do not match an account.' }
   }
 
   if (user.status !== 'active') {
-    return { error: 'This account is deactivated. Contact an administrator.' }
+    return { email, error: 'This account is deactivated. Contact an administrator.' }
   }
 
   // Proving who you are clears what you owed.
