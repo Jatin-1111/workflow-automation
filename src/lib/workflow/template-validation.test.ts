@@ -129,7 +129,7 @@ describe('assignee problems', () => {
     const d = draft([
       stage({ key: 'only', assignees: [{ mode: 'role', roleId: '' as RoleId }] }),
     ])
-    assert.ok(messages(d).some((m) => m.includes('a role that has not been chosen')))
+    assert.ok(messages(d).some((m) => m.includes('pick the role it goes to')))
   })
 
   it('reports an empty explicit user list', () => {

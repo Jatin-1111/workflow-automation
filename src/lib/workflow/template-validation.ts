@@ -92,7 +92,7 @@ export function validateTemplate(draft: TemplateDraft): TemplateProblem[] {
         problems.push({
           stageKey: stage.key,
           field: 'assignees',
-          message: `"${stage.name || stage.key}" is assigned to a role that has not been chosen.`,
+          message: `Choose who does "${stage.name || stage.key}": pick the role it goes to.`,
         })
       }
       if (source.mode === 'users' && source.userIds.length === 0) {

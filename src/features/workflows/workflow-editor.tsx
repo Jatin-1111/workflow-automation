@@ -21,6 +21,7 @@ import {
   type BuilderState,
 } from './actions'
 import { validateTemplate } from '@/lib/workflow/template-validation'
+import type { RoleId } from '@/lib/types/ids'
 import type { StageDefinition } from '@/lib/types/workflow'
 
 const IDLE: BuilderState = { ok: null }
@@ -196,7 +197,11 @@ export function WorkflowEditor({
         key,
         name: `Stage ${current.length + 1}`,
         instructions: '',
-        assignees: [{ mode: 'initiator' }],
+        // Asks who, rather than answering for them. It defaulted to whoever
+        // started the workflow, so a stage nobody changed sent every step
+        // to the starter while the builder called the workflow sound. An
+        // unchosen role is a problem the validator names, and Publish waits.
+        assignees: [{ mode: 'role', roleId: '' as RoleId }],
         completionRule: 'any',
         fields: [],
         files: [],
@@ -276,6 +281,16 @@ export function WorkflowEditor({
 
   const status = [publishState, saveState].find((candidate) => candidate.ok !== null)
 
+  /** Open the stage a problem is on, or the list when it belongs to none. */
+  const showProblem = (stageKey: string | undefined) => {
+    if (stageKey && stages.some((candidate) => candidate.key === stageKey)) {
+      setSelectedKey(stageKey)
+      document.getElementById('stage-editor')?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
+    document.getElementById('workflow-problems')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <div className="space-y-6">
       <section className="grid gap-3 rounded-xl border border-border bg-surface p-4 sm:grid-cols-3">
@@ -343,7 +358,10 @@ export function WorkflowEditor({
       </section>
 
       {problems.length > 0 ? (
-        <section className="rounded-lg border border-border bg-accent-soft px-4 py-3">
+        <section
+          id="workflow-problems"
+          className="scroll-mt-4 rounded-lg border border-border bg-accent-soft px-4 py-3"
+        >
           <p className="text-sm font-medium text-status-overdue">
             {problems.length} thing{problems.length === 1 ? '' : 's'} to fix before this can be
             published
@@ -463,7 +481,7 @@ export function WorkflowEditor({
           </ol>
         </section>
 
-        <section className="rounded-xl border border-border bg-surface p-4">
+        <section id="stage-editor" className="scroll-mt-4 rounded-xl border border-border bg-surface p-4">
           {stage ? (
             editable ? (
               <StageForm
@@ -508,9 +526,6 @@ export function WorkflowEditor({
             <button
               type="submit"
               disabled={saving || publishing || problems.length > 0}
-              title={
-                problems.length > 0 ? 'Fix the problems listed above first' : undefined
-              }
               className={buttonClass('primary', 'lg')}
             >
               {publishing ? 'Publishing…' : `Publish version ${template.version}`}
@@ -545,6 +560,23 @@ export function WorkflowEditor({
                 </ul>
               ) : null}
             </div>
+          ) : problems.length > 0 ? (
+            /* The reason, at the button. Publish used to go grey with the
+               explanation 1,100px up the page and only a hover tooltip here,
+               which a touch screen never shows. */
+            <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
+              <span className="text-status-overdue">
+                Not yet: {problems[0].message}
+                {problems.length > 1 ? ` (and ${problems.length - 1} more)` : ''}
+              </span>
+              <button
+                type="button"
+                onClick={() => showProblem(problems[0].stageKey)}
+                className="font-medium text-accent underline-offset-2 hover:underline"
+              >
+                {problems[0].stageKey ? 'Take me there' : 'See the list'}
+              </button>
+            </p>
           ) : (
             <p className="text-sm text-subtle">
               Publishing only affects work started afterwards.
