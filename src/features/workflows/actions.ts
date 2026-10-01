@@ -134,6 +134,41 @@ async function loadEditableDraft(
   return template
 }
 
+/**
+ * Write the document the editor posted onto the draft.
+ *
+ * Shared by Save and Publish so there is one path from what is on screen to
+ * what is stored. Not exported: a 'use server' module may only export async
+ * functions that are actions, and this is a step inside two of them.
+ */
+async function persistSubmittedDraft(
+  loaded: WorkflowTemplate,
+  raw: FormDataEntryValue | null,
+): Promise<{ saved: WorkflowTemplate } | { error: BuilderState }> {
+  // Read the document before anything touches it. This used to be a cast,
+  // so a post of `{}` reached `stages.map` and became a 500, and a document
+  // carrying a negative deadline or an unknown priority was written to the
+  // database and only inspected afterwards.
+  const submission = parseSubmittedTemplate(raw)
+  if (!submission.ok || !submission.template) {
+    return { error: fail('The workflow could not be saved as sent.', submission.problems) }
+  }
+  const submitted = submission.template
+
+  const saved: WorkflowTemplate = {
+    ...loaded,
+    name: submitted.name.trim(),
+    description: submitted.description?.trim() || undefined,
+    projectId: submitted.projectId as ProjectId | undefined,
+    departmentId: submitted.departmentId as DepartmentId | undefined,
+    stages: await withKnownRoles(asStageDefinitions(submitted.stages)),
+    initialStageKey: submitted.initialStageKey,
+    updatedAt: new Date(),
+  }
+  await replaceTemplateVersion(saved)
+  return { saved }
+}
+
 /** Save a draft, reporting every problem without blocking the save. */
 export async function saveWorkflowAction(
   _previous: BuilderState,
@@ -146,37 +181,18 @@ export async function saveWorkflowAction(
   const loaded = await loadEditableDraft(workflowId, version)
   if ('error' in loaded) return loaded.error
 
-  // Read the document before anything touches it. This used to be a cast,
-  // so a post of `{}` reached `stages.map` and became a 500, and a document
-  // carrying a negative deadline or an unknown priority was written to the
-  // database and only inspected afterwards.
-  const submission = parseSubmittedTemplate(formData.get('template'))
-  if (!submission.ok || !submission.template) {
-    return fail('The workflow could not be saved as sent.', submission.problems)
-  }
-  const submitted = submission.template
-
-  const stages = await withKnownRoles(asStageDefinitions(submitted.stages))
-
-  await replaceTemplateVersion({
-    ...loaded,
-    name: submitted.name.trim(),
-    description: submitted.description?.trim() || undefined,
-    projectId: submitted.projectId as ProjectId | undefined,
-    departmentId: submitted.departmentId as DepartmentId | undefined,
-    stages,
-    initialStageKey: submitted.initialStageKey,
-    updatedAt: new Date(),
-  })
+  const persisted = await persistSubmittedDraft(loaded, formData.get('template'))
+  if ('error' in persisted) return persisted.error
+  const { saved } = persisted
 
   revalidatePath(`/workflows/${workflowId}/${version}`)
   revalidatePath('/workflows')
 
   // A draft is allowed to be incomplete; publishing is what demands soundness.
   const problems = validateTemplate({
-    name: submitted.name,
-    stages,
-    initialStageKey: submitted.initialStageKey,
+    name: saved.name,
+    stages: saved.stages,
+    initialStageKey: saved.initialStageKey,
   })
 
   return problems.length === 0
@@ -187,7 +203,16 @@ export async function saveWorkflowAction(
       }
 }
 
-/** Publish a draft so new work starts using it (spec §35, §38). */
+/**
+ * Publish a draft so new work starts using it (spec §35, §38).
+ *
+ * Publishes what is on screen. It used to publish what was last saved: the
+ * form sent only the workflow and version, so editing a stage and pressing
+ * Publish without saving put the old version live, locked it against
+ * editing, and discarded the change — while the button's own "sound" check
+ * had been run against the version on screen, not the one being published.
+ * The editor now sends its document with Publish, and it is saved first.
+ */
 export async function publishWorkflowAction(
   _previous: BuilderState,
   formData: FormData,
@@ -199,20 +224,28 @@ export async function publishWorkflowAction(
   const loaded = await loadEditableDraft(workflowId, version)
   if ('error' in loaded) return loaded.error
 
+  let current: WorkflowTemplate = loaded
+  if (formData.has('template')) {
+    const persisted = await persistSubmittedDraft(loaded, formData.get('template'))
+    if ('error' in persisted) return persisted.error
+    current = persisted.saved
+  }
+
   const problems = validateTemplate({
-    name: loaded.name,
-    stages: loaded.stages,
-    initialStageKey: loaded.initialStageKey,
+    name: current.name,
+    stages: current.stages,
+    initialStageKey: current.initialStageKey,
   })
   if (problems.length > 0) {
+    revalidatePath(`/workflows/${workflowId}/${version}`)
     return fail(
       'This workflow cannot be published yet.',
       problems.map((problem) => problem.message),
     )
   }
 
-  await setTemplateStatus(loaded.workflowId, version, 'active')
-  await retireOtherVersions(loaded.workflowId, version)
+  await setTemplateStatus(current.workflowId, version, 'active')
+  await retireOtherVersions(current.workflowId, version)
 
   revalidatePath(`/workflows/${workflowId}/${version}`)
   revalidatePath('/workflows')

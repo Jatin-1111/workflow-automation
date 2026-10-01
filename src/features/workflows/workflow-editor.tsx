@@ -14,6 +14,7 @@ import { IconButton, buttonClass } from '@/features/ui/primitives'
 import { useActionState, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { StageForm } from './stage-form'
+import { useLeaveWarning } from './use-leave-warning'
 import {
   publishWorkflowAction,
   saveWorkflowAction,
@@ -119,9 +120,6 @@ export function WorkflowEditor({
       : Math.max(0, stages.findIndex((candidate) => candidate.key === selectedKey))
   const setSelected = (index: number) => setSelectedKey(stages[index]?.key ?? LAST)
 
-  const [saveState, save, saving] = useActionState(saveWorkflowAction, IDLE)
-  const [publishState, publish, publishing] = useActionState(publishWorkflowAction, IDLE)
-
   const problems = useMemo(
     () => validateTemplate({ name, stages, initialStageKey }),
     [name, stages, initialStageKey],
@@ -135,6 +133,32 @@ export function WorkflowEditor({
     stages,
     initialStageKey,
   })
+
+  /**
+   * The document as the server last stored it, to tell whether what is on
+   * screen would be lost by leaving. It starts as the page was loaded and
+   * moves only when a save — or a publish, which saves first — succeeds.
+   */
+  const [stored, setStored] = useState(serialised)
+  const unsaved = editable && serialised !== stored
+  useLeaveWarning(unsaved)
+
+  const [saveState, save, saving] = useActionState(
+    async (previous: BuilderState, formData: FormData) => {
+      const result = await saveWorkflowAction(previous, formData)
+      if (result.ok) setStored(String(formData.get('template')))
+      return result
+    },
+    IDLE,
+  )
+  const [publishState, publish, publishing] = useActionState(
+    async (previous: BuilderState, formData: FormData) => {
+      const result = await publishWorkflowAction(previous, formData)
+      if (result.ok) setStored(String(formData.get('template')))
+      return result
+    },
+    IDLE,
+  )
 
   const stage = stages[selected]
   const problemsFor = (key: string) => problems.filter((problem) => problem.stageKey === key)
@@ -478,6 +502,9 @@ export function WorkflowEditor({
           <form action={publish}>
             <input type="hidden" name="workflowId" value={template.workflowId} />
             <input type="hidden" name="version" value={template.version} />
+            {/* Publish saves what is on screen first, so there is never a
+                gap between what was checked and what goes live. */}
+            <input type="hidden" name="template" value={serialised} />
             <button
               type="submit"
               disabled={saving || publishing || problems.length > 0}
@@ -489,6 +516,10 @@ export function WorkflowEditor({
               {publishing ? 'Publishing…' : `Publish version ${template.version}`}
             </button>
           </form>
+
+          {unsaved && !saving && !publishing ? (
+            <span className="text-xs font-medium text-status-action">Unsaved changes</span>
+          ) : null}
 
           {status && status.ok !== null ? (
             <div role="status" className="space-y-1">
