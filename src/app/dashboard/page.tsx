@@ -5,7 +5,7 @@
  * what is stuck, who is carrying what, and what falls due next.
  */
 
-import { OverviewTabs } from '@/features/management/overview-tabs'
+import { OverviewPage } from '@/features/management/overview-page'
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
@@ -73,8 +73,7 @@ export default async function ManagementDashboardPage({
 
   return (
     <AppShell user={user} current="/dashboard">
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-        <OverviewTabs current="/dashboard" />
+      <OverviewPage current="/dashboard">
 
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight">Management Overview</h1>
@@ -313,7 +312,7 @@ export default async function ManagementDashboardPage({
             </Section>
           </div>
         </div>
-      </main>
+      </OverviewPage>
     </AppShell>
   )
 }

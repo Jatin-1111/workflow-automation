@@ -1,6 +1,6 @@
 /** TEAM WORKLOAD — who is carrying what (spec §17). */
 
-import { OverviewTabs } from '@/features/management/overview-tabs'
+import { OverviewPage } from '@/features/management/overview-page'
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
 import { AppShell } from '@/features/shell/app-shell'
@@ -13,8 +13,7 @@ export default async function TeamPage() {
 
   return (
     <AppShell user={user} current="/team">
-      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
-        <OverviewTabs current="/team" />
+      <OverviewPage current="/team">
 
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
@@ -74,7 +73,7 @@ export default async function TeamPage() {
             </tbody>
           </table>
         </Section>
-      </main>
+      </OverviewPage>
     </AppShell>
   )
 }

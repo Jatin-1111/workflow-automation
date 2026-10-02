@@ -6,7 +6,7 @@
  * is carrying it.
  */
 
-import { OverviewTabs } from '@/features/management/overview-tabs'
+import { OverviewPage } from '@/features/management/overview-page'
 import { buttonClass } from '@/features/ui/primitives'
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
@@ -32,8 +32,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
 
   return (
     <AppShell user={user} current="/reports">
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-        <OverviewTabs current="/reports" />
+      <OverviewPage current="/reports">
 
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -306,7 +305,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
           Figures come from the stage records themselves — every entry and exit is
           timestamped, so these are measured rather than estimated.
         </p>
-      </main>
+      </OverviewPage>
     </AppShell>
   )
 }
