@@ -13,8 +13,10 @@ import { findFileById, searchFiles } from '@/lib/db/repositories/files'
 import {
   findTaskById,
   listInstanceIdsAssignedTo,
+  listTasksForInstance,
   searchTasks,
 } from '@/lib/db/repositories/tasks'
+import { entryTaskFor } from '@/lib/workflow/run-entry'
 import { findUserById, searchUsers } from '@/lib/db/repositories/users'
 import {
   findInstanceById,
@@ -125,6 +127,21 @@ export async function runSearch(
     ]),
   )
 
+  // A run has no page of its own, so its result opens the task it is at
+  // now, or its last one. It used to open nothing, while looking clickable.
+  const visibleRuns = instances.filter((instance) => allowed(visible, instance.instanceId))
+  const runEntry = new Map(
+    await Promise.all(
+      visibleRuns.map(
+        async (instance) =>
+          [
+            instance.instanceId,
+            entryTaskFor(await listTasksForInstance(instance.instanceId))?.taskId,
+          ] as const,
+      ),
+    ),
+  )
+
   const groups: SearchGroup[] = []
 
   const add = (label: string, hits: SearchHit[]) => {
@@ -171,16 +188,17 @@ export async function runSearch(
 
   add(
     'Work',
-    instances
-      .filter((instance) => allowed(visible, instance.instanceId))
-      .map((instance) => ({
-        // An instance has no page of its own; its open task is the way in.
-        href: null,
+    visibleRuns.map((instance) => {
+      const entry = runEntry.get(instance.instanceId)
+      return {
+        // An instance has no page of its own; its task is the way in.
+        href: entry ? `/tasks/${entry}` : null,
         title: instance.title,
         context: instance.projectId ? projectName.get(instance.projectId) : undefined,
         id: instance.instanceId,
         meta: instance.status.replace(/_/g, ' '),
-      })),
+      }
+    }),
   )
 
   add(
@@ -272,8 +290,10 @@ async function lookupById(
     case 'workflowInstance': {
       const instance = await findInstanceById(exactId.id as WorkflowInstanceId)
       if (!instance || !allowed(visible, instance.instanceId)) return null
+      // Pasting a run's id goes to the task it is at, like any other id.
+      const entry = entryTaskFor(await listTasksForInstance(instance.instanceId))
       return {
-        href: null,
+        href: entry ? `/tasks/${entry.taskId}` : null,
         title: instance.title,
         id: instance.instanceId,
         meta: instance.status.replace(/_/g, ' '),

@@ -20,6 +20,7 @@ import { listInstances } from '@/lib/db/repositories/workflow-instances'
 import { listActiveTemplates } from '@/lib/db/repositories/workflow-templates'
 import { deriveBucket, hasBreachedSla, hoursWaiting } from '@/lib/workflow/buckets'
 import { endOfBusinessDay } from '@/lib/workflow/business-day'
+import { entryTaskFor } from '@/lib/workflow/run-entry'
 import {
   filterPeople,
   filterTasks,
@@ -283,10 +284,7 @@ export async function getManagementOverview(
     // Through every open task, not the filtered ones: a filter decides which
     // runs are listed, not which door opens them.
     const open = liveTasks.find((task) => task.instanceId === instance.instanceId)
-    const last = allTasks
-      .filter((task) => task.instanceId === instance.instanceId)
-      .sort((a, b) => b.activatedAt.getTime() - a.activatedAt.getTime())[0]
-    const way = open ?? last
+    const way = entryTaskFor(allTasks.filter((task) => task.instanceId === instance.instanceId))
     const workflow = workflowName.get(instance.workflowId)
     return {
       key: instance.instanceId,
