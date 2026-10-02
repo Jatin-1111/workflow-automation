@@ -5,7 +5,9 @@
  * page, makes any view shareable, and survives a reload.
  */
 
+import Form from 'next/form'
 import Link from 'next/link'
+import { LinkPending } from '@/features/ui/link-pending'
 import { SlidersHorizontal } from 'lucide-react'
 import { BUCKET_LABELS } from '@/lib/workflow/buckets'
 import { DUE_WINDOWS, DUE_WINDOW_LABELS } from '@/lib/workflow/due-window'
@@ -71,7 +73,7 @@ export function WorkFilters({
               key={tab}
               href={hrefWith(filters, { view: tab })}
               aria-current={active ? 'page' : undefined}
-              className={`-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition ${
+              className={`relative -mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition ${
                 active
                   ? 'border-accent font-medium text-foreground'
                   : 'border-transparent text-muted hover:text-foreground'
@@ -95,6 +97,7 @@ export function WorkFilters({
                   {count}
                 </span>
               ) : null}
+              <LinkPending />
             </Link>
           )
         })}
@@ -105,7 +108,11 @@ export function WorkFilters({
       {/* Six controls for a handful of rows is furniture, not help. The bar
           appears once there is enough to sift, or once something is already
           narrowing the list. */}
+      {/* Keyed by the filters, so the controls follow the address: the form
+          now survives navigation, and Clear would otherwise leave the old
+          search and choices in place. */}
       <details
+        key={JSON.stringify(filters)}
         open={filtered}
         className={`group ${worthFiltering ? '' : 'hidden'}`}
       >
@@ -119,8 +126,8 @@ export function WorkFilters({
           ) : null}
         </summary>
 
-      <form
-        method="get"
+      {/* next/form: a plain GET form reloaded the whole window. */}
+      <Form
         action="/my-work"
         className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5"
       >
@@ -216,7 +223,7 @@ export function WorkFilters({
             Clear
           </Link>
         ) : null}
-      </form>
+      </Form>
       </details>
     </div>
   )

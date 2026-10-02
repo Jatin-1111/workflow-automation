@@ -5,19 +5,40 @@
  * on the previous screen with no sign anything was happening — worst on a
  * cold serverless start, where that is measured in seconds. This is the shape
  * of the page arriving, not a spinner: it tells you which page you are on.
+ *
+ * It fills only the space beneath the header, which stays on screen. And it
+ * is as wide as the page it stands in for: it was always 1280px, so a
+ * narrower page — Notifications is 768px — jumped inwards as it arrived.
  */
 
 import { Skeleton } from './primitives'
 
+/**
+ * The page's own width, or "framed" for a page drawn inside a layout that
+ * already provides the frame (the Overview views).
+ */
+export type SkeletonWidth = 'full' | '7xl' | '6xl' | '5xl' | '4xl' | '3xl' | 'framed'
+
+const WIDTHS: Record<Exclude<SkeletonWidth, 'framed'>, string> = {
+  full: '',
+  '7xl': 'max-w-7xl',
+  '6xl': 'max-w-6xl',
+  '5xl': 'max-w-5xl',
+  '4xl': 'max-w-4xl',
+  '3xl': 'max-w-3xl',
+}
+
 export function PageSkeleton({
   rows = 5,
   tiles = 0,
+  width = '7xl',
 }: {
   rows?: number
   tiles?: number
+  width?: SkeletonWidth
 }) {
-  return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+  const body = (
+    <>
       <span className="sr-only" role="status">
         Loading
       </span>
@@ -51,6 +72,9 @@ export function PageSkeleton({
           ))}
         </div>
       </div>
-    </main>
+    </>
   )
+
+  if (width === 'framed') return body
+  return <main className={`mx-auto w-full ${WIDTHS[width]} px-4 py-8 sm:px-6`}>{body}</main>
 }

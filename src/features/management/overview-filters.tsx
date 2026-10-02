@@ -6,6 +6,7 @@
  * wants from a filter they use every morning.
  */
 
+import Form from 'next/form'
 import Link from 'next/link'
 import { ChevronDown, SlidersHorizontal } from 'lucide-react'
 import { Count, buttonClass, controlClass } from '@/features/ui/primitives'
@@ -68,7 +69,11 @@ export function OverviewFilterBar({
   const active = activeFilterCount(filters)
 
   return (
-    <form method="get" className="mb-6">
+    // next/form: a plain GET form reloaded the whole window. The wrapper is
+    // keyed by the filters so the selects follow the address — after Clear
+    // they would otherwise go on showing the old choices.
+    <div key={JSON.stringify({ filters, open })} className="mb-6">
+    <Form action="/dashboard">
       {open ? <input type="hidden" name="show" value={open} /> : null}
       {/* Open only when something is already narrowing the view. Eight empty
           selects between a manager and their numbers is the wrong default. */}
@@ -155,6 +160,7 @@ export function OverviewFilterBar({
       </div>
         </div>
       </details>
-    </form>
+    </Form>
+    </div>
   )
 }

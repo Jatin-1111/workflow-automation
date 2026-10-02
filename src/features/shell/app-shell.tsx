@@ -3,15 +3,22 @@
  *
  * Navigation entries are filtered by capability, so nobody is shown a door
  * they cannot open. The data layer still enforces access independently.
+ *
+ * Drawn once, by the signed-in layout, not by every page. While each page
+ * drew its own, a page's loading screen replaced the header along with
+ * everything else, so every click blanked the whole window. The parts that
+ * depend on which page is showing read the address on the client.
  */
 
+import Form from 'next/form'
 import Link from 'next/link'
-import { Bell, CircleHelp, Orbit, Search } from 'lucide-react'
+import { CircleHelp, Orbit, Search } from 'lucide-react'
 import { LogoutButton } from '@/features/auth/logout-button'
-import { isOverviewPath } from '@/features/management/overview-tabs'
 import { can, type Capability } from '@/lib/auth/permissions'
-import { countUnreadNotifications } from '@/lib/db/repositories/notifications'
 import type { PublicUser } from '@/lib/types/user'
+import { NotificationBell } from './notification-bell'
+import { PrimaryNav } from './primary-nav'
+import { ShellLink } from './shell-link'
 
 interface NavEntry {
   href: string
@@ -29,19 +36,19 @@ const NAV: NavEntry[] = [
   { href: '/admin', label: 'Admin', requires: 'admin.manage_users' },
 ]
 
-export async function AppShell({
+export function AppShell({
   user,
-  current,
+  unread,
   children,
 }: {
   user: PublicUser
-  current: string
+  /** The count when the header was drawn; the bell keeps it current. */
+  unread: number
   children: React.ReactNode
 }) {
   const entries = NAV.filter(
     (entry) => !entry.requires || can(user.accessLevel, entry.requires),
-  )
-  const unread = await countUnreadNotifications(user.userId)
+  ).map(({ href, label }) => ({ href, label }))
 
   return (
     <>
@@ -67,11 +74,9 @@ export async function AppShell({
 
           {/* The search grows into whatever the header is not using, rather
               than sitting at a fixed width with dead space either side. */}
-          <form
-            method="get"
-            action="/search"
-            className="relative mx-auto hidden w-full max-w-md md:block"
-          >
+          {/* next/form, not a plain GET form: a plain one reloaded the
+              whole document, so searching flashed the window blank. */}
+          <Form action="/search" className="relative mx-auto hidden w-full max-w-md md:block">
             <Search
               size={16}
               strokeWidth={1.75}
@@ -85,44 +90,26 @@ export async function AppShell({
               aria-label="Search Business Orbit"
               className="h-9 w-full rounded-md border border-border bg-surface-sunken pl-9 pr-3 text-sm text-foreground transition-ui placeholder:text-subtle hover:border-border-strong focus-visible:border-accent focus-visible:bg-surface"
             />
-          </form>
+          </Form>
 
           {/* Icon-first, so the two utilities read as controls rather than as
               more navigation competing with the tabs below. */}
-          <Link
-            href="/notifications"
-            aria-label={
-              unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'
-            }
-            aria-current={current === '/notifications' ? 'page' : undefined}
-            className={`relative ml-auto flex size-9 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-surface-sunken md:ml-0 ${
-              current === '/notifications' ? 'text-accent' : 'text-muted hover:text-foreground'
-            }`}
-          >
-            <Bell size={18} strokeWidth={1.75} aria-hidden />
-            {unread > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-xs font-medium tabular-nums text-white">
-                {unread}
-              </span>
-            ) : null}
-          </Link>
+          <NotificationBell initialUnread={unread} />
 
-          <Link
+          <ShellLink
             href="/help"
-            aria-label="How this works"
-            aria-current={current === '/help' ? 'page' : undefined}
-            className={`flex size-9 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-surface-sunken ${
-              current === '/help' ? 'text-accent' : 'text-muted hover:text-foreground'
-            }`}
+            label="How this works"
+            className="flex size-9 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-surface-sunken"
+            activeClassName="text-accent"
+            idleClassName="text-muted hover:text-foreground"
           >
             <CircleHelp size={18} strokeWidth={1.75} aria-hidden />
-          </Link>
+          </ShellLink>
 
           <span aria-hidden className="hidden h-6 w-px bg-border sm:block" />
 
-          <Link
+          <ShellLink
             href="/profile"
-            aria-current={current === '/profile' ? 'page' : undefined}
             className="flex shrink-0 items-center gap-2 rounded-md py-1 pl-1 pr-2 text-sm transition-ui hover:bg-surface-sunken"
           >
             <span
@@ -132,35 +119,12 @@ export async function AppShell({
               {user.name.slice(0, 1).toUpperCase()}
             </span>
             <span className="hidden text-muted sm:block">{user.name}</span>
-          </Link>
+          </ShellLink>
 
           <LogoutButton />
         </div>
 
-        <nav className="mx-auto max-w-7xl px-4 sm:px-6">
-          <ul className="-mb-px flex items-center gap-1 overflow-x-auto">
-            {entries.map((entry) => {
-              const active =
-                current === entry.href ||
-                (entry.href === '/dashboard' && isOverviewPath(current))
-              return (
-                <li key={entry.href}>
-                  <Link
-                    href={entry.href}
-                    aria-current={active ? 'page' : undefined}
-                    className={`block whitespace-nowrap border-b-2 px-3 py-2.5 text-sm transition-ui ${
-                      active
-                        ? 'border-accent font-semibold text-accent'
-                        : 'border-transparent text-muted hover:border-border-strong hover:text-foreground'
-                    }`}
-                  >
-                    {entry.label}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        </nav>
+        <PrimaryNav entries={entries} />
       </header>
       {children}
     </>

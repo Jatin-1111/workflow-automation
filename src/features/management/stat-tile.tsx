@@ -1,6 +1,7 @@
 /** A single headline number on the management dashboard (spec §16). */
 
 import Link from 'next/link'
+import { LinkPending } from '@/features/ui/link-pending'
 import type { LucideIcon } from 'lucide-react'
 
 export type StatTone = 'neutral' | 'alert' | 'action' | 'good' | 'progress'
@@ -81,11 +82,12 @@ export function StatTile({
     <Link
       href={href}
       aria-current={selected ? 'true' : undefined}
-      className={`${shared} block transition-ui hover:shadow-sm ${
+      className={`${shared} relative block transition-ui hover:shadow-sm ${
         selected ? 'border-accent ring-2 ring-accent-soft' : 'border-border hover:border-accent-ring'
       }`}
     >
       {body}
+      <LinkPending />
     </Link>
   ) : (
     <div className={`${shared} border-border`}>{body}</div>
