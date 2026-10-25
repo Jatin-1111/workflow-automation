@@ -119,6 +119,25 @@ describe('a primary button carries its own label', () => {
   })
 })
 
+describe('the primary action is a near-black that carries its own label', () => {
+  it('white on the primary', () => {
+    const ratio = contrastRatio(WHITE, token('primary'))
+    assert.ok(ratio >= AA_NORMAL_TEXT, `${ratio.toFixed(2)}:1`)
+  })
+
+  it('and still does when hovered', () => {
+    const ratio = contrastRatio(WHITE, token('primary-hover'))
+    assert.ok(ratio >= AA_NORMAL_TEXT, `${ratio.toFixed(2)}:1`)
+  })
+
+  it('stands apart from the brand, so the two are never mistaken for one another', () => {
+    // The primary is what you press; the accent is where you are and what
+    // you can follow. If they converged the page would lose the distinction.
+    const difference = colorDifference(token('primary'), token('accent'))
+    assert.ok(difference >= CLEARLY_DIFFERENT, `${difference.toFixed(1)}`)
+  })
+})
+
 describe('colours that mean different things look different', () => {
   it('the brand does not impersonate a status', () => {
     // The point of moving off navy: the one colour that means "you can press

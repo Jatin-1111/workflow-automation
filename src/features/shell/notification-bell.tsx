@@ -44,7 +44,7 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
       href="/notifications"
       aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
       aria-current={here ? 'page' : undefined}
-      className={`relative ml-auto flex size-9 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-surface-sunken md:ml-0 ${
+      className={`relative flex size-11 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-black/[0.045] sm:size-9 ${
         here ? 'text-accent' : 'text-muted hover:text-foreground'
       }`}
     >

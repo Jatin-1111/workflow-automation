@@ -10,12 +10,12 @@
  * depend on which page is showing read the address on the client.
  */
 
-import Form from 'next/form'
 import Link from 'next/link'
-import { CircleHelp, Orbit, Search } from 'lucide-react'
+import { CircleHelp, Orbit } from 'lucide-react'
 import { LogoutButton } from '@/features/auth/logout-button'
 import { can, type Capability } from '@/lib/auth/permissions'
 import type { PublicUser } from '@/lib/types/user'
+import { HeaderSearch } from './header-search'
 import { NotificationBell } from './notification-bell'
 import { PrimaryNav } from './primary-nav'
 import { ShellLink } from './shell-link'
@@ -57,8 +57,8 @@ export function AppShell({
         navigation below. Cramming both onto one line is what made the header
         wrap unpredictably as the navigation grew.
       */}
-      <header className="sticky top-0 z-10 border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3 sm:gap-4 sm:px-6">
+      <header className="sticky top-0 z-10 border-b border-border bg-surface/90 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
           <Link
             href="/my-work"
             className="group flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-ui hover:text-accent"
@@ -72,25 +72,9 @@ export function AppShell({
             <span className="hidden sm:block">Business Orbit</span>
           </Link>
 
-          {/* The search grows into whatever the header is not using, rather
-              than sitting at a fixed width with dead space either side. */}
-          {/* next/form, not a plain GET form: a plain one reloaded the
-              whole document, so searching flashed the window blank. */}
-          <Form action="/search" className="relative mx-auto hidden w-full max-w-md md:block">
-            <Search
-              size={16}
-              strokeWidth={1.75}
-              aria-hidden
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
-            />
-            <input
-              type="search"
-              name="q"
-              placeholder="Search or paste an ID"
-              aria-label="Search Business Orbit"
-              className="h-9 w-full rounded-md border border-border bg-surface-sunken pl-9 pr-3 text-sm text-foreground transition-ui placeholder:text-subtle hover:border-border-strong focus-visible:border-accent focus-visible:bg-surface"
-            />
-          </Form>
+          {/* Grows into whatever the header is not using, and is a single tap
+              on a phone, where the box itself does not fit. */}
+          <HeaderSearch />
 
           {/* Icon-first, so the two utilities read as controls rather than as
               more navigation competing with the tabs below. */}
@@ -99,7 +83,7 @@ export function AppShell({
           <ShellLink
             href="/help"
             label="How this works"
-            className="flex size-9 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-surface-sunken"
+            className="flex size-11 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-black/[0.045] sm:size-9"
             activeClassName="text-accent"
             idleClassName="text-muted hover:text-foreground"
           >

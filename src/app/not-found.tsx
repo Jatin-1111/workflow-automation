@@ -13,7 +13,7 @@ import { buttonClass } from '@/features/ui/primitives'
 
 export default function NotFound() {
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-col items-center px-4 py-20 text-center">
+    <main id="main" className="mx-auto flex w-full max-w-lg flex-col items-center px-4 py-20 text-center">
       <span
         aria-hidden
         className="mb-4 flex size-11 items-center justify-center rounded-full bg-surface-sunken text-muted"

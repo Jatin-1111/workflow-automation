@@ -1,5 +1,5 @@
 import { PageSkeleton } from '@/features/ui/page-skeleton'
 
 export default function Loading() {
-  return <PageSkeleton rows={4} width="6xl" />
+  return <PageSkeleton rows={4} width="full" />
 }

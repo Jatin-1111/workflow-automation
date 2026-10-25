@@ -16,7 +16,7 @@ export function PrimaryNav({ entries }: { entries: { href: string; label: string
 
   return (
     <nav className="mx-auto max-w-7xl px-4 sm:px-6">
-      <ul className="-mb-px flex items-center gap-1 overflow-x-auto">
+      <ul className="-mb-px -ml-3 flex items-center gap-1 overflow-x-auto">
         {entries.map((entry) => {
           const active = section === entry.href
           return (

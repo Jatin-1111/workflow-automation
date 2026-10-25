@@ -6,7 +6,7 @@ export default async function NoAccessPage() {
   const landing = await currentLandingPath()
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
+    <main id="main" className="flex min-h-dvh items-center justify-center px-6">
       <div className="max-w-md text-center">
         <h1 className="text-lg font-semibold">You do not have access to this page</h1>
         <p className="mt-2 text-sm text-muted">
@@ -23,3 +23,5 @@ export default async function NoAccessPage() {
     </main>
   )
 }
+
+export const metadata = { title: 'No access' }

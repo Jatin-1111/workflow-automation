@@ -15,22 +15,24 @@
  * screen somebody reads for eight hours.
  */
 :root {
-  /* Surfaces. A faintly indigo page behind white cards gives depth without
-     shadow, and ties the canvas to the brand rather than sitting beside it. */
-  --background: #f4f5fa;
+  /* Surfaces. One cool grey family, all of it tinted the same way: a canvas
+     just off white behind white panels, and a hairline between them doing
+     the work a shadow used to. The canvas used to carry an indigo cast; it
+     made every white panel look like a box dropped on a coloured page. */
+  --background: #f6f7f9;
   --surface: #ffffff;
-  --surface-sunken: #f9fafd;
+  --surface-sunken: #fafbfc;
 
   /* Text. Four steps is enough hierarchy, and every one of them clears AA
      on white, on the canvas and on a sunken panel — checked, not assumed.
      `subtle` was the exception and was darkened until it was not: an ID or
      a timestamp is still text, and 3.4:1 asked people to squint at it. */
-  --foreground: #14161f;
-  --muted: #565e70;
-  --subtle: #696f7e;
+  --foreground: #0e1116;
+  --muted: #4f5868;
+  --subtle: #667082;
 
-  --border: #e5e7ef;
-  --border-strong: #cdd1de;
+  --border: #e4e7ec;
+  --border-strong: #cbd0d9;
 
   /**
    * The brand.
@@ -43,12 +45,24 @@
    * #4f46e5 carries white at 6.3:1, so a primary button is legible rather
    * than merely branded.
    */
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-strong: #3730a3;
-  --accent-soft: #eef1ff;
-  --accent-soft-hover: #e0e5ff;
-  --accent-ring: #c7cbf7;
+  --accent: #4b57c9;
+  --accent-hover: #3f4ab5;
+  --accent-strong: #343e9c;
+  --accent-soft: #eef0fb;
+  --accent-soft-hover: #e2e6f8;
+  --accent-ring: #c3c8ee;
+
+  /**
+   * The primary action.
+   *
+   * Graphite, not the brand. A screen has one decision on it, and a
+   * near-black button says so without needing a colour to shout it; the
+   * indigo it replaced was the same loud block on every page, which is why
+   * none of them stood out. The brand colour is kept for what it is for:
+   * focus, links, the tab you are on, and the mark.
+   */
+  --primary: #12151c;
+  --primary-hover: #2b303b;
 
   /* Status. Each has a tint so a pill reads at a glance without shouting.
      Every ink clears 4.5:1 on white and on its own tint. */
@@ -79,7 +93,7 @@
    * more stages than stops repeats from the beginning; position within the
    * workflow is still what the colour encodes.
    */
-  --stage-1: #4f46e5;
+  --stage-1: #4b57c9;
   --stage-2: #2563eb;
   --stage-3: #0284c7;
   --stage-4: #0891b2;
@@ -178,8 +192,17 @@
   --color-label-cyan: var(--label-cyan);
   --color-label-cyan-soft: var(--label-cyan-soft);
 
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Shadows are tinted with the canvas's own hue, not black, and used only
+     where something floats above the page: a menu, a dialog, a dragged card.
+     Resting panels have a hairline and nothing else. */
+  --shadow-float: 0 1px 2px rgb(15 20 35 / 0.06), 0 8px 24px -6px rgb(15 20 35 / 0.14);
+  --shadow-lift: 0 1px 2px rgb(15 20 35 / 0.05), 0 4px 12px -4px rgb(15 20 35 / 0.12);
 }
 
 body {
@@ -191,6 +214,29 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Headings break evenly instead of leaving one word on the last line, and
+   paragraphs avoid the same orphan. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Hash links and keyboard focus land clear of the sticky header. */
+html {
+  scroll-padding-top: 8rem;
+}
+
+/* Selecting text should look like it belongs to the brand. */
+::selection {
+  background: var(--accent-ring);
+  color: var(--foreground);
+}
+
 /* Figures line up in columns without having to say so at every call site. */
 table,
 .tabular {
@@ -198,10 +244,32 @@ table,
 }
 
 /* One focus treatment everywhere, visible on both white and tinted surfaces. */
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* The first thing a keyboard user can reach: a way past the header. It is
+   off screen until focused, then sits above everything. */
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: 0.375rem;
+  background: var(--primary);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: var(--shadow-float);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+  outline-offset: 2px;
 }
 
 /* ---------------------------------------------------------------------------
@@ -223,6 +291,28 @@ table,
   transition-property: color, background-color, border-color, box-shadow, opacity;
   transition-duration: var(--duration-fast);
   transition-timing-function: var(--ease);
+}
+
+/* A run of panels that read as one: the task page's side column. Each keeps
+ * its own heading and rows, but the boxes around them go and a hairline
+ * stands between instead — five stacked boxes of equal weight said nothing
+ * about which mattered. */
+.rail {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.rail > .panel {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  animation: none;
+}
+
+.rail > .panel + .panel {
+  border-top: 1px solid var(--border);
 }
 
 /* A section arriving. Deliberately small: 4px and a fade, nothing that delays

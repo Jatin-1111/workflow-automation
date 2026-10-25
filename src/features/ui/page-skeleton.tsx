@@ -6,23 +6,21 @@
  * cold serverless start, where that is measured in seconds. This is the shape
  * of the page arriving, not a spinner: it tells you which page you are on.
  *
- * It fills only the space beneath the header, which stays on screen. And it
- * is as wide as the page it stands in for: it was always 1280px, so a
- * narrower page — Notifications is 768px — jumped inwards as it arrived.
+ * It fills the container the layout provides, which is the frame the page
+ * will have, and keeps the measure of the page it stands in for: it was
+ * always 1280px wide, so a narrower page jumped inwards as it arrived.
  */
 
 import { Skeleton } from './primitives'
 
 /**
- * The page's own width, or "framed" for a page drawn inside a layout that
- * already provides the frame (the Overview views).
+ * The measure of the page being waited for. Everything starts at the same
+ * left edge; a narrow page limits its own content and stays left-aligned.
  */
-export type SkeletonWidth = 'full' | '7xl' | '6xl' | '5xl' | '4xl' | '3xl' | 'framed'
+export type SkeletonWidth = 'full' | '5xl' | '4xl' | '3xl'
 
-const WIDTHS: Record<Exclude<SkeletonWidth, 'framed'>, string> = {
+const WIDTHS: Record<SkeletonWidth, string> = {
   full: '',
-  '7xl': 'max-w-7xl',
-  '6xl': 'max-w-6xl',
   '5xl': 'max-w-5xl',
   '4xl': 'max-w-4xl',
   '3xl': 'max-w-3xl',
@@ -31,14 +29,14 @@ const WIDTHS: Record<Exclude<SkeletonWidth, 'framed'>, string> = {
 export function PageSkeleton({
   rows = 5,
   tiles = 0,
-  width = '7xl',
+  width = 'full',
 }: {
   rows?: number
   tiles?: number
   width?: SkeletonWidth
 }) {
-  const body = (
-    <>
+  return (
+    <div className={WIDTHS[width]}>
       <span className="sr-only" role="status">
         Loading
       </span>
@@ -49,10 +47,15 @@ export function PageSkeleton({
       </div>
 
       {tiles > 0 ? (
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: tiles }, (_, i) => (
-            <Skeleton key={i} className="h-20 rounded-xl" />
-          ))}
+        <div className="mb-6 overflow-hidden rounded-xl border border-border bg-surface">
+          <div className="-mb-px -mr-px grid grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: Math.min(tiles, 8) }, (_, i) => (
+              <div key={i} className="space-y-3 border-b border-r border-border px-5 py-4">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-7 w-12" />
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
 
@@ -72,9 +75,6 @@ export function PageSkeleton({
           ))}
         </div>
       </div>
-    </>
+    </div>
   )
-
-  if (width === 'framed') return body
-  return <main className={`mx-auto w-full ${WIDTHS[width]} px-4 py-8 sm:px-6`}>{body}</main>
 }

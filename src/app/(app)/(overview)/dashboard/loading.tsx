@@ -1,5 +1,5 @@
 import { PageSkeleton } from '@/features/ui/page-skeleton'
 
 export default function Loading() {
-  return <PageSkeleton rows={4} tiles={8} width="framed" />
+  return <PageSkeleton rows={4} tiles={8} />
 }

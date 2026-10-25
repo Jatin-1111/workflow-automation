@@ -23,7 +23,7 @@ export function OverviewTabs() {
 
   return (
     <nav aria-label="Overview" className="mb-6 border-b border-border">
-      <ul className="flex flex-wrap items-end gap-1">
+      <ul className="-ml-3 flex flex-wrap items-end gap-1">
         {OVERVIEW_SECTIONS.map((tab) => {
           const active = sectionContains(tab, pathname)
           return (

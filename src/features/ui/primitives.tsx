@@ -69,10 +69,13 @@ const BUTTON_BASE =
   'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0'
 
 const BUTTON_TONES: Record<ButtonTone, string> = {
-  primary: 'bg-accent text-white hover:bg-accent-hover',
+  // Graphite with a one-pixel highlight along the top edge, so a primary
+  // action has a little physical edge to it without a shadow.
+  primary:
+    'bg-primary text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.14)] hover:bg-primary-hover',
   secondary:
-    'border border-border-strong bg-surface text-foreground hover:border-accent hover:bg-accent-soft',
-  quiet: 'text-muted hover:bg-surface-sunken hover:text-foreground',
+    'border border-border-strong bg-surface text-foreground hover:bg-surface-sunken',
+  quiet: 'text-muted hover:bg-black/[0.045] hover:text-foreground',
   danger:
     'border border-border-strong bg-surface text-status-overdue hover:border-status-overdue hover:bg-status-overdue-soft',
 }
@@ -189,7 +192,11 @@ export function Pill({
 
 /** A small count beside a heading, without competing with it. */
 export function Count({ value }: { value: number }) {
-  return <span className="ml-2 text-sm font-normal tabular-nums text-subtle">{value}</span>
+  return (
+    <span className="ml-2 rounded bg-black/[0.05] px-1.5 py-px text-xs font-medium tabular-nums text-muted">
+      {value}
+    </span>
+  )
 }
 
 /* -------------------------------------------------------------------------
@@ -206,11 +213,13 @@ export function PageHeader({
   actions?: React.ReactNode
 }) {
   return (
-    <header className="mb-6 flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+    <header className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em] text-foreground">
+          {title}
+        </h1>
         {description ? (
-          <p className="mt-1 text-sm text-muted">{description}</p>
+          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">{description}</p>
         ) : null}
       </div>
       {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
@@ -235,12 +244,12 @@ export function Panel({
 }) {
   return (
     <section
-      className={`rise overflow-hidden ${RADIUS_CONTAINER} border border-border bg-surface ${className}`}
+      className={`panel rise overflow-hidden ${RADIUS_CONTAINER} border border-border bg-surface ${className}`}
     >
       {title ? (
         <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-3.5">
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-foreground">
+            <h2 className="text-sm font-semibold tracking-[-0.006em] text-foreground">
               {title}
               {count !== undefined ? <Count value={count} /> : null}
             </h2>
@@ -251,13 +260,16 @@ export function Panel({
           {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
         </div>
       ) : null}
-      {children}
+      {/* A table wider than a phone scrolls inside its panel. The panel clips
+          its corners, so before this a wide table was cut off at the edge
+          with its last columns out of reach. */}
+      <div className="overflow-x-auto">{children}</div>
     </section>
   )
 }
 
 export function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="px-5 py-10 text-center text-sm text-muted">{children}</p>
+  return <p className="px-5 py-8 text-center text-sm leading-relaxed text-muted">{children}</p>
 }
 
 /** A breadcrumb trail, which is how every detail page states where it is. */
