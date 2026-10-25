@@ -344,7 +344,9 @@ export function WorkflowEditor({
           </select>
         </label>
 
-        <label className="flex flex-col gap-1">
+        {/* The whole row: it was a third of the width, so a sentence of
+            description cut itself off in the middle of a word. */}
+        <label className="flex flex-col gap-1 sm:col-span-3">
           <span className="text-xs font-medium text-muted">
             Description
           </span>
@@ -378,7 +380,7 @@ export function WorkflowEditor({
         </p>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <section className="rounded-xl border border-border bg-surface">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h2 className="text-sm font-semibold">
@@ -599,16 +601,22 @@ export function WorkflowEditor({
 
 function ReadOnlyStage({ stage }: { stage: StageDefinition }) {
   return (
-    <dl className="space-y-3 text-sm">
+    <dl className="grid gap-x-10 gap-y-5 text-sm sm:grid-cols-2">
       <Row label="Stage">{stage.name}</Row>
       <Row label="Key">
         <span className="font-mono text-xs">{stage.key}</span>
       </Row>
-      {stage.instructions ? <Row label="Instructions">{stage.instructions}</Row> : null}
+      {stage.instructions ? (
+        <Row label="Instructions" wide>
+          {stage.instructions}
+        </Row>
+      ) : null}
       <Row label="Completion">
         {stage.completionRule === 'all' ? 'Everyone must finish' : 'Either owner finishes it'}
       </Row>
-      <Row label="Priority">{stage.priority}</Row>
+      <Row label="Priority">
+        <span className="capitalize">{stage.priority}</span>
+      </Row>
       {stage.dueInHours ? <Row label="Due in">{stage.dueInHours} hours</Row> : null}
       {stage.slaHours ? <Row label="SLA">{stage.slaHours} hours</Row> : null}
       <Row label="Approval">
@@ -626,11 +634,20 @@ function ReadOnlyStage({ stage }: { stage: StageDefinition }) {
   )
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({
+  label,
+  children,
+  wide = false,
+}: {
+  label: string
+  children: React.ReactNode
+  /** Takes the whole row, for text that reads as a sentence. */
+  wide?: boolean
+}) {
   return (
-    <div>
+    <div className={wide ? 'sm:col-span-2' : ''}>
       <dt className="text-xs font-medium text-muted">{label}</dt>
-      <dd className="mt-0.5">{children}</dd>
+      <dd className="mt-1 leading-relaxed">{children}</dd>
     </div>
   )
 }

@@ -13,7 +13,7 @@ export default async function ProjectsPage() {
     <>
 
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
+        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">Projects</h1>
         <p className="mt-1 text-sm text-muted">
           Major Projects, and the workflows running inside them.
         </p>
@@ -51,3 +51,5 @@ export default async function ProjectsPage() {
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Projects' }

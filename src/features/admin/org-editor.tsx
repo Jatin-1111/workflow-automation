@@ -244,7 +244,7 @@ export function OrgManager({
       <ul
         className={
           columns
-            ? 'grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-3'
+            ? '-mb-px -mr-px grid sm:grid-cols-2 xl:grid-cols-3 [&>li]:border-b [&>li]:border-r [&>li]:border-border'
             : 'divide-y divide-border'
         }
       >
@@ -294,7 +294,7 @@ export function OrgManager({
             </label>
           ) : null}
 
-          <Button type="submit" tone="primary" disabled={creating}>
+          <Button type="submit" tone="secondary" disabled={creating}>
             {creating ? 'Adding…' : `Add ${label.toLowerCase()}`}
           </Button>
         </div>

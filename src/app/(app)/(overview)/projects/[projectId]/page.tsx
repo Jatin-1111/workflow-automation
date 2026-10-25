@@ -6,7 +6,7 @@ import { requireCapability } from '@/lib/auth/dal'
 import { getProjectDashboard } from '@/features/management/queries'
 import { EmptyRow, Section } from '@/features/management/section'
 import { Activity, CircleCheckBig, TriangleAlert } from 'lucide-react'
-import { StatTile } from '@/features/management/stat-tile'
+import { StatStrip, StatTile } from '@/features/management/stat-tile'
 import { humanise } from '@/features/my-work/format'
 import { isEntityId } from '@/lib/ids/format'
 
@@ -33,7 +33,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
       </nav>
 
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
+        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">{project.name}</h1>
         <p className="mt-1 text-sm text-muted">
           {project.description}
           {project.ownerName ? ` · Owner: ${project.ownerName}` : ''}
@@ -43,7 +43,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
         </p>
       </header>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <StatStrip columns={3} className="mb-6">
         <StatTile
           label="Active workflows"
           value={active.length}
@@ -62,7 +62,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
           tone="good"
           icon={CircleCheckBig}
         />
-      </div>
+      </StatStrip>
 
       <div className="space-y-6">
         <Section title="Active workflows" count={active.length}>
@@ -139,3 +139,5 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Project' }

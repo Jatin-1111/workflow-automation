@@ -48,7 +48,7 @@ export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
 
   if (!template) {
     return (
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+      <>
         <PageHeader title="Board" />
         <Panel>
           <Empty>
@@ -56,14 +56,14 @@ export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
             publish it, then its runs appear here.
           </Empty>
         </Panel>
-      </main>
+      </>
     )
   }
 
   const board = await getBoard(template, user.userId)
 
   return (
-    <main className="mx-auto w-full px-4 py-8 sm:px-6">
+    <>
       <PageHeader
         title={board.name}
         description={`Version ${board.version}. Drag a card you hold to the next stage to complete it; the workflow decides where it goes. Cards on somebody else's stage are marked and stay put.`}
@@ -138,8 +138,10 @@ export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
           </ul>
         </Panel>
       ) : null}
-    </main>
+    </>
   )
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Board' }

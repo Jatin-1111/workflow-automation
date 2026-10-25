@@ -25,7 +25,7 @@ import {
   Stamp,
   TriangleAlert,
 } from 'lucide-react'
-import { StatTile } from '@/features/management/stat-tile'
+import { StatStrip, StatTile } from '@/features/management/stat-tile'
 import { QuickReassign } from '@/features/management/quick-reassign'
 import { EmptyRow, Section } from '@/features/management/section'
 import { formatDeadline } from '@/features/my-work/format'
@@ -73,7 +73,7 @@ export default async function ManagementDashboardPage({
     <>
 
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Management Overview</h1>
+        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">Management Overview</h1>
         <p className="mt-1 text-sm text-muted">
           Business Orbit operations at {now.toLocaleTimeString('en-GB', {
             hour: '2-digit',
@@ -97,7 +97,7 @@ export default async function ManagementDashboardPage({
 
       {/* Each number opens the list it counts, right here. They were plain
           boxes: "Overdue tasks 1" looked like a way in and was not one. */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <StatStrip>
         {(Object.keys(TILE_LOOK) as OverviewTile[]).map((tile) => (
           <StatTile
             key={tile}
@@ -115,13 +115,16 @@ export default async function ManagementDashboardPage({
           icon={FolderKanban}
           href="/projects"
         />
-      </div>
+      </StatStrip>
 
       {overview.tileList ? (
         <TileListPanel list={overview.tileList} filters={filters} now={now} />
       ) : null}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      {/* An explicit one-column track below `lg`: without it the column is
+          as wide as its widest table, which stretched this whole page past a
+          phone's edge. */}
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-6">
           <Section
             title="Stuck work"
@@ -314,3 +317,5 @@ export default async function ManagementDashboardPage({
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Overview' }

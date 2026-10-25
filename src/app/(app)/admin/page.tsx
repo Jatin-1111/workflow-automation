@@ -64,9 +64,9 @@ export default async function AdminPage() {
     holdersOf(roleId).filter((user) => user.status === 'active')
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Administration</h1>
+        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">Administration</h1>
         <p className="mt-1 text-sm text-muted">
           People, workflow roles, and the organisation structure behind them.
         </p>
@@ -90,10 +90,11 @@ export default async function AdminPage() {
             />
           </div>
 
-          {/* Cards side by side: one person per full-width row left most of
-              a wide screen empty and made the section taller than everything
-              below it put together. */}
-          <ul className="grid gap-px border-t border-border bg-border lg:grid-cols-2">
+          {/* Side by side: one person per full-width row left most of a wide
+              screen empty. The dividers are borders on each person, not a
+              coloured gap between them, so an odd last person leaves white
+              space — it used to leave a grey hole. */}
+          <ul className="-mb-px -mr-px grid border-t border-border lg:grid-cols-2 [&>li]:border-b [&>li]:border-r [&>li]:border-border">
             {users.map((user) => {
               const roleOptions: RoleOption[] = roles.map((role) => ({
                 roleId: role.roleId,
@@ -181,7 +182,7 @@ export default async function AdminPage() {
         {/* Departments and teams are short lists and pair well. Everything
             longer stays full width: pairing a five-row section against a
             twelve-row one left a column's worth of empty space. */}
-        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2 lg:items-start">
         <Section
           title="Departments"
           count={departments.length}
@@ -299,15 +300,17 @@ export default async function AdminPage() {
                   </span>
                 </span>
                 <span className="shrink-0 text-xs text-muted">
-                  {template.stages.length} stages
+                  {template.stages.length} {template.stages.length === 1 ? 'stage' : 'stages'}
                 </span>
               </li>
             ))}
           </ul>
         </Section>
       </div>
-    </main>
+    </>
   )
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Administration' }

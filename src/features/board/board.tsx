@@ -89,7 +89,7 @@ function Card({
           ? 'Drag to the next stage to complete it'
           : `${card.assignees.map((person) => person.name).join(', ') || 'Somebody else'} holds this stage, so only they can move it`
       }
-      className={`group rounded-lg border bg-surface transition-ui hover:shadow-sm ${
+      className={`group rounded-lg border bg-surface transition-ui hover:shadow-lift ${
         card.mine
           ? 'cursor-grab border-border hover:border-border-strong active:cursor-grabbing'
           : 'border-dashed border-border'
@@ -331,7 +331,7 @@ export function BoardView({ board }: { board: Board }) {
                an empty one collapses to a spine. Between them the board is
                always exactly as wide as the screen, so it never scrolls
                sideways. */
-            className={`flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm transition-[flex-grow,border-color] duration-200 ease-out ${
+            className={`flex flex-col overflow-hidden rounded-xl border bg-surface transition-[flex-grow,border-color] duration-200 ease-out ${
               collapsed
                 ? 'w-11 shrink-0 border-dashed border-border'
                 : 'min-w-0 flex-1 basis-0 border-border'

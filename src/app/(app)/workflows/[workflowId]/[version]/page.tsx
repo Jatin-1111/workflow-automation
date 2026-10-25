@@ -48,7 +48,7 @@ export default async function WorkflowVersionPage({
   ).length
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <>
       <nav className="mb-4 text-xs text-subtle">
         <Link href="/workflows" className="transition hover:text-foreground">
           Workflows
@@ -61,7 +61,7 @@ export default async function WorkflowVersionPage({
 
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{template.name}</h1>
+          <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">{template.name}</h1>
           <p className="mt-1 text-sm text-muted">
             Version {template.version} ·{' '}
             {template.status === 'draft'
@@ -113,8 +113,10 @@ export default async function WorkflowVersionPage({
           name: department.name,
         }))}
       />
-    </main>
+    </>
   )
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Workflow' }

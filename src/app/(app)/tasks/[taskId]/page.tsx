@@ -45,7 +45,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
     .map((slot) => slot.label)
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <>
       {/* Two levels, not four. The trail used to name the project, the
           workflow and the piece of work before the heading named the stage
           — four nouns to walk past to reach what you are doing. Project and
@@ -59,7 +59,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
 
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{stage.name}</h1>
+          <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">{stage.name}</h1>
           <p className="mt-1 text-sm text-muted">
             {detail.instanceTitle}
             <span className="text-subtle">
@@ -102,7 +102,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="space-y-6">
           {stage.instructions ? (
             <section className="rounded-xl border border-accent-ring bg-accent-soft/60 px-5 py-4">
@@ -175,7 +175,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
 
         </div>
 
-        <aside className="space-y-6">
+        <aside className="rail self-start">
           {detail.canReassign ? (
             <ReassignPanel
               taskId={task.taskId}
@@ -214,7 +214,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
           <TimelinePanel events={detail.timeline} reference={detail.instanceId} />
         </aside>
       </div>
-    </main>
+    </>
   )
 }
 
@@ -276,8 +276,6 @@ function ReadOnlyNotice({
   )
 }
 
-export function generateMetadata() {
-  return { title: 'Task · Business Orbit' }
-}
+export const metadata = { title: 'Task' }
 
 export const dynamic = 'force-dynamic'

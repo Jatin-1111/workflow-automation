@@ -8,6 +8,7 @@
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
 import { EmptyRow, Section } from '@/features/management/section'
+import { Pill } from '@/features/ui/primitives'
 import { CreateWorkflowForm } from '@/features/workflows/create-workflow-form'
 import { NewVersionButton } from '@/features/workflows/new-version-button'
 import { listProjects } from '@/lib/db/repositories/projects'
@@ -45,9 +46,9 @@ export default async function WorkflowsPage() {
     ).length
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
+    <div className="max-w-5xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Workflows</h1>
+        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">Workflows</h1>
         <p className="mt-1 text-sm text-muted">
           Build a process once and the platform runs it. Editing a published
           workflow creates a new version; work already running keeps the version
@@ -87,13 +88,13 @@ export default async function WorkflowsPage() {
                       <NewVersionButton workflowId={latest.workflowId} />
                     </div>
 
-                    <ul className="mt-3 space-y-1">
+                    <ul className="mt-2 -mx-2">
                       {versions.map((version) => {
                         const running = runningOn(version.workflowId, version.version)
                         return (
                           <li
                             key={version.version}
-                            className="flex flex-wrap items-center gap-3 rounded border border-border px-3 py-2 text-sm"
+                            className="flex flex-wrap items-center gap-3 rounded-md px-2 py-2 text-sm transition-ui hover:bg-surface-sunken"
                           >
                             <Link
                               href={`/workflows/${version.workflowId}/${version.version}`}
@@ -103,7 +104,7 @@ export default async function WorkflowsPage() {
                             </Link>
                             <StatusPill status={version.status} />
                             <span className="text-xs text-muted">
-                              {version.stages.length} stages
+                              {version.stages.length} {version.stages.length === 1 ? 'stage' : 'stages'}
                             </span>
                             {running > 0 ? (
                               <span className="text-xs text-muted">
@@ -121,23 +122,20 @@ export default async function WorkflowsPage() {
           )}
         </Section>
       </div>
-    </main>
+    </div>
   )
 }
 
 function StatusPill({ status }: { status: WorkflowTemplate['status'] }) {
-  const tone =
-    status === 'active'
-      ? 'text-status-complete'
-      : status === 'draft'
-        ? 'text-status-action'
-        : 'text-subtle'
+  const tone = status === 'active' ? 'complete' : status === 'draft' ? 'action' : 'neutral'
 
   return (
-    <span className={`rounded border border-border px-1.5 py-0.5 text-xs font-medium ${tone}`}>
+    <Pill tone={tone}>
       {status === 'active' ? 'Live' : status === 'draft' ? 'Draft' : 'Retired'}
-    </span>
+    </Pill>
   )
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Workflows' }

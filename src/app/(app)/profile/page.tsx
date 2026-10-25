@@ -8,8 +8,8 @@
 import Link from 'next/link'
 import { requireUser } from '@/lib/auth/dal'
 import { EmptyRow, Section } from '@/features/management/section'
-import { Activity, CircleCheckBig, Stamp, TriangleAlert } from 'lucide-react'
-import { StatTile } from '@/features/management/stat-tile'
+import { Activity, Check, CircleCheckBig, Stamp, TriangleAlert } from 'lucide-react'
+import { StatStrip, StatTile } from '@/features/management/stat-tile'
 import { PasswordPanel } from '@/features/profile/password-panel'
 import { getMyWork } from '@/features/my-work/queries'
 import { humanise } from '@/features/my-work/format'
@@ -19,6 +19,7 @@ import { listTeams } from '@/lib/db/repositories/teams'
 import { getMyActivity } from '@/features/profile/activity'
 import { SentenceText } from '@/features/tasks/timeline-sentence'
 import { CAPABILITIES_BY_ACCESS_LEVEL } from '@/lib/auth/permissions'
+import { groupedCapabilities } from '@/lib/auth/capability-labels'
 
 export default async function ProfilePage() {
   const user = await requireUser()
@@ -46,9 +47,9 @@ export default async function ProfilePage() {
   const approvals = work.items.filter((item) => item.status === 'pending_approval')
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <>
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">{user.name}</h1>
+        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">{user.name}</h1>
         <p className="mt-1 text-sm text-muted">
           <span className="font-mono">{user.userId}</span> · {user.email}
           {user.phone ? ` · ${user.phone}` : ''}
@@ -67,7 +68,7 @@ export default async function ProfilePage() {
         </p>
       </header>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-4">
+      <StatStrip className="mb-6">
         <StatTile
           label="Active work"
           value={active.length}
@@ -95,13 +96,13 @@ export default async function ProfilePage() {
           icon={CircleCheckBig}
           href="/my-work?view=completed"
         />
-      </div>
+      </StatStrip>
 
       <div className="space-y-6">
         {/* Who I am on the left, what I am carrying on the right: the
             page stacked nine blocks in one column and scrolled for
             screens on a wide display. */}
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
           <div className="space-y-6">
         <Section
           title="My workflow roles"
@@ -130,16 +131,26 @@ export default async function ProfilePage() {
           title="What I can do"
           description="Granted by my access level, separately from my workflow roles."
         >
-          <ul className="flex flex-wrap gap-2 px-4 py-3">
-            {CAPABILITIES_BY_ACCESS_LEVEL[user.accessLevel].map((capability) => (
-              <li
-                key={capability}
-                className="rounded border border-border px-2 py-1 font-mono text-xs text-muted"
-              >
-                {capability}
-              </li>
+          <div className="divide-y divide-border">
+            {groupedCapabilities(CAPABILITIES_BY_ACCESS_LEVEL[user.accessLevel]).map((group) => (
+              <div key={group.title} className="px-5 py-3.5">
+                <h3 className="text-xs font-medium text-muted">{group.title}</h3>
+                <ul className="mt-2 space-y-1.5">
+                  {group.items.map((item) => (
+                    <li key={item.capability} className="flex items-start gap-2 text-sm">
+                      <Check
+                        size={14}
+                        strokeWidth={2}
+                        aria-hidden
+                        className="mt-1 shrink-0 text-status-complete"
+                      />
+                      {item.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         </Section>
           </div>
 
@@ -202,7 +213,7 @@ export default async function ProfilePage() {
           </div>
         </div>
       </div>
-    </main>
+    </>
   )
 }
 
@@ -249,3 +260,5 @@ function WorkSection({
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Profile' }

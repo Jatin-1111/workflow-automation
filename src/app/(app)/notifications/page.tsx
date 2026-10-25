@@ -25,7 +25,7 @@ export default async function NotificationsPage() {
   const unread = notifications.filter((notification) => !notification.readAt).length
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+    <div className="max-w-3xl">
       <PageHeader
         title="Notifications"
         description={unread === 0 ? 'Nothing unread.' : `${unread} unread.`}
@@ -99,8 +99,10 @@ export default async function NotificationsPage() {
           </ul>
         )}
       </Panel>
-    </main>
+    </div>
   )
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Notifications' }

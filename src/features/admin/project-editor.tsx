@@ -321,7 +321,7 @@ export function ProjectManager({
             <PeoplePicker people={people} members={[]} />
 
             <div className="flex flex-wrap items-center gap-2">
-              <Button type="submit" tone="primary" size="sm" disabled={creating}>
+              <Button type="submit" tone="secondary" size="sm" disabled={creating}>
                 {creating ? 'Adding…' : 'Add project'}
               </Button>
               <Button type="button" tone="quiet" size="sm" onClick={() => setAdding(false)}>

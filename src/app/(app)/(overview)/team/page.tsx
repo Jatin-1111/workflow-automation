@@ -13,7 +13,7 @@ export default async function TeamPage() {
     <>
 
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
+        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">Team</h1>
         <p className="mt-1 text-sm text-muted">
           Open work per person, across every project. Anyone carrying overdue
           work appears first.
@@ -75,3 +75,5 @@ export default async function TeamPage() {
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Team' }

@@ -161,7 +161,7 @@ export function UserCreator({
       </fieldset>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" tone="primary" disabled={creating}>
+        <Button type="submit" tone="secondary" disabled={creating}>
           {creating ? 'Adding…' : 'Add person'}
         </Button>
         <Button type="button" tone="quiet" onClick={() => setOpen(false)}>

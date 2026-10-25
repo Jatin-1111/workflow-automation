@@ -51,7 +51,7 @@ export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>
     work.waitingOnOthers.length
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <>
       {onboarding.showTour ? (
         <WelcomeTour accessLevel={user.accessLevel} name={user.name} />
       ) : null}
@@ -118,6 +118,8 @@ export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>
         {/* Work this person raised that now sits with someone else. */}
         {showsWaitingList ? <WaitingList items={waiting} /> : null}
       </section>
-    </main>
+    </>
   )
 }
+
+export const metadata = { title: 'My Work' }

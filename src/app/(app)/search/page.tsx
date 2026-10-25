@@ -27,9 +27,9 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
+    <div className="max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Search</h1>
+        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">Search</h1>
         <p className="mt-1 text-sm text-muted">
           People, projects, workflows, work, stages and files. Paste an ID to go
           straight to it.
@@ -124,8 +124,10 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
           ))}
         </div>
       )}
-    </main>
+    </div>
   )
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Search' }

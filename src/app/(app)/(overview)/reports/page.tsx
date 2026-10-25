@@ -12,7 +12,7 @@ import { LinkPending } from '@/features/ui/link-pending'
 import { requireCapability } from '@/lib/auth/dal'
 import { EmptyRow, Section } from '@/features/management/section'
 import { Activity, CircleCheckBig, CirclePlay, Undo2 } from 'lucide-react'
-import { StatTile } from '@/features/management/stat-tile'
+import { StatStrip, StatTile } from '@/features/management/stat-tile'
 import { getReport } from '@/features/reports/queries'
 import { formatHours, REPORT_RANGES, type ReportRange } from '@/lib/workflow/metrics'
 
@@ -34,7 +34,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
 
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
+          <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">Reports</h1>
           <p className="mt-1 text-sm text-muted">
             {REPORT_RANGES[range]}
             {range === 'all'
@@ -74,7 +74,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <StatStrip>
         <StatTile label="Started" value={totals.started} icon={CirclePlay} />
         <StatTile
           label="Completed"
@@ -94,39 +94,23 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
           tone="action"
           icon={Undo2}
         />
-      </div>
+      </StatStrip>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-border bg-surface p-4">
-          <p className="text-xs font-medium text-muted">
-            Median time to complete
-          </p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">
-            {formatHours(totals.medianCycleHours)}
-          </p>
-          <p className="mt-0.5 text-xs text-subtle">
-            From the request being raised to the work finishing.
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-border bg-surface p-4">
-          <p className="text-xs font-medium text-muted">
-            Finished on time
-          </p>
-          <p
-            className={`mt-1 text-2xl font-semibold tabular-nums ${
-              totals.onTimeRate !== null && totals.onTimeRate < 60
-                ? 'text-status-overdue'
-                : ''
-            }`}
-          >
-            {totals.onTimeRate === null ? '—' : `${totals.onTimeRate}%`}
-          </p>
-          <p className="mt-0.5 text-xs text-subtle">
-            Counted only when every stage met its deadline.
-          </p>
-        </div>
-      </div>
+      <StatStrip columns={2} className="mt-4">
+        <StatTile
+          label="Median time to complete"
+          value={formatHours(totals.medianCycleHours)}
+          note="From the request being raised to the work finishing."
+        />
+        <StatTile
+          label="Finished on time"
+          value={totals.onTimeRate === null ? '—' : `${totals.onTimeRate}%`}
+          tone={
+            totals.onTimeRate !== null && totals.onTimeRate < 60 ? 'alert' : 'neutral'
+          }
+          note="Counted only when every stage met its deadline."
+        />
+      </StatStrip>
 
       <div className="mt-6 space-y-6">
         <Section
@@ -189,7 +173,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
         {/* Three short tables. Two columns wraps the third onto a row of
             its own, so it spans the full width there and only splits three
             ways once there is room. */}
-        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2 xl:grid-cols-3">
         <Section title="By workflow" count={report.workflows.length}>
           <div className="overflow-x-auto">
           <table className="w-full min-w-xl text-sm">
@@ -309,3 +293,5 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
 }
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = { title: 'Reports' }
