@@ -2,13 +2,16 @@
 
 import { buttonClass, fieldClass } from '@/features/ui/primitives'
 import { PASSWORD, TEXT_LIMITS } from '@/lib/validation/bounds'
-import { useActionState, useEffect, useRef } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { login, type LoginState } from './actions'
 
 const INITIAL_STATE: LoginState = {}
 
 export function LoginForm({ next }: { next?: string }) {
   const [state, formAction, pending] = useActionState(login, INITIAL_STATE)
+  // Typing a password blind on a phone is how people end up locked out by
+  // their own typos. Showing it is a choice, off by default.
+  const [reveal, setReveal] = useState(false)
 
   // Every refusal is a new state, so this opens the help each time one that
   // a forgotten password would cause comes back — including after somebody
@@ -38,17 +41,27 @@ export function LoginForm({ next }: { next?: string }) {
 
       <label className="flex flex-col gap-2">
         <span className="text-sm font-medium text-foreground">Password</span>
-        <input
-          type="password"
-          name="password"
-          autoComplete="current-password"
-          required
-          /* No minimum: this is not where a password is chosen, and a
-             rule here would only announce the policy to a stranger. The
-             maximum stops a megabyte being posted to be hashed. */
-          maxLength={PASSWORD.max}
-          className={fieldClass}
-        />
+        <span className="relative block">
+          <input
+            type={reveal ? 'text' : 'password'}
+            name="password"
+            autoComplete="current-password"
+            required
+            /* No minimum: this is not where a password is chosen, and a
+               rule here would only announce the policy to a stranger. The
+               maximum stops a megabyte being posted to be hashed. */
+            maxLength={PASSWORD.max}
+            className={`${fieldClass} pr-16`}
+          />
+          <button
+            type="button"
+            onClick={() => setReveal((shown) => !shown)}
+            aria-pressed={reveal}
+            className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-3 text-xs font-medium text-muted transition-ui hover:text-foreground"
+          >
+            {reveal ? 'Hide' : 'Show'}
+          </button>
+        </span>
       </label>
 
       {state.error ? (
