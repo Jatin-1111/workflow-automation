@@ -15,7 +15,9 @@ import { listAllTemplates } from '@/lib/db/repositories/workflow-templates'
 import {
   computeMetrics,
   rangeWindow,
+  throughput,
   type Metrics,
+  type ThroughputPoint,
   type PersonMetric,
   type ReportRange,
   type StageMetric,
@@ -33,6 +35,8 @@ export interface Report {
   from: Date
   to: Date
   totals: Metrics['totals']
+  /** Started and finished over the period, for the trend. */
+  trend: ThroughputPoint[]
   workflows: NamedWorkflowMetric[]
   stages: NamedStageMetric[]
   people: NamedPersonMetric[]
@@ -68,6 +72,7 @@ export async function getReport(
     from,
     to,
     totals: metrics.totals,
+    trend: throughput(instances, from, to),
     workflows: metrics.workflows
       .map((workflow) => ({
         ...workflow,

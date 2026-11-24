@@ -9,6 +9,7 @@ import { Activity, CircleCheckBig, TriangleAlert } from 'lucide-react'
 import { StatStrip, StatTile } from '@/features/management/stat-tile'
 import { humanise } from '@/features/my-work/format'
 import { isEntityId } from '@/lib/ids/format'
+import { formatWaiting } from '@/lib/workflow/metrics'
 
 export default async function ProjectPage({ params }: PageProps<'/projects/[projectId]'>) {
   await requireCapability('project.view_dashboard')
@@ -33,7 +34,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
       </nav>
 
       <header className="mb-6">
-        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">{project.name}</h1>
+        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">{project.name}</h1>
         <p className="mt-1 text-sm text-muted">
           {project.description}
           {project.ownerName ? ` · Owner: ${project.ownerName}` : ''}
@@ -88,7 +89,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
                         row.overdue ? 'font-medium text-status-overdue' : 'text-muted'
                       }`}
                     >
-                      {row.hoursWaiting}h at this stage
+                      {formatWaiting(row.hoursWaiting)} at this stage
                     </span>
                     {row.slaBreached ? (
                       <span className="text-xs text-status-overdue">

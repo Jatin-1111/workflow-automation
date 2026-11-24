@@ -225,10 +225,22 @@ export function computeMetrics(input: MetricsInput): Metrics {
 
 /** Hours rendered the way someone would say them. */
 export function formatHours(hours: number | null): string {
-  if (hours === null) return '—'
+  if (hours === null) return 'n/a'
   if (hours < 1) return `${Math.round(hours * 60)}m`
   if (hours < 48) return `${hours.toFixed(1)}h`
   return `${(hours / 24).toFixed(1)}d`
+}
+
+/**
+ * How long something has been sitting, in the unit a person would say:
+ * "5h" for the first two days, then whole days. "1281h" is arithmetic the
+ * reader has to do; "53 days" is not.
+ */
+export function formatWaiting(hours: number): string {
+  if (hours < 1) return 'under an hour'
+  if (hours < 48) return `${Math.floor(hours)}h`
+  const days = Math.floor(hours / 24)
+  return `${days} days`
 }
 
 export const REPORT_RANGES = {
@@ -247,4 +259,76 @@ export function rangeWindow(range: ReportRange, now: Date): { from: Date; to: Da
     from: new Date(now.getTime() - Number(range) * 24 * HOUR),
     to: now,
   }
+}
+
+/* -------------------------------------------------------------------------
+ * Throughput over time
+ * ---------------------------------------------------------------------- */
+
+const DAY = 24 * HOUR
+
+/** One bucket of the trend: what began and what finished inside it. */
+export interface ThroughputPoint {
+  /** The bucket is the half-open span (start, end]. */
+  start: Date
+  end: Date
+  started: number
+  completed: number
+}
+
+/**
+ * Work started and finished, bucketed so a chart has a sensible number of bars.
+ *
+ * A month of days is thirty bars; a quarter of days is ninety, which is noise,
+ * so past about a month it counts in weeks, and past about three in 30-day
+ * stretches. "All time" has no start of its own, so it begins where the first
+ * run did. Buckets are counted back from `to`, so the last one is always the
+ * most recent complete span and never a sliver.
+ *
+ * Pure.
+ */
+export function throughput(
+  instances: WorkflowInstance[],
+  from: Date,
+  to: Date,
+): ThroughputPoint[] {
+  const firstStart = instances.reduce<number>(
+    (earliest, instance) => Math.min(earliest, instance.startedAt.getTime()),
+    Number.POSITIVE_INFINITY,
+  )
+  // `from` of the epoch means "all time": begin at the first run instead, or
+  // a window that was never lived in would be thousands of empty buckets.
+  const begin =
+    from.getTime() === 0
+      ? Number.isFinite(firstStart)
+        ? firstStart
+        : to.getTime() - 30 * DAY
+      : from.getTime()
+
+  const spanDays = Math.max(1, Math.ceil((to.getTime() - begin) / DAY))
+  const bucketDays = spanDays <= 31 ? 1 : spanDays <= 100 ? 7 : 30
+  const count = Math.max(1, Math.ceil(spanDays / bucketDays))
+  const size = bucketDays * DAY
+
+  const points: ThroughputPoint[] = Array.from({ length: count }, (_, index) => {
+    const end = to.getTime() - (count - 1 - index) * size
+    return { start: new Date(end - size), end: new Date(end), started: 0, completed: 0 }
+  })
+
+  const place = (at: Date | undefined): ThroughputPoint | undefined => {
+    if (!at) return undefined
+    const t = at.getTime()
+    return points.find((point) => t > point.start.getTime() && t <= point.end.getTime())
+  }
+
+  for (const instance of instances) {
+    const started = place(instance.startedAt)
+    if (started) started.started += 1
+    if (instance.status === 'completed') {
+      const done = place(instance.completedAt)
+      if (done) done.completed += 1
+    }
+  }
+
+  return points
 }

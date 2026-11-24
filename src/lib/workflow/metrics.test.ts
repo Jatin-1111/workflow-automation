@@ -5,6 +5,7 @@ import {
   formatHours,
   median,
   rangeWindow,
+  throughput,
   type MetricsInput,
 } from './metrics'
 import { formatId } from '@/lib/ids/format'
@@ -280,6 +281,58 @@ describe('formatHours', () => {
     assert.equal(formatHours(0.5), '30m')
     assert.equal(formatHours(3.25), '3.3h')
     assert.equal(formatHours(72), '3.0d')
-    assert.equal(formatHours(null), '—')
+    assert.equal(formatHours(null), 'n/a')
+  })
+})
+
+describe('throughput', () => {
+  const day = 24 * HOUR
+  const daysAgo = (n: number) => new Date(NOW.getTime() - n * day)
+
+  it('counts in days across a month, one bucket per day', () => {
+    const points = throughput([], daysAgo(30), NOW)
+    assert.equal(points.length, 30)
+  })
+
+  it('counts in weeks across a quarter', () => {
+    const points = throughput([], daysAgo(90), NOW)
+    assert.equal(points.length, 13)
+  })
+
+  it('puts a run in the bucket its start fell in, and a finish in its own', () => {
+    const points = throughput(
+      [instance({ startedAt: daysAgo(2.5), completedAt: daysAgo(0.5) })],
+      daysAgo(7),
+      NOW,
+    )
+    assert.equal(points.length, 7)
+    assert.equal(points.reduce((sum, p) => sum + p.started, 0), 1)
+    assert.equal(points.reduce((sum, p) => sum + p.completed, 0), 1)
+    assert.equal(points.at(-1)?.completed, 1)
+    assert.equal(points.at(-3)?.started, 1)
+  })
+
+  it('does not count a run that is still going as finished', () => {
+    const points = throughput(
+      [instance({ status: 'active', startedAt: daysAgo(1), completedAt: undefined })],
+      daysAgo(7),
+      NOW,
+    )
+    assert.equal(points.reduce((sum, p) => sum + p.completed, 0), 0)
+  })
+
+  it('begins all-time at the first run, not at 1970', () => {
+    const points = throughput(
+      [instance({ startedAt: daysAgo(10), completedAt: daysAgo(5) })],
+      new Date(0),
+      NOW,
+    )
+    assert.ok(points.length <= 10, `${points.length} buckets`)
+  })
+
+  it('gives a window with no runs one empty bucket rather than none', () => {
+    const points = throughput([], new Date(0), NOW)
+    assert.ok(points.length >= 1)
+    assert.ok(points.every((p) => p.started === 0 && p.completed === 0))
   })
 })

@@ -6,6 +6,7 @@
  */
 
 import { Count, Pill } from '@/features/ui/primitives'
+import { formatWaiting } from '@/lib/workflow/metrics'
 import type { WaitingItem } from './queries'
 
 export function WaitingList({ items }: { items: WaitingItem[] }) {
@@ -33,14 +34,14 @@ export function WaitingList({ items }: { items: WaitingItem[] }) {
                 <span className="truncate">{item.instanceTitle}</span>
               </span>
               <span className="mt-1 block text-sm text-foreground">
-                Waiting for {item.waitingOn.join(', ')} — {item.stageName}
+                Waiting for {item.waitingOn.join(', ')} at {item.stageName}
               </span>
             </span>
 
             <span className="flex shrink-0 items-center gap-3 sm:justify-end">
               {item.slaBreached ? <Pill tone="overdue">SLA breached</Pill> : null}
               <span className="text-xs text-muted sm:w-24 sm:text-right">
-                {item.hoursWaiting}h waiting
+                {formatWaiting(item.hoursWaiting)} waiting
               </span>
             </span>
           </li>

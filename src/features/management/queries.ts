@@ -37,6 +37,7 @@ import {
   type OverviewTile,
   type TileClock,
 } from './overview-tiles'
+import { formatWaiting } from '@/lib/workflow/metrics'
 import type { ProjectId, TaskId, UserId, WorkflowInstanceId } from '@/lib/types/ids'
 import type { Priority } from '@/lib/types/status'
 import type { Task } from '@/lib/types/task'
@@ -81,6 +82,14 @@ export interface StuckItem {
   slaHours?: number
   slaBreached: boolean
   overdue: boolean
+  /** The route this run takes, with where it has got to; empty when unknown. */
+  route: RouteStop[]
+}
+
+/** One stage along a run's route, for drawing the line. */
+export interface RouteStop {
+  name: string
+  state: 'done' | 'current' | 'upcoming'
 }
 
 /** One person's load, for the workload table (spec §17). */
@@ -172,6 +181,18 @@ export async function getManagementOverview(
 
   const endToday = endOfBusinessDay(now).getTime()
 
+  const stagesOf = new Map(templates.map((template) => [template.workflowId, template.stages]))
+  /** Stages before the task's are done, its own is current, the rest ahead. */
+  const routeOf = (task: Task): RouteStop[] => {
+    const stages = stagesOf.get(task.workflowId) ?? []
+    const at = stages.findIndex((stage) => stage.key === task.stageKey)
+    if (at < 0) return []
+    return stages.map((stage, index) => ({
+      name: stage.name,
+      state: index < at ? 'done' : index === at ? 'current' : 'upcoming',
+    }))
+  }
+
   const nameOf = (userId: UserId) => userName.get(userId) ?? userId
   const titleOf = (id: WorkflowInstanceId) => instanceById.get(id)?.title ?? id
   const projectOf = (id?: ProjectId) =>
@@ -202,6 +223,7 @@ export async function getManagementOverview(
       slaHours: stageByKey.get(`${entry.task.workflowId}:${entry.task.stageKey}`)?.slaHours,
       slaBreached: entry.slaBreached,
       overdue: entry.bucket === 'overdue',
+      route: routeOf(entry.task),
     }))
     .sort((a, b) => b.hoursWaiting - a.hoursWaiting)
 
@@ -275,7 +297,7 @@ export async function getManagementOverview(
       dueAt: task.dueAt,
       note:
         tile === 'approvals' || tile === 'blocked'
-          ? `${hoursWaiting(task, now)}h waiting`
+          ? `${formatWaiting(hoursWaiting(task, now))} waiting`
           : undefined,
     }
   }

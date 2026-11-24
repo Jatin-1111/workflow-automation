@@ -2,65 +2,105 @@
 
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
-import { getManagementOverview } from '@/features/management/queries'
+import { getManagementOverview, type WorkloadRow } from '@/features/management/queries'
 import { Section } from '@/features/management/section'
+import { parseSort, sortRows } from '@/features/ui/sort'
+import { SortHeader } from '@/features/ui/sort-header'
+import { theadClass } from '@/features/ui/primitives'
 
-export default async function TeamPage() {
+const COLUMNS = ['name', 'roles', 'active', 'dueToday', 'overdue', 'approvals'] as const
+type Column = (typeof COLUMNS)[number]
+
+const PICK: Record<Column, (person: WorkloadRow) => string | number> = {
+  name: (person) => person.name.toLowerCase(),
+  roles: (person) => person.roleCount,
+  active: (person) => person.active,
+  dueToday: (person) => person.dueToday,
+  overdue: (person) => person.overdue,
+  approvals: (person) => person.pendingApprovals,
+}
+
+export default async function TeamPage({ searchParams }: PageProps<'/team'>) {
   await requireCapability('team.view_workload')
   const { workload } = await getManagementOverview()
+  const sort = parseSort(await searchParams, COLUMNS, { key: 'overdue', direction: 'desc' })
+
+  const rows = sortRows(workload, PICK[sort.key], sort.direction, (person) => person.name)
+  const busiest = Math.max(1, ...workload.map((person) => person.active))
 
   return (
     <>
-
       <div className="mb-6">
-        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">Team</h1>
-        <p className="mt-1 text-sm text-muted">
-          Open work per person, across every project. Anyone carrying overdue
-          work appears first.
+        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">Team</h1>
+        <p className="mt-1.5 max-w-2xl text-sm text-muted">
+          Open work per person, across every project. Anyone carrying overdue work comes
+          first; click a heading to sort.
         </p>
       </div>
 
-      <Section title="Workload" count={workload.length}>
-        <table className="w-full text-sm">
+      <Section title="Workload" count={rows.length}>
+        <table className="w-full min-w-[44rem] text-sm">
           <thead>
-            <tr className="border-b border-border bg-surface-sunken text-left text-xs font-medium text-muted">
-              <th className="px-5 py-2.5 font-medium">Person</th>
-              <th className="px-5 py-2.5 font-medium">Roles</th>
-              <th className="px-5 py-2.5 text-right font-medium">Active</th>
-              <th className="px-5 py-2.5 text-right font-medium">Due today</th>
-              <th className="px-5 py-2.5 text-right font-medium">Overdue</th>
-              <th className="px-5 py-2.5 text-right font-medium">To approve</th>
+            <tr className={theadClass}>
+              <SortHeader label="Person" field="name" current={sort} path="/team" />
+              <SortHeader label="Roles" field="roles" current={sort} path="/team" numeric firstDirection="desc" />
+              <th scope="col" className="w-40 px-5 py-2.5 text-left font-bold">
+                Load
+              </th>
+              <SortHeader label="Open" field="active" current={sort} path="/team" numeric firstDirection="desc" />
+              <SortHeader label="Due today" field="dueToday" current={sort} path="/team" numeric firstDirection="desc" />
+              <SortHeader label="Overdue" field="overdue" current={sort} path="/team" numeric firstDirection="desc" />
+              <SortHeader label="To approve" field="approvals" current={sort} path="/team" numeric firstDirection="desc" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
-            {workload.map((person) => (
+            {rows.map((person) => (
               <tr key={person.userId}>
-                <td className="px-5 py-3">
+                <td className="min-w-40 px-5 py-3.5">
                   <Link
                     href={`/team/${person.userId}`}
-                    className="font-medium text-accent underline-offset-4 hover:underline"
+                    className="font-bold text-foreground underline-offset-4 hover:text-accent hover:underline [overflow-wrap:anywhere]"
                   >
                     {person.name}
                   </Link>
-                  <span className="ml-2 font-mono text-xs text-subtle">
+                  <span className="mt-0.5 block font-mono text-xs text-subtle">
                     {person.userId}
                   </span>
                 </td>
-                <td className="px-5 py-3 text-muted">{person.roleCount}</td>
-                <td className="px-5 py-3 text-right tabular-nums">{person.active}</td>
-                <td className="px-5 py-3 text-right tabular-nums">{person.dueToday}</td>
+                <td className="px-5 py-3.5 text-right tabular-nums text-muted">
+                  {person.roleCount}
+                </td>
+                <td className="px-5 py-3.5">
+                  <span
+                    aria-hidden
+                    className="block h-1.5 overflow-hidden rounded-full bg-sidebar"
+                  >
+                    <span
+                      className={`block h-full rounded-full ${
+                        person.overdue > 0 ? 'bg-status-overdue' : 'bg-accent'
+                      }`}
+                      style={{ width: `${(person.active / busiest) * 100}%` }}
+                    />
+                  </span>
+                </td>
+                <td className="px-5 py-3.5 text-right tabular-nums">{person.active}</td>
                 <td
-                  className={`px-5 py-3 text-right tabular-nums ${
-                    person.overdue > 0
-                      ? 'font-medium text-status-overdue'
-                      : 'text-muted'
+                  className={`px-5 py-3.5 text-right tabular-nums ${
+                    person.dueToday > 0 ? 'font-semibold text-status-action' : 'text-muted'
+                  }`}
+                >
+                  {person.dueToday}
+                </td>
+                <td
+                  className={`px-5 py-3.5 text-right tabular-nums ${
+                    person.overdue > 0 ? 'font-bold text-status-overdue' : 'text-muted'
                   }`}
                 >
                   {person.overdue}
                 </td>
                 <td
-                  className={`px-5 py-3 text-right tabular-nums ${
-                    person.pendingApprovals > 0 ? 'text-status-action' : 'text-muted'
+                  className={`px-5 py-3.5 text-right tabular-nums ${
+                    person.pendingApprovals > 0 ? 'font-semibold text-status-action' : 'text-muted'
                   }`}
                 >
                   {person.pendingApprovals}
