@@ -19,20 +19,25 @@
      just off white behind white panels, and a hairline between them doing
      the work a shadow used to. The canvas used to carry an indigo cast; it
      made every white panel look like a box dropped on a coloured page. */
-  --background: #f6f7f9;
+  --background: #f1f5f5;
   --surface: #ffffff;
-  --surface-sunken: #fafbfc;
+  --surface-sunken: #f7fafa;
 
   /* Text. Four steps is enough hierarchy, and every one of them clears AA
      on white, on the canvas and on a sunken panel — checked, not assumed.
      `subtle` was the exception and was darkened until it was not: an ID or
      a timestamp is still text, and 3.4:1 asked people to squint at it. */
-  --foreground: #0e1116;
-  --muted: #4f5868;
-  --subtle: #667082;
+  --foreground: #0c1a1b;
+  --muted: #46585a;
+  --subtle: #5f7072;
 
-  --border: #e4e7ec;
-  --border-strong: #cbd0d9;
+  /* The sidebar: one step darker than the canvas, so it reads as the frame
+     around the data rather than a panel inside it. */
+  --sidebar: #e6eded;
+  --sidebar-hover: #d9e5e4;
+
+  --border: #dbe4e4;
+  --border-strong: #bccaca;
 
   /**
    * The brand.
@@ -45,12 +50,12 @@
    * #4f46e5 carries white at 6.3:1, so a primary button is legible rather
    * than merely branded.
    */
-  --accent: #4b57c9;
-  --accent-hover: #3f4ab5;
-  --accent-strong: #343e9c;
-  --accent-soft: #eef0fb;
-  --accent-soft-hover: #e2e6f8;
-  --accent-ring: #c3c8ee;
+  --accent: #0f766e;
+  --accent-hover: #0b5f58;
+  --accent-strong: #084a45;
+  --accent-soft: #e2f1ef;
+  --accent-soft-hover: #d0e8e5;
+  --accent-ring: #a6d3ce;
 
   /**
    * The primary action.
@@ -61,8 +66,8 @@
    * none of them stood out. The brand colour is kept for what it is for:
    * focus, links, the tab you are on, and the mark.
    */
-  --primary: #12151c;
-  --primary-hover: #2b303b;
+  --primary: #0f766e;
+  --primary-hover: #0b5f58;
 
   /* Status. Each has a tint so a pill reads at a glance without shouting.
      Every ink clears 4.5:1 on white and on its own tint. */
@@ -93,12 +98,12 @@
    * more stages than stops repeats from the beginning; position within the
    * workflow is still what the colour encodes.
    */
-  --stage-1: #4b57c9;
-  --stage-2: #2563eb;
-  --stage-3: #0284c7;
-  --stage-4: #0891b2;
-  --stage-5: #0d9488;
-  --stage-6: #059669;
+  --stage-1: #0f766e;
+  --stage-2: #0e7490;
+  --stage-3: #1d6fb8;
+  --stage-4: #3b5fd0;
+  --stage-5: #5a4fd6;
+  --stage-6: #7a3fd0;
 
   /**
    * Labels.
@@ -145,6 +150,8 @@
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-sunken: var(--surface-sunken);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-hover: var(--sidebar-hover);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-subtle: var(--subtle);
@@ -195,7 +202,7 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
 
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-hanken);
   --font-mono: var(--font-geist-mono);
 
   /* Shadows are tinted with the canvas's own hue, not black, and used only
@@ -241,6 +248,41 @@ html {
 table,
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/**
+ * The pointer says "this does something".
+ *
+ * Browsers leave buttons on the arrow, and Tailwind's reset keeps it that way,
+ * so a button looked no more pressable than a paragraph. Everything you can
+ * press, follow, open or pick gets the hand; anything disabled gets a plain
+ * "not allowed", so a dead control does not invite a click it will ignore.
+ * Text fields keep their text cursor, which is what they are for.
+ */
+@layer base {
+:where(
+  a[href],
+  button,
+  summary,
+  select,
+  label[for],
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="switch"],
+  input:is([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="reset"], [type="file"], [type="range"], [type="color"])
+):not(:disabled, [aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+:where(button, select, input, textarea, [role="button"]):is(:disabled, [aria-disabled="true"]) {
+  cursor: not-allowed;
+}
+
+/* A label wrapped around a checkbox or radio is itself the target. */
+:where(label):has(> input:is([type="checkbox"], [type="radio"]):not(:disabled)) {
+  cursor: pointer;
+}
 }
 
 /* One focus treatment everywhere, visible on both white and tinted surfaces. */

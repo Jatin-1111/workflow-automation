@@ -50,7 +50,7 @@ export function HeaderSearch() {
 
   return (
     <>
-      <Form action="/search" className="relative mx-auto hidden w-full max-w-md md:block">
+      <Form action="/search" className="relative hidden min-w-0 flex-1 md:block lg:flex-none">
         <Search
           size={16}
           strokeWidth={1.75}

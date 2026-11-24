@@ -1,27 +1,14 @@
 /**
  * Where this stage sits in the workflow (spec §11).
  *
- * A connected track rather than a row of pills joined by typed arrows: an
- * arrow that wraps to the next line leaves a stage stranded, and a bordered
- * pill reads as something to press. Each stage gets a bar that carries its
- * state, with the name beneath it.
+ * Drawn as the run's line with a station per stage, the same picture the
+ * Overview uses for stuck work. A conditional stage this run will not reach is
+ * a dashed station rather than an empty one, so the line matches what will
+ * actually happen (spec §36).
  */
 
+import { RunLine } from '@/features/ui/run-line'
 import type { StageProgress } from './progress'
-
-const TRACK: Record<StageProgress['state'], string> = {
-  done: 'bg-status-complete',
-  current: 'bg-accent',
-  upcoming: 'bg-border-strong',
-  skipped: 'bg-border',
-}
-
-const LABEL: Record<StageProgress['state'], string> = {
-  done: 'text-muted',
-  current: 'font-medium text-foreground',
-  upcoming: 'text-subtle',
-  skipped: 'text-subtle line-through',
-}
 
 export function StageProgressBar({
   stages,
@@ -36,41 +23,18 @@ export function StageProgressBar({
 
   return (
     <div>
-      <div className="mb-2 flex items-baseline justify-between gap-4">
-        <p className="text-xs font-medium text-muted">
+      <div className="mb-4 flex items-baseline justify-between gap-4">
+        <p className="text-sm font-bold text-foreground">
           {position >= 0
             ? `${finished ? 'Now at stage' : 'Stage'} ${position + 1} of ${stages.length}`
             : 'Workflow progress'}
         </p>
-        <p className="text-xs tabular-nums text-subtle">
+        <p className="text-xs tabular-nums text-muted">
           {done} of {stages.length} complete
         </p>
       </div>
 
-      <ol className="flex flex-wrap gap-x-2 gap-y-3">
-        {stages.map((stage) => (
-          <li
-            key={stage.key}
-            className="min-w-24 flex-1 basis-24"
-            aria-current={stage.state === 'current' ? 'step' : undefined}
-          >
-            <span
-              className={`block h-1 rounded-full ${TRACK[stage.state]}`}
-              title={
-                stage.state === 'skipped' ? 'Not needed for this one' : undefined
-              }
-            />
-            <span className={`mt-1.5 block text-xs leading-snug ${LABEL[stage.state]}`}>
-              {stage.name}
-              {stage.revisionRound ? (
-                <span className="block text-xs text-subtle">
-                  pass {stage.revisionRound}
-                </span>
-              ) : null}
-            </span>
-          </li>
-        ))}
-      </ol>
+      <RunLine stops={stages} />
     </div>
   )
 }

@@ -12,6 +12,7 @@ export function Section({
   count,
   description,
   className,
+  fill,
   children,
 }: {
   title: string
@@ -19,10 +20,18 @@ export function Section({
   description?: string
   /** For a caller placing this in a grid, e.g. spanning two columns. */
   className?: string
+  /** Stretch to the grid cell's height; see Panel. */
+  fill?: boolean
   children: React.ReactNode
 }) {
   return (
-    <Panel title={title} count={count} description={description} className={className}>
+    <Panel
+      title={title}
+      count={count}
+      description={description}
+      className={className}
+      fill={fill}
+    >
       {children}
     </Panel>
   )

@@ -1,13 +1,17 @@
 /**
- * The signed-in frame: primary navigation and identity (spec §47).
+ * The signed-in frame: a sidebar on the left, the work on the right (spec §47).
  *
  * Navigation entries are filtered by capability, so nobody is shown a door
  * they cannot open. The data layer still enforces access independently.
  *
  * Drawn once, by the signed-in layout, not by every page. While each page
- * drew its own, a page's loading screen replaced the header along with
+ * drew its own, a page's loading screen replaced the frame along with
  * everything else, so every click blanked the whole window. The parts that
  * depend on which page is showing read the address on the client.
+ *
+ * On a wide screen the sidebar is a fixed-height column that never scrolls
+ * with the page. Below `lg` it folds into a bar across the top: identity and
+ * utilities on one row, the sections on the next.
  */
 
 import Link from 'next/link'
@@ -42,7 +46,7 @@ export function AppShell({
   children,
 }: {
   user: PublicUser
-  /** The count when the header was drawn; the bell keeps it current. */
+  /** The count when the shell was drawn; the bell keeps it current. */
   unread: number
   children: React.ReactNode
 }) {
@@ -51,66 +55,87 @@ export function AppShell({
   ).map(({ href, label }) => ({ href, label }))
 
   return (
-    <>
-      {/*
-        Two rows by design rather than by overflow: identity and search above,
-        navigation below. Cramming both onto one line is what made the header
-        wrap unpredictably as the navigation grew.
-      */}
-      <header className="sticky top-0 z-10 border-b border-border bg-surface/90 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
+    <div className="lg:grid lg:grid-cols-[15.5rem_minmax(0,1fr)]">
+      <aside className="z-10 flex flex-col gap-3 border-b border-border bg-sidebar px-3 py-3 lg:sticky lg:top-0 lg:h-dvh lg:gap-6 lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-3 lg:py-5">
+        <div className="flex items-center gap-2 lg:flex-col lg:items-stretch lg:gap-5">
           <Link
             href="/my-work"
-            className="group flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-ui hover:text-accent"
+            className="transition-ui flex shrink-0 items-center gap-2.5 px-2 text-[1.0625rem] font-extrabold tracking-[-0.02em] text-foreground"
           >
             <span
               aria-hidden
-              className="flex size-7 items-center justify-center rounded-lg bg-accent text-white shadow-sm transition-ui group-hover:bg-accent-hover"
+              className="flex size-7 items-center justify-center rounded-full bg-accent text-white"
             >
               <Orbit size={16} strokeWidth={2} />
             </span>
-            <span className="hidden sm:block">Business Orbit</span>
+            {/* The mark alone on a phone: the name, search, bell, profile and
+                sign-out do not all fit on one row. */}
+            <span className="max-sm:sr-only">Business Orbit</span>
           </Link>
 
-          {/* Grows into whatever the header is not using, and is a single tap
-              on a phone, where the box itself does not fit. */}
+          {/* A field in the column, one tap on a phone where it does not fit. */}
           <HeaderSearch />
 
-          {/* Icon-first, so the two utilities read as controls rather than as
-              more navigation competing with the tabs below. */}
-          <NotificationBell initialUnread={unread} />
-
-          <ShellLink
-            href="/help"
-            label="How this works"
-            className="flex size-11 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-black/[0.045] sm:size-9"
-            activeClassName="text-accent"
-            idleClassName="text-muted hover:text-foreground"
-          >
-            <CircleHelp size={18} strokeWidth={1.75} aria-hidden />
-          </ShellLink>
-
-          <span aria-hidden className="hidden h-6 w-px bg-border sm:block" />
-
-          <ShellLink
-            href="/profile"
-            className="flex shrink-0 items-center gap-2 rounded-md py-1 pl-1 pr-2 text-sm transition-ui hover:bg-surface-sunken"
-          >
-            <span
-              aria-hidden
-              className="flex size-7 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent"
+          {/* Below `lg` the column's footer is not drawn, so the three things
+              it holds come up here: notifications, profile, sign out. */}
+          <div className="ml-auto flex items-center gap-0.5 lg:hidden">
+            <NotificationBell initialUnread={unread} />
+            <Link
+              href="/profile"
+              aria-label="Your profile"
+              className="transition-ui flex size-11 items-center justify-center rounded-md hover:bg-sidebar-hover"
             >
-              {user.name.slice(0, 1).toUpperCase()}
-            </span>
-            <span className="hidden text-muted sm:block">{user.name}</span>
-          </ShellLink>
-
-          <LogoutButton />
+              <span
+                aria-hidden
+                className="flex size-7 items-center justify-center rounded-full bg-accent text-xs font-bold text-white"
+              >
+                {user.name.slice(0, 1).toUpperCase()}
+              </span>
+            </Link>
+            <LogoutButton />
+          </div>
         </div>
 
         <PrimaryNav entries={entries} />
-      </header>
+
+        <div className="mt-auto hidden flex-col gap-0.5 lg:flex">
+          <NotificationBell initialUnread={unread} labelled />
+          <ShellLink
+            href="/help"
+            className="transition-ui flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium"
+            activeClassName="bg-sidebar-hover text-foreground"
+            idleClassName="text-muted hover:bg-sidebar-hover hover:text-foreground"
+          >
+            <CircleHelp size={16} strokeWidth={1.75} aria-hidden />
+            How this works
+          </ShellLink>
+
+          <div className="mt-2 flex items-center gap-1 border-t border-border-strong/60 pt-3">
+            <ShellLink
+              href="/profile"
+              className="transition-ui flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm"
+              activeClassName="bg-sidebar-hover"
+              idleClassName="hover:bg-sidebar-hover"
+            >
+              <span
+                aria-hidden
+                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-white"
+              >
+                {user.name.slice(0, 1).toUpperCase()}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate font-semibold text-foreground">{user.name}</span>
+                <span className="block truncate text-xs capitalize text-muted">
+                  {user.accessLevel}
+                </span>
+              </span>
+            </ShellLink>
+            <LogoutButton />
+          </div>
+        </div>
+      </aside>
+
       {children}
-    </>
+    </div>
   )
 }

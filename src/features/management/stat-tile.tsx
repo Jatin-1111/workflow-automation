@@ -28,12 +28,17 @@ const TONES: Record<StatTone, string> = {
   good: 'text-status-complete',
 }
 
-const CELL = 'relative block border-b border-r border-border px-5 py-4'
+/* A column, with the figure pushed to the bottom: a label that wraps to two
+   lines ("Active workflows") otherwise drops its number below its
+   neighbours', and a row of figures stops reading as a row. */
+const CELL = 'relative flex flex-col border-b border-r border-border px-5 py-4'
 
 const COLUMNS = {
   2: 'grid-cols-1 sm:grid-cols-2',
   3: 'grid-cols-1 sm:grid-cols-3',
   4: 'grid-cols-2 lg:grid-cols-4',
+  /** One row of eight, the first two wider: the Overview's ribbon. */
+  ribbon: 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-[repeat(2,minmax(0,1.6fr))_repeat(6,minmax(0,1fr))]',
 } as const
 
 export function StatStrip({
@@ -57,6 +62,19 @@ export function StatStrip({
   )
 }
 
+/**
+ * How loud a figure is. Only the Overview's ribbon uses anything but `base`:
+ * the two numbers a manager acts on are `lead`, the ones that are history or
+ * a count of things are `quiet`.
+ */
+export type StatSize = 'lead' | 'base' | 'quiet'
+
+const SIZES: Record<StatSize, string> = {
+  lead: 'text-[2.25rem]',
+  base: 'text-[1.75rem]',
+  quiet: 'text-[1.375rem]',
+}
+
 export function StatTile({
   label,
   value,
@@ -65,6 +83,7 @@ export function StatTile({
   href,
   selected = false,
   note,
+  size = 'base',
 }: {
   label: string
   value: number | string
@@ -75,9 +94,21 @@ export function StatTile({
   selected?: boolean
   /** A line of context under the number, for a figure that needs one. */
   note?: string
+  size?: StatSize
 }) {
   const hasValue = typeof value === 'number' ? value > 0 : true
-  const valueTone = hasValue ? TONES[tone] : 'text-foreground'
+  // 1284, not 1,284, is arithmetic for the reader; and a figure past five
+  // characters would crowd a narrow cell, so it steps down one size.
+  const shown = typeof value === 'number' ? value.toLocaleString('en-GB') : value
+  const stepDown = String(shown).length > 5
+  const figureSize = stepDown ? (size === 'lead' ? SIZES.base : SIZES.quiet) : SIZES[size]
+  const valueTone = hasValue
+    ? size === 'quiet' && tone !== 'alert'
+      ? 'text-muted'
+      : TONES[tone]
+    : size === 'quiet'
+      ? 'text-muted'
+      : 'text-foreground'
 
   const body = (
     <>
@@ -86,9 +117,9 @@ export function StatTile({
         {Glyph ? <Glyph aria-hidden size={14} strokeWidth={1.75} className="text-subtle" /> : null}
       </span>
       <span
-        className={`mt-2.5 block text-[1.75rem] font-semibold leading-none tracking-[-0.025em] tabular-nums ${valueTone}`}
+        className={`mt-auto block pt-2.5 ${figureSize} font-semibold leading-none tracking-[-0.025em] tabular-nums ${valueTone}`}
       >
-        {value}
+        {shown}
       </span>
       {note ? <span className="mt-2 block text-xs text-muted">{note}</span> : null}
     </>

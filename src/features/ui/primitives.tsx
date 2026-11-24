@@ -24,7 +24,7 @@ import { fallbackColor, type LabelColor } from '@/lib/types/label'
  * ---------------------------------------------------------------------- */
 
 export const RADIUS_CONTROL = 'rounded-md'
-export const RADIUS_CONTAINER = 'rounded-xl'
+export const RADIUS_CONTAINER = 'rounded-2xl'
 
 /** Icons come in three sizes and one stroke, aligned to the text beside them. */
 export const ICON_SIZES = { sm: 14, md: 16, lg: 20 } as const
@@ -61,23 +61,21 @@ type ButtonTone = 'primary' | 'secondary' | 'quiet' | 'danger'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 const BUTTON_BASE =
-  'inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-ui ' +
+  'inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-ui ' +
   // Touch needs 44px; a pointer does not, so the floor lifts only on small
   // screens rather than making every desktop toolbar chunky.
   'max-sm:min-h-11 ' +
-  'active:translate-y-px ' +
-  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0'
+  'active:scale-[0.97] ' +
+  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100'
 
 const BUTTON_TONES: Record<ButtonTone, string> = {
-  // Graphite with a one-pixel highlight along the top edge, so a primary
-  // action has a little physical edge to it without a shadow.
-  primary:
-    'bg-primary text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.14)] hover:bg-primary-hover',
+  // The line colour: the one thing on a page you are meant to press.
+  primary: 'bg-primary text-white hover:bg-primary-hover',
   secondary:
-    'border border-border-strong bg-surface text-foreground hover:bg-surface-sunken',
-  quiet: 'text-muted hover:bg-black/[0.045] hover:text-foreground',
+    'border-[1.5px] border-foreground bg-surface text-foreground hover:bg-surface-sunken',
+  quiet: 'text-muted hover:bg-sidebar hover:text-foreground',
   danger:
-    'border border-border-strong bg-surface text-status-overdue hover:border-status-overdue hover:bg-status-overdue-soft',
+    'border-[1.5px] border-status-overdue/50 bg-surface text-status-overdue hover:border-status-overdue hover:bg-status-overdue-soft',
 }
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
@@ -138,10 +136,10 @@ export function IconButton({
  * ---------------------------------------------------------------------- */
 
 export const fieldClass =
-  'w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle transition-ui max-sm:min-h-11 hover:border-border-strong focus-visible:border-accent'
+  'w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle transition-ui max-sm:min-h-11 hover:border-foreground/50 focus-visible:border-accent'
 
 export const controlClass =
-  'h-9 rounded-md border border-border bg-surface px-2.5 text-sm text-foreground transition-ui max-sm:min-h-11 hover:border-border-strong focus-visible:border-accent'
+  'h-9 rounded-lg border border-border-strong bg-surface px-2.5 text-sm text-foreground transition-ui max-sm:min-h-11 hover:border-border-strong focus-visible:border-accent'
 
 export function Label({ children }: { children: React.ReactNode }) {
   return <span className="text-xs font-medium text-muted">{children}</span>
@@ -183,7 +181,7 @@ export function Pill({
 }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded px-2 py-0.5 text-xs font-medium whitespace-nowrap ${STATUS_TONES[tone]}`}
+      className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${STATUS_TONES[tone]}`}
     >
       {children}
     </span>
@@ -193,7 +191,7 @@ export function Pill({
 /** A small count beside a heading, without competing with it. */
 export function Count({ value }: { value: number }) {
   return (
-    <span className="ml-2 rounded bg-black/[0.05] px-1.5 py-px text-xs font-medium tabular-nums text-muted">
+    <span className="ml-2 rounded-full bg-sidebar px-2 py-px text-xs font-semibold tabular-nums text-muted">
       {value}
     </span>
   )
@@ -215,7 +213,7 @@ export function PageHeader({
   return (
     <header className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
       <div className="min-w-0">
-        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em] text-foreground">
+        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em] text-foreground">
           {title}
         </h1>
         {description ? (
@@ -234,6 +232,7 @@ export function Panel({
   actions,
   children,
   className = '',
+  fill = false,
 }: {
   title?: string
   count?: number
@@ -241,15 +240,20 @@ export function Panel({
   actions?: React.ReactNode
   children: React.ReactNode
   className?: string
+  /** Stretch to the height of the grid cell it sits in, its body taking what
+      the heading leaves, so tiles in a row end on the same line. */
+  fill?: boolean
 }) {
   return (
     <section
-      className={`panel rise overflow-hidden ${RADIUS_CONTAINER} border border-border bg-surface ${className}`}
+      className={`panel rise overflow-hidden ${RADIUS_CONTAINER} border border-border bg-surface ${
+        fill ? 'flex h-full flex-col' : ''
+      } ${className}`}
     >
       {title ? (
-        <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-3.5">
+        <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold tracking-[-0.006em] text-foreground">
+            <h2 className="text-[0.9375rem] font-bold tracking-[-0.01em] text-foreground">
               {title}
               {count !== undefined ? <Count value={count} /> : null}
             </h2>
@@ -263,13 +267,17 @@ export function Panel({
       {/* A table wider than a phone scrolls inside its panel. The panel clips
           its corners, so before this a wide table was cut off at the edge
           with its last columns out of reach. */}
-      <div className="overflow-x-auto">{children}</div>
+      <div className={`overflow-x-auto ${fill ? 'flex min-h-0 flex-1 flex-col' : ''}`}>
+        {children}
+      </div>
     </section>
   )
 }
 
 export function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="px-5 py-8 text-center text-sm leading-relaxed text-muted">{children}</p>
+  return (
+    <p className="my-auto px-5 py-8 text-center text-sm leading-relaxed text-muted">{children}</p>
+  )
 }
 
 /** A breadcrumb trail, which is how every detail page states where it is. */
@@ -309,7 +317,7 @@ export function Breadcrumbs({
 
 export const tableClass = 'w-full text-sm'
 export const theadClass =
-  'border-b border-border bg-surface-sunken text-left text-xs font-medium text-muted'
+  'border-b-2 border-foreground/80 bg-surface text-left text-xs font-bold text-muted'
 export const thClass = 'px-5 py-2.5 font-medium'
 export const thNumClass = 'px-5 py-2.5 text-right font-medium'
 export const tdClass = 'px-5 py-3 align-middle'

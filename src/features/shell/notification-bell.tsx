@@ -14,7 +14,14 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Bell } from 'lucide-react'
 
-export function NotificationBell({ initialUnread }: { initialUnread: number }) {
+export function NotificationBell({
+  initialUnread,
+  labelled = false,
+}: {
+  initialUnread: number
+  /** A row in the sidebar with its name, instead of an icon on its own. */
+  labelled?: boolean
+}) {
   const pathname = usePathname()
   const [unread, setUnread] = useState(initialUnread)
   const here = pathname === '/notifications'
@@ -39,12 +46,35 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
     }
   }, [pathname])
 
+  if (labelled) {
+    return (
+      <Link
+        href="/notifications"
+        aria-current={here ? 'page' : undefined}
+        className={`transition-ui flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium ${
+          here
+            ? 'bg-sidebar-hover text-foreground'
+            : 'text-muted hover:bg-sidebar-hover hover:text-foreground'
+        }`}
+      >
+        <Bell size={16} strokeWidth={1.75} aria-hidden />
+        Notifications
+        {unread > 0 ? (
+          <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold tabular-nums text-white">
+            <span className="sr-only">{unread} unread</span>
+            <span aria-hidden>{unread}</span>
+          </span>
+        ) : null}
+      </Link>
+    )
+  }
+
   return (
     <Link
       href="/notifications"
       aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
       aria-current={here ? 'page' : undefined}
-      className={`relative flex size-11 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-black/[0.045] sm:size-9 ${
+      className={`relative flex size-11 shrink-0 items-center justify-center rounded-md transition-ui hover:bg-sidebar-hover ${
         here ? 'text-accent' : 'text-muted hover:text-foreground'
       }`}
     >

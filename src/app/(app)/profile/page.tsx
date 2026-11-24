@@ -49,7 +49,7 @@ export default async function ProfilePage() {
   return (
     <>
       <header className="mb-6">
-        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">{user.name}</h1>
+        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">{user.name}</h1>
         <p className="mt-1 text-sm text-muted">
           <span className="font-mono">{user.userId}</span> · {user.email}
           {user.phone ? ` · ${user.phone}` : ''}

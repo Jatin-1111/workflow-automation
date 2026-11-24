@@ -48,7 +48,7 @@ export default async function PersonPage({ params }: PageProps<'/team/[userId]'>
       </nav>
 
       <header className="mb-6">
-        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">{person.name}</h1>
+        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">{person.name}</h1>
         <p className="mt-1 text-sm text-muted">
           {person.userId} · {person.email} · {humanise(person.accessLevel)}
           {person.departmentName ? ` · ${person.departmentName}` : ''}

@@ -119,7 +119,7 @@ describe('a primary button carries its own label', () => {
   })
 })
 
-describe('the primary action is a near-black that carries its own label', () => {
+describe('the primary action is the brand line, and carries its own label', () => {
   it('white on the primary', () => {
     const ratio = contrastRatio(WHITE, token('primary'))
     assert.ok(ratio >= AA_NORMAL_TEXT, `${ratio.toFixed(2)}:1`)
@@ -130,11 +130,11 @@ describe('the primary action is a near-black that carries its own label', () => 
     assert.ok(ratio >= AA_NORMAL_TEXT, `${ratio.toFixed(2)}:1`)
   })
 
-  it('stands apart from the brand, so the two are never mistaken for one another', () => {
-    // The primary is what you press; the accent is where you are and what
-    // you can follow. If they converged the page would lose the distinction.
-    const difference = colorDifference(token('primary'), token('accent'))
-    assert.ok(difference >= CLEARLY_DIFFERENT, `${difference.toFixed(1)}`)
+  it('is the brand colour itself: the one colour you press is the colour of the line', () => {
+    // The sidebar's line and stations, the run lines and the primary button
+    // are one colour on purpose. What keeps it from being mistaken for a
+    // status is the next group of tests.
+    assert.equal(token('primary').toLowerCase(), token('accent').toLowerCase())
   })
 })
 
