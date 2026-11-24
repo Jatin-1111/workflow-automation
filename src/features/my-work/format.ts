@@ -7,6 +7,7 @@ const DAY_MS = 86_400_000
 /** How far past a deadline, in the units the rest of the product uses. */
 function lateness(dueAt: Date, at: Date): string {
   const hours = Math.floor((at.getTime() - dueAt.getTime()) / 3_600_000)
+  if (hours < 1) return 'under 1h'
   return hours < 24 ? `${hours}h` : `${Math.floor(hours / 24)}d`
 }
 

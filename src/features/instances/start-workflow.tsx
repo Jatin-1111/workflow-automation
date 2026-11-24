@@ -9,7 +9,7 @@
  * submitted — so this form does not try to be that stage.
  */
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { Button, Panel, controlClass, fieldClass } from '@/features/ui/primitives'
 import { startWorkflowAction, type StartActionState } from './actions'
@@ -38,6 +38,30 @@ export function StartWorkflow({
   const [state, start, starting] = useActionState(startWorkflowAction, IDLE)
   const [open, setOpen] = useState(false)
   const [workflowId, setWorkflowId] = useState(workflows[0]?.workflowId ?? '')
+  const [titleError, setTitleError] = useState<string | null>(null)
+  const wrapper = useRef<HTMLDivElement>(null)
+  const opener = useRef<HTMLButtonElement>(null)
+
+  // Escape closes it and puts focus back on the button that opened it, and so
+  // does a click anywhere else: a panel that only Cancel could dismiss was a
+  // small trap for keyboard users.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setOpen(false)
+      opener.current?.focus()
+    }
+    const onPointer = (event: PointerEvent) => {
+      if (wrapper.current && !wrapper.current.contains(event.target as Node)) setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('pointerdown', onPointer)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('pointerdown', onPointer)
+    }
+  }, [open])
 
   const chosen = workflows.find((w) => w.workflowId === workflowId)
 
@@ -52,20 +76,45 @@ export function StartWorkflow({
     )
   }
 
-  if (!open) {
-    return (
-      <Button type="button" tone="primary" onClick={() => setOpen(true)}>
+  return (
+    // The panel hangs below its button instead of replacing it in the page's
+    // header, which is what pushed the rest of the header around.
+    <div ref={wrapper} className="relative">
+      <Button
+        ref={opener}
+        type="button"
+        tone="primary"
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        onClick={() => setOpen((current) => !current)}
+      >
         Start a workflow
       </Button>
-    )
-  }
 
-  return (
-    <Panel
-      title="Start a workflow"
-      description="This opens the first stage straight away and tells whoever it belongs to."
-    >
-      <form action={start} className="space-y-3 px-5 py-4">
+      {open ? (
+        <Panel
+          title="Start a workflow"
+          description="This opens the first stage straight away and tells whoever it belongs to."
+          className="absolute right-0 top-full z-20 mt-2 w-[min(26rem,calc(100vw-2rem))] shadow-float"
+        >
+      <form
+        action={start}
+        noValidate
+        onSubmit={(event) => {
+          // The browser's own "Please fill out this field" bubble is not the
+          // way the rest of the product says things. Said here, beside the
+          // field, and the field is focused so it can be fixed straight away.
+          const title = new FormData(event.currentTarget).get('title')
+          if (typeof title !== 'string' || title.trim() === '') {
+            event.preventDefault()
+            setTitleError('Give this one a name so people can find it.')
+            event.currentTarget.querySelector<HTMLInputElement>('input[name="title"]')?.focus()
+            return
+          }
+          setTitleError(null)
+        }}
+        className="space-y-3 px-5 py-4"
+      >
         <label className="block space-y-1">
           <span className="text-xs font-medium text-muted">Process</span>
           <select
@@ -76,7 +125,7 @@ export function StartWorkflow({
           >
             {workflows.map((workflow) => (
               <option key={workflow.workflowId} value={workflow.workflowId}>
-                {workflow.name}, {workflow.stageCount} stages
+                {workflow.name}, {workflow.stageCount} {workflow.stageCount === 1 ? 'stage' : 'stages'}
               </option>
             ))}
           </select>
@@ -88,14 +137,21 @@ export function StartWorkflow({
           </span>
           <input
             name="title"
-            required
+            autoFocus
             maxLength={TEXT_LIMITS.title}
             placeholder="ABC Technologies"
-            className={fieldClass}
+            aria-invalid={titleError ? true : undefined}
+            aria-describedby="start-title-help"
+            onChange={() => setTitleError(null)}
+            className={`${fieldClass} ${titleError ? 'border-status-overdue' : ''}`}
           />
-          <span className="block text-xs text-subtle">
-            How it will appear on everyone&rsquo;s dashboard: the client, the
-            episode, the vendor.
+          <span
+            id="start-title-help"
+            role={titleError ? 'alert' : undefined}
+            className={`block text-xs ${titleError ? 'font-semibold text-status-overdue' : 'text-subtle'}`}
+          >
+            {titleError ??
+              'How it will appear on everyone’s dashboard: the client, the episode, the vendor.'}
           </span>
         </label>
 
@@ -123,17 +179,27 @@ export function StartWorkflow({
           <Button type="submit" tone="primary" size="sm" disabled={starting}>
             {starting ? 'Starting…' : 'Start it'}
           </Button>
-          <Button type="button" tone="quiet" size="sm" onClick={() => setOpen(false)}>
+          <Button
+            type="button"
+            tone="quiet"
+            size="sm"
+            onClick={() => {
+              setOpen(false)
+              opener.current?.focus()
+            }}
+          >
             Cancel
           </Button>
         </div>
 
         {state.ok === false ? (
-          <p role="status" className="text-xs text-status-overdue">
+          <p role="alert" className="text-xs text-status-overdue">
             {state.message}
           </p>
         ) : null}
       </form>
-    </Panel>
+        </Panel>
+      ) : null}
+    </div>
   )
 }

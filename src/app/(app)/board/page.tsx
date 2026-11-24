@@ -62,11 +62,18 @@ export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
 
   const board = await getBoard(template, user.userId)
 
+  // Told what this person can actually do here. The same line used to say
+  // "drag a card you hold" to an administrator who held none.
+  const holdsAny = board.columns.some((column) => column.cards.some((card) => card.mine))
+  const instruction = holdsAny
+    ? 'Move a card you hold with its button, or drag it to the next stage; the workflow decides where it goes. Cards on somebody else’s stage say who holds them and stay put.'
+    : 'Nothing here is yours to move. Each card says who holds it; open one to follow it, or reassign it from its task page.'
+
   return (
     <>
       <PageHeader
         title={board.name}
-        description={`Version ${board.version}. Drag a card you hold to the next stage to complete it; the workflow decides where it goes. Cards on somebody else's stage are marked and stay put.`}
+        description={`Version ${board.version}. ${instruction}`}
         actions={
           <div className="flex flex-wrap items-center gap-3">
             <StartWorkflow
@@ -86,7 +93,7 @@ export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
                 }))}
             />
             {templates.length > 1 ? (
-            <nav className="flex flex-wrap items-center gap-1">
+            <nav aria-label="Workflows" className="flex flex-wrap items-center gap-1">
               {templates.map((candidate) => (
                 <Link
                   key={candidate.workflowId}

@@ -97,6 +97,8 @@ export function Button({
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
   tone?: ButtonTone
   size?: ButtonSize
+  /** React 19 passes a ref as an ordinary prop; this lets callers use it. */
+  ref?: React.Ref<HTMLButtonElement>
 }) {
   return <button {...props} className={`${buttonClass(tone, size)} ${className}`} />
 }
