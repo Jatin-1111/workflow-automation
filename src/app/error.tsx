@@ -39,8 +39,7 @@ export default function Error({
         That page did not load
       </h1>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        Something went wrong on our side. Nothing you were doing has been lost —
-        work is only recorded when you complete a stage.
+        Something went wrong on our side. Nothing you were doing has been lost. Work is only recorded when you complete a stage.
       </p>
 
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">

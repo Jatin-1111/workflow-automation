@@ -35,7 +35,7 @@ export async function startWorkflowAction(
   if (!title || title.length > TEXT_LIMITS.title) {
     return {
       ok: false,
-      message: 'Give this run a name — the client, the episode, the vendor.',
+      message: 'Give this run a name: the client, the episode, the vendor.',
     }
   }
 

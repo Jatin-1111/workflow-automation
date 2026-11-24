@@ -48,7 +48,7 @@ function describe(outcome: StageOutcome): string {
   if (outcome.people.length === 0) {
     // The engine will refuse to activate a stage nobody holds, so saying so
     // here is a warning rather than a promise.
-    return `goes to ${outcome.stageName} — nobody holds it yet`
+    return `goes to ${outcome.stageName}, but nobody holds it yet`
   }
   return `goes to ${outcome.stageName} (${outcome.people.join(', ')})`
 }

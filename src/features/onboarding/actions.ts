@@ -64,7 +64,7 @@ export async function startPracticeAction(): Promise<void> {
     {
       template,
       initiatedBy: user.userId,
-      title: `Practice run — ${user.name}`,
+      title: `Practice run: ${user.name}`,
       projectId: template.projectId,
     },
     await buildEngineContext(template, now),

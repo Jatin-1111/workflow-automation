@@ -915,7 +915,7 @@ export function holdTask(
               recipientId: request.instance.initiatedBy,
               kind: 'task_held',
               title: `${request.hold === 'blocked' ? 'Blocked' : 'Waiting'}: ${stage.name}`,
-              body: `${request.instance.title} — ${reason}`,
+              body: `${request.instance.title}: ${reason}`,
               taskId: task.taskId,
             },
           ],

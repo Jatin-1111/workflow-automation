@@ -48,7 +48,7 @@ export interface InstanceSeed {
 
 export const INSTANCE_SEEDS: InstanceSeed[] = [
   {
-    title: 'Proposal — ABC Technologies',
+    title: 'Proposal: ABC Technologies',
     workflowKey: 'proposal_creation',
     projectKey: 'startup_mela_2027',
     initiatorKey: 'harnoor',
@@ -67,7 +67,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
   },
   {
     // Left waiting long enough to breach the 12-hour approval SLA (spec §43).
-    title: 'Proposal — XYZ Technologies',
+    title: 'Proposal: XYZ Technologies',
     workflowKey: 'proposal_creation',
     projectKey: 'startup_mela_2027',
     initiatorKey: 'harnoor',
@@ -85,7 +85,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
     },
   },
   {
-    title: 'Proposal — DEF Media',
+    title: 'Proposal: DEF Media',
     workflowKey: 'proposal_creation',
     projectKey: 'ai_summit',
     initiatorKey: 'harnoor',
@@ -102,7 +102,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
     },
   },
   {
-    title: 'Proposal — GHI Labs',
+    title: 'Proposal: GHI Labs',
     workflowKey: 'proposal_creation',
     projectKey: 'podcast',
     initiatorKey: 'harnoor',
@@ -120,7 +120,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
     },
   },
   {
-    title: 'Proposal — JKL Industries',
+    title: 'Proposal: JKL Industries',
     workflowKey: 'proposal_creation',
     projectKey: 'general_operations',
     initiatorKey: 'harnoor',
@@ -139,7 +139,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
   {
     // One finished run, so the Completed view and project dashboards have
     // something real to show.
-    title: 'Proposal — MNO Ventures',
+    title: 'Proposal: MNO Ventures',
     workflowKey: 'proposal_creation',
     rejectOnceAt: 'final_approval',
     projectKey: 'startup_mela_2027',
@@ -160,7 +160,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
   {
     // Podcast episodes run on a completely different template through the same
     // engine, which is the point of seeding them (spec §53).
-    title: 'Podcast — Episode 04: Building in Public',
+    title: 'Podcast: Episode 04: Building in Public',
     workflowKey: 'podcast_production',
     projectKey: 'podcast',
     initiatorKey: 'tanu',
@@ -175,7 +175,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
     },
   },
   {
-    title: 'Podcast — Episode 05: Hiring Your First Ten',
+    title: 'Podcast: Episode 05: Hiring Your First Ten',
     workflowKey: 'podcast_production',
     projectKey: 'podcast',
     initiatorKey: 'tanu',
@@ -190,7 +190,7 @@ export const INSTANCE_SEEDS: InstanceSeed[] = [
     },
   },
   {
-    title: 'Podcast — Episode 03: Sample Guest',
+    title: 'Podcast: Episode 03: Sample Guest',
     workflowKey: 'podcast_production',
     rejectOnceAt: 'approval',
     projectKey: 'podcast',
@@ -351,7 +351,7 @@ async function driveTo(
       const stored = await storeBytes({
         instanceId: current.instanceId,
         extension: 'pdf',
-        bytes: placeholderPdf(`${slot.label} — ${current.title}`),
+        bytes: placeholderPdf(`${slot.label}: ${current.title}`),
       })
 
       await insertFile({

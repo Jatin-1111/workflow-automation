@@ -46,7 +46,7 @@ export function StartWorkflow({
       <Panel title="Start a workflow">
         <p className="px-5 py-4 text-sm text-muted">
           No workflow has been published yet. Build one under Workflows, then
-          publish it — a draft cannot carry work.
+          publish it. A draft cannot carry work.
         </p>
       </Panel>
     )
@@ -76,7 +76,7 @@ export function StartWorkflow({
           >
             {workflows.map((workflow) => (
               <option key={workflow.workflowId} value={workflow.workflowId}>
-                {workflow.name} — {workflow.stageCount} stages
+                {workflow.name}, {workflow.stageCount} stages
               </option>
             ))}
           </select>
@@ -94,7 +94,7 @@ export function StartWorkflow({
             className={fieldClass}
           />
           <span className="block text-xs text-subtle">
-            How it will appear on everyone&rsquo;s dashboard — the client, the
+            How it will appear on everyone&rsquo;s dashboard: the client, the
             episode, the vendor.
           </span>
         </label>

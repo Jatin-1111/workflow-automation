@@ -159,7 +159,7 @@ export function personBlockedMessage(name: string, uses: UserUses): string | nul
   if (uses.history.length > 0) {
     // History wins: changing their projects first would not help.
     return (
-      `${name} has history here — ${uses.history.join(', ')}. ` +
+      `${name} has history here: ${uses.history.join(', ')}. ` +
       'Deleting them would leave that history pointing at nobody. ' +
       'Deactivate them instead: they can no longer sign in or be given work, ' +
       'and their name stays on what they did.'

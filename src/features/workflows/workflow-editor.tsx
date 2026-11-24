@@ -587,7 +587,7 @@ export function WorkflowEditor({
         </div>
       ) : (
         <p className="rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted">
-          This version is published, so it cannot be changed — work already running is
+          This version is published, so it cannot be changed. Work already running is
           following it. Create a new version to make changes.{' '}
           <Link href="/workflows" className="text-accent underline-offset-4 hover:underline">
             Back to workflows
@@ -621,7 +621,7 @@ function ReadOnlyStage({ stage }: { stage: StageDefinition }) {
       {stage.slaHours ? <Row label="SLA">{stage.slaHours} hours</Row> : null}
       <Row label="Approval">
         {stage.requiresApproval
-          ? `Yes — rejections go to ${stage.rejectTargetStageKey}`
+          ? `Yes, rejections go to ${stage.rejectTargetStageKey}`
           : 'No'}
       </Row>
       <Row label="Continues to">{stage.nextStageKey ?? 'Finishes the workflow'}</Row>

@@ -74,7 +74,7 @@ export function QuickReassign({
         </option>
         {others.map((person) => (
           <option key={person.userId} value={person.userId}>
-            {person.name} — {person.openTasks} open
+            {person.name}, {person.openTasks} open
           </option>
         ))}
       </select>

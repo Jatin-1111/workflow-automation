@@ -353,7 +353,7 @@ function AssigneeEditor({
                   {roles.map((role) => (
                     <option key={role.roleId} value={role.roleId}>
                       {role.name}
-                      {role.holders.length === 0 ? ' — nobody assigned' : ''}
+                      {role.holders.length === 0 ? ' (nobody assigned)' : ''}
                     </option>
                   ))}
                 </select>
@@ -423,7 +423,7 @@ function ConditionsEditor({
     .flatMap((earlier) =>
       earlier.fields.map((field) => ({
         key: field.key,
-        label: `${field.label || field.key} — ${earlier.name || earlier.key}`,
+        label: `${field.label || field.key} (${earlier.name || earlier.key})`,
       })),
     )
 

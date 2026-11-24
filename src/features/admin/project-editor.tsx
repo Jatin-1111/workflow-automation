@@ -66,7 +66,7 @@ function ColorPicker({ value }: { value?: LabelColor }) {
   return (
     <fieldset className="space-y-1.5">
       <legend className="text-xs font-medium text-muted">
-        Colour — how this project is told apart on shared screens
+        Colour: how this project is told apart on shared screens
       </legend>
       <div className="flex flex-wrap gap-1.5">
         {LABEL_COLORS.map((color) => (
@@ -188,7 +188,7 @@ function ProjectRowItem({
               className={`${controlClass} block w-full max-w-xs`}
             >
               <option value="active">Active</option>
-              <option value="inactive">Inactive — kept, but not offered</option>
+              <option value="inactive">Inactive: kept, but not offered</option>
             </select>
           </label>
 

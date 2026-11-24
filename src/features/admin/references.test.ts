@@ -165,7 +165,7 @@ describe('deleting a person', () => {
     // Every action leaves a timeline event with their id on it, and the
     // timeline is append-only. Removing the person would orphan it.
     const message = personBlockedMessage('Rohan', userUses({ ...CLEAN, actions: 12 }))
-    assert.match(message ?? '', /has history here — 12 recorded actions/)
+    assert.match(message ?? '', /has history here: 12 recorded actions/)
   })
 
   it('is refused for somebody given work they never touched', () => {

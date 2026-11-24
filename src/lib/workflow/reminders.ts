@@ -114,8 +114,8 @@ export function planReminders(input: ReminderInput): ReminderDraft[] {
           ? `Overdue: ${task.stageName}`
           : `Due soon: ${task.stageName}`,
         body: overdue
-          ? `${instanceTitle} — was due ${describeOverdue(-remaining)}.`
-          : `${instanceTitle} — due ${describeRemaining(remaining)}.`,
+          ? `${instanceTitle} was due ${describeOverdue(-remaining)}.`
+          : `${instanceTitle} is due ${describeRemaining(remaining)}.`,
         instanceId: task.instanceId,
         taskId: task.taskId,
       })

@@ -50,9 +50,9 @@ export function RoleEditor({
       <p className="py-1 text-xs text-subtle">
         {heldNames.length === 0
           ? 'No workflow roles'
-          : `${heldNames.length} role${heldNames.length === 1 ? '' : 's'} — ${heldNames.join(', ')}`}
+          : `${heldNames.length} role${heldNames.length === 1 ? '' : 's'}: ${heldNames.join(', ')}`}
         {' · '}
-        <span className="text-muted">Deactivated — reactivate to change roles</span>
+        <span className="text-muted">Deactivated: reactivate to change roles</span>
       </p>
     )
   }
@@ -80,7 +80,7 @@ export function RoleEditor({
                 <span className="font-medium text-foreground">
                   {heldNames.length} role{heldNames.length === 1 ? '' : 's'}
                 </span>
-                <span className="text-subtle"> — {heldNames.join(', ')}</span>
+                <span className="text-subtle">: {heldNames.join(', ')}</span>
               </>
             )}
           </span>

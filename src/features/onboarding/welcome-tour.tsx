@@ -50,7 +50,7 @@ function stepsFor(accessLevel: AccessLevel, name: string): Step[] {
       {
         title: 'Roles decide who gets the work',
         body:
-          'A process sends work to a role — Proposal Designer, QC Owner — and you decide who holds that role. When somebody leaves, you point the role at somebody else and every process follows. You can build a whole new process yourself in Workflows, without a developer.',
+          'A process sends work to a role (Proposal Designer, QC Owner), and you decide who holds that role. When somebody leaves, you point the role at somebody else and every process follows. You can build a whole new process yourself in Workflows, without a developer.',
         aside: 'Admin and Workflows are in the menu above.',
       },
     ]
@@ -73,7 +73,7 @@ function stepsFor(accessLevel: AccessLevel, name: string): Step[] {
     {
       title: 'Finish your part and it moves itself',
       body:
-        'When you complete a stage, the platform hands the work to whoever is next and tells them. There is nobody to message and nothing to chase — and when somebody sends work back to you, it arrives here with their reasons attached.',
+        'When you complete a stage, the platform hands the work to whoever is next and tells them. There is nobody to message and nothing to chase. When somebody sends work back to you, it arrives here with their reasons attached.',
     },
   ]
 }

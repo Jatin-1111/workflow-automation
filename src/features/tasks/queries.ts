@@ -130,8 +130,11 @@ export interface TaskDetail {
   timeline: TimelineRow[]
 }
 
+/** What an unanswered field reads as, and what the filter below drops. */
+const NO_VALUE = 'Not given'
+
 function displayValue(value: FieldValue): string {
-  if (value === null || value === undefined) return '—'
+  if (value === null || value === undefined) return NO_VALUE
   if (value instanceof Date) return value.toLocaleDateString('en-GB')
   if (typeof value === 'boolean') return value ? 'Yes' : 'No'
   return String(value)
@@ -344,7 +347,7 @@ function buildPriorStages(
             label: field.label,
             value: displayValue(completed.fieldValues[field.key]),
           }))
-          .filter((entry) => entry.value !== '—'),
+          .filter((entry) => entry.value !== NO_VALUE),
       }
     })
     .filter((stage): stage is PriorStage => stage !== null)

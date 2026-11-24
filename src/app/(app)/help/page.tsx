@@ -42,7 +42,7 @@ export default async function HelpPage() {
               <strong className="font-medium text-foreground">Workflow</strong> is a
               process that repeats inside it, like Proposal Creation. Each time you run
               that process you get an{' '}
-              <strong className="font-medium text-foreground">instance</strong> — one
+              <strong className="font-medium text-foreground">instance</strong>: one
               proposal, for one client. An instance moves through{' '}
               <strong className="font-medium text-foreground">stages</strong>, and the
               stage you are responsible for is a{' '}
@@ -53,9 +53,9 @@ export default async function HelpPage() {
             <ol className="space-y-2 rounded-xl border border-border bg-surface-sunken p-4 text-sm">
               <li className="text-muted">Startup Mela 2027</li>
               <li className="pl-4 text-muted">Proposal Creation</li>
-              <li className="pl-8 text-muted">Proposal — ABC Technologies</li>
+              <li className="pl-8 text-muted">Proposal: ABC Technologies</li>
               <li className="pl-12 font-medium text-foreground">
-                Design &amp; Formatting — assigned to you
+                Design &amp; Formatting: assigned to you
               </li>
             </ol>
 
@@ -94,9 +94,9 @@ export default async function HelpPage() {
               </dt>
               <dd className="mt-1 text-sm leading-relaxed text-muted">
                 A <strong className="font-medium text-foreground">workflow role</strong>{' '}
-                — Proposal Designer, QC Owner — decides what work reaches you. An{' '}
-                <strong className="font-medium text-foreground">access level</strong> —
-                employee, manager, administrator — decides what you can see and change.
+                (Proposal Designer, QC Owner) decides what work reaches you. An{' '}
+                <strong className="font-medium text-foreground">access level</strong>{' '}
+                (employee, manager, administrator) decides what you can see and change.
                 They are independent: somebody can be an employee who holds three roles,
                 or an administrator who holds none.
               </dd>
@@ -120,16 +120,16 @@ export default async function HelpPage() {
           <Panel title="If you manage the work">
             <ul className="space-y-2 px-5 py-4 text-sm leading-relaxed text-muted">
               <li>
-                <strong className="font-medium text-foreground">Dashboard</strong> — what
+                <strong className="font-medium text-foreground">Dashboard</strong>: what
                 is running now, and what has been sitting longer than its stage allows.
               </li>
               <li>
-                <strong className="font-medium text-foreground">Team</strong> — what each
+                <strong className="font-medium text-foreground">Team</strong>: what each
                 person is carrying. Open a task and you can move it to somebody else,
                 with a reason that goes on the record.
               </li>
               <li>
-                <strong className="font-medium text-foreground">Reports</strong> — how
+                <strong className="font-medium text-foreground">Reports</strong>: how
                 long work takes, which stage holds it up and how often it comes back.
                 Measured from the records, not estimated.
               </li>
@@ -141,12 +141,12 @@ export default async function HelpPage() {
           <Panel title="If you set it up">
             <ul className="space-y-2 px-5 py-4 text-sm leading-relaxed text-muted">
               <li>
-                <strong className="font-medium text-foreground">Admin</strong> — who
+                <strong className="font-medium text-foreground">Admin</strong>: who
                 holds which role. This is how somebody joining or leaving is handled:
                 point the role at somebody else and every workflow follows.
               </li>
               <li>
-                <strong className="font-medium text-foreground">Workflows</strong> —
+                <strong className="font-medium text-foreground">Workflows</strong>:
                 build a process without a developer. It starts as a draft, and publishing
                 is what lets work start on it.
               </li>

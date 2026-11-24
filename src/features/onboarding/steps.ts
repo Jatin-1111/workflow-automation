@@ -136,10 +136,10 @@ export function buildSetupSteps(input: SetupInput): SetupState {
               } has nobody in it`,
       detail:
         roles.length === 0
-          ? 'A stage is assigned to a role — Proposal Designer, QC Owner — not to a person.'
+          ? 'A stage is assigned to a role (Proposal Designer, QC Owner), not to a person.'
           : rolesReady
             ? 'Work can reach a person at every stage.'
-            : `${(uncovered.length > 0 ? uncovered : roles.filter((role) => activeHolders(role.roleId) === 0)).map((role) => role.name).join(', ')} — a workflow routing here will refuse to move.`,
+            : `${(uncovered.length > 0 ? uncovered : roles.filter((role) => activeHolders(role.roleId) === 0)).map((role) => role.name).join(', ')}: a workflow routing here will refuse to move.`,
       done: rolesReady,
       blocked: colleagues.length === 0,
       href: '/admin',

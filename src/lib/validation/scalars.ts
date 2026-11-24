@@ -77,7 +77,7 @@ export function phoneValue(raw: unknown, label = 'Phone'): ScalarResult<string> 
     return reject(`${label} must be ${TEXT_LIMITS.phone} characters or fewer.`)
   }
   if (!PHONE_SHAPE.test(text)) {
-    return reject(`${label} must be a phone number — digits, spaces and + ( ) - only.`)
+    return reject(`${label} must be a phone number: digits, spaces and + ( ) - only.`)
   }
 
   const digits = text.replace(/\D/g, '').length

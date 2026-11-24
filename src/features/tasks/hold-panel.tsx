@@ -110,7 +110,7 @@ export function HoldPanel({
                   <span>
                     Waiting
                     <span className="block text-xs text-subtle">
-                      Normal delay outside the company — a client has not replied yet.
+                      Normal delay outside the company: a client has not replied yet.
                     </span>
                   </span>
                 </label>

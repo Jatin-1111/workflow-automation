@@ -81,9 +81,9 @@ export function UserCreator({
         <label className="space-y-1">
           <span className="text-xs font-medium text-muted">Access level</span>
           <select name="accessLevel" defaultValue="employee" className={`${controlClass} block w-full`}>
-            <option value="employee">Employee — their own work</option>
-            <option value="manager">Manager — the team&rsquo;s work too</option>
-            <option value="admin">Administrator — everything</option>
+            <option value="employee">Employee: their own work</option>
+            <option value="manager">Manager: the team&rsquo;s work too</option>
+            <option value="admin">Administrator: everything</option>
           </select>
         </label>
 
@@ -143,7 +143,7 @@ export function UserCreator({
 
       <fieldset className="space-y-1.5">
         <legend className="text-xs font-medium text-muted">
-          Workflow roles — what work reaches them
+          Workflow roles: what work reaches them
         </legend>
         <div className="grid gap-x-6 gap-y-1.5 sm:grid-cols-3">
           {roles.map((role) => (
