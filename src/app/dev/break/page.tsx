@@ -17,6 +17,9 @@ import { WorkloadList } from '@/features/management/workload-list'
 import type { WorkloadRow } from '@/features/management/queries'
 import { RunLine, type RunStop } from '@/features/ui/run-line'
 import { Panel } from '@/features/ui/primitives'
+import { BoardView } from '@/features/board/board'
+import { boardFixture } from './board-fixture'
+import { WorkPanel, type ProfileWorkItem } from '@/features/profile/work-panel'
 
 type Fixture = 'demo' | 'worst' | 'empty' | 'one' | 'many'
 const FIXTURES: { id: Fixture; label: string }[] = [
@@ -120,6 +123,46 @@ const LABELS = [
 const SIZES = ['lead', 'lead', 'base', 'base', 'quiet', 'quiet', 'quiet', 'quiet'] as const
 const TONES = ['alert', 'action', 'action', 'progress', 'alert', 'good', 'good', 'neutral'] as const
 
+function workGroups(kind: Fixture) {
+  const day = 86_400_000
+  const item = (n: number, o: Partial<ProfileWorkItem> = {}): ProfileWorkItem => ({
+    taskId: `BO-TSK-${String(n).padStart(5, '0')}`,
+    stageName: 'Review',
+    projectName: 'Website Content',
+    instanceTitle: `Pricing page rewrite ${n}`,
+    dueAt: new Date(Date.now() + 2 * day),
+    overdue: false,
+    completed: false,
+    ...o,
+  })
+  if (kind === 'empty') return { active: [], overdue: [], approvals: [], completed: [] }
+  if (kind === 'one') {
+    const only = item(1)
+    return { active: [only], overdue: [], approvals: [], completed: [] }
+  }
+  const count = kind === 'many' ? 40 : kind === 'worst' ? 14 : 3
+  const active = Array.from({ length: count }, (_, i) =>
+    item(i + 1, {
+      stageName:
+        kind === 'worst' && i === 0
+          ? 'Legal and compliance review for regulated-market launches in the EU and UK before sign-off'
+          : 'Review',
+      instanceTitle:
+        kind === 'worst' && i === 0
+          ? 'Case study: Ridgeline Foods and the long road to a compliant, accessible, localised launch in four languages'
+          : `Pricing page rewrite ${i + 1}`,
+      overdue: i % 2 === 0,
+      dueAt: new Date(Date.now() - (i % 2 === 0 ? 53 : -2) * day),
+    }),
+  )
+  return {
+    active,
+    overdue: active.filter((row) => row.overdue),
+    approvals: active.slice(0, 1),
+    completed: [item(99, { completed: true, dueAt: undefined })],
+  }
+}
+
 export default async function BreakPage({ searchParams }: PageProps<'/dev/break'>) {
   if (process.env.NODE_ENV === 'production') notFound()
 
@@ -166,6 +209,19 @@ export default async function BreakPage({ searchParams }: PageProps<'/dev/break'
           )}
         </Panel>
       </div>
+
+      <section aria-label="Profile work panel">
+        <h2 className="mb-3 text-lg font-bold">The profile&rsquo;s work panel</h2>
+        <div className="grid items-start gap-6 lg:grid-cols-2">
+          <WorkPanel tab="active" groups={workGroups(which)} now={new Date()} />
+          <WorkPanel tab="overdue" groups={workGroups(which)} now={new Date()} />
+        </div>
+      </section>
+
+      <section aria-label="Board">
+        <h2 className="mb-3 text-lg font-bold">The board</h2>
+        <BoardView board={boardFixture(which)} />
+      </section>
 
       {/* Dev chrome: plain on purpose, not part of the design under test. */}
       <div className="fixed inset-x-0 bottom-3 flex justify-center">
