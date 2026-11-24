@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Bell } from 'lucide-react'
+import { NOTIFICATIONS_CHANGED } from '@/features/notifications/events'
 
 export function NotificationBell({
   initialUnread,
@@ -40,9 +41,12 @@ export function NotificationBell({
     }
     void refresh()
     window.addEventListener('focus', refresh)
+    // The notifications page says when it has refreshed or read something.
+    window.addEventListener(NOTIFICATIONS_CHANGED, refresh)
     return () => {
       cancelled = true
       window.removeEventListener('focus', refresh)
+      window.removeEventListener(NOTIFICATIONS_CHANGED, refresh)
     }
   }, [pathname])
 

@@ -2,7 +2,7 @@
 
 import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
-import type { TaskId, UserId } from '@/lib/types/ids'
+import type { NotificationId, TaskId, UserId } from '@/lib/types/ids'
 import type { Notification, NotificationKind } from '@/lib/types/notification'
 
 async function notifications() {
@@ -27,6 +27,22 @@ export async function listNotificationsForUser(
 
 export async function countUnreadNotifications(recipientId: UserId): Promise<number> {
   return (await notifications()).countDocuments({ recipientId, readAt: { $exists: false } })
+}
+
+/**
+ * Mark one notification read, for its own recipient only.
+ *
+ * The recipient is part of the filter, not a check after it, so a guessed id
+ * belonging to somebody else matches nothing.
+ */
+export async function markNotificationRead(
+  recipientId: UserId,
+  notificationId: NotificationId,
+): Promise<void> {
+  await (await notifications()).updateOne(
+    { notificationId, recipientId, readAt: { $exists: false } },
+    { $set: { readAt: new Date() } },
+  )
 }
 
 /** Scoped to one recipient so nobody can clear someone else's inbox. */

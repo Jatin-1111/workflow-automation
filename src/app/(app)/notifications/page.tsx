@@ -3,103 +3,132 @@
  *
  * In-app only in this version: the point is that the platform, not a colleague
  * on WhatsApp, is what tells you work has arrived.
+ *
+ * The list is read when the page opens, so it has a Refresh button, and the
+ * sidebar bell recounts when it is pressed. Rows are grouped under the day they
+ * arrived, with the time and the kind in fixed columns so they line up down the
+ * list. Unread is a view of its own, not just a count.
  */
 
 import Link from 'next/link'
 import { requireUser } from '@/lib/auth/dal'
-import { CheckCheck } from 'lucide-react'
-import {
-  Empty,
-  PageHeader,
-  Panel,
-  buttonClass,
-} from '@/features/ui/primitives'
-import { KindIcon } from '@/features/notifications/kind-icon'
+import { Empty, PageHeader, Panel } from '@/features/ui/primitives'
+import { LinkPending } from '@/features/ui/link-pending'
 import { listNotificationsForUser } from '@/lib/db/repositories/notifications'
-import { markAllReadAction } from '@/features/notifications/actions'
+import { groupByDay } from '@/features/notifications/grouping'
+import { MarkAllRead } from '@/features/notifications/mark-all-read'
+import { NotificationRow } from '@/features/notifications/notification-row'
+import { RefreshButton } from '@/features/notifications/refresh-button'
 import { humanise } from '@/features/my-work/format'
 
-export default async function NotificationsPage() {
+const LIMIT = 50
+
+export default async function NotificationsPage({
+  searchParams,
+}: PageProps<'/notifications'>) {
   const user = await requireUser()
-  const notifications = await listNotificationsForUser(user.userId, 50)
-  const unread = notifications.filter((notification) => !notification.readAt).length
+  const params = await searchParams
+  const onlyUnread = params.show === 'unread'
+
+  const now = new Date()
+  const all = await listNotificationsForUser(user.userId, LIMIT)
+  const unread = all.filter((notification) => !notification.readAt).length
+  const shown = onlyUnread ? all.filter((notification) => !notification.readAt) : all
+  const groups = groupByDay(shown, now)
+
+  const tabs = [
+    { href: '/notifications', label: 'All', count: all.length, active: !onlyUnread },
+    { href: '/notifications?show=unread', label: 'Unread', count: unread, active: onlyUnread },
+  ]
 
   return (
-    <div className="max-w-3xl">
+    <>
       <PageHeader
         title="Notifications"
-        description={unread === 0 ? 'Nothing unread.' : `${unread} unread.`}
+        description={
+          unread === 0
+            ? 'You are all caught up.'
+            : `${unread} unread. Opening one marks it read.`
+        }
         actions={
-          unread > 0 ? (
-            <form action={markAllReadAction}>
-              <button type="submit" className={buttonClass('secondary', 'md')}>
-                <CheckCheck size={16} strokeWidth={1.75} aria-hidden />
-                Mark all as read
-              </button>
-            </form>
-          ) : null
+          <>
+            <RefreshButton loadedAt={now.toISOString()} />
+            {unread > 0 ? <MarkAllRead /> : null}
+          </>
         }
       />
 
-      <Panel title="Recent" count={notifications.length}>
-        {notifications.length === 0 ? (
-          <Empty>
-            Nothing yet. The platform will tell you here when work reaches you.
-          </Empty>
-        ) : (
-          <ul className="divide-y divide-border">
-            {notifications.map((notification) => {
-              const row = (
-                <span className="flex items-start gap-3">
-                  <KindIcon kind={notification.kind} />
+      <nav aria-label="Show" className="mb-4 flex flex-wrap items-center gap-1.5">
+        {tabs.map((tab) => (
+          <Link
+            key={tab.label}
+            href={tab.href}
+            aria-current={tab.active ? 'page' : undefined}
+            className={`transition-ui relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold active:scale-[0.97] max-sm:min-h-11 ${
+              tab.active
+                ? 'bg-foreground text-white'
+                : 'text-muted hover:bg-sidebar hover:text-foreground'
+            }`}
+          >
+            {tab.label}
+            <span
+              className={`rounded-full px-1.5 text-xs tabular-nums ${
+                tab.active ? 'bg-white/20' : 'bg-sidebar'
+              }`}
+            >
+              {tab.count}
+            </span>
+            <LinkPending />
+          </Link>
+        ))}
+      </nav>
 
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{notification.title}</span>
-                      {!notification.readAt ? (
-                        <span
-                          aria-label="Unread"
-                          className="size-1.5 shrink-0 rounded-full bg-accent"
-                        />
-                      ) : null}
-                    </span>
-                    {notification.body ? (
-                      <span className="mt-0.5 block text-sm text-muted">
-                        {notification.body}
-                      </span>
-                    ) : null}
-                    <span className="mt-0.5 block text-xs text-subtle">
-                      {humanise(notification.kind)} ·{' '}
-                      {notification.createdAt.toLocaleString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  </span>
-                </span>
-              )
+      {groups.length === 0 ? (
+        <Panel>
+          {onlyUnread ? (
+            <Empty>
+              Nothing unread. <Link href="/notifications" className="font-semibold text-accent underline-offset-4 hover:underline">See everything</Link>.
+            </Empty>
+          ) : (
+            <Empty>Nothing yet. The platform will tell you here when work reaches you.</Empty>
+          )}
+        </Panel>
+      ) : (
+        <div className="space-y-6">
+          {groups.map((group) => (
+            <Panel key={group.key} title={group.label} count={group.items.length}>
+              <ul className="divide-y divide-border">
+                {group.items.map((notification) => (
+                  <li key={notification.notificationId}>
+                    <NotificationRow
+                      row={{
+                        id: notification.notificationId,
+                        kind: notification.kind,
+                        kindLabel: humanise(notification.kind),
+                        title: notification.title,
+                        body: notification.body,
+                        taskId: notification.taskId,
+                        unread: !notification.readAt,
+                        time: notification.createdAt.toLocaleTimeString('en-GB', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }),
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          ))}
 
-              return (
-                <li key={notification.notificationId}>
-                  {notification.taskId ? (
-                    <Link
-                      href={`/tasks/${notification.taskId}`}
-                      className="block px-5 py-3.5 transition-ui hover:bg-surface-sunken"
-                    >
-                      {row}
-                    </Link>
-                  ) : (
-                    <div className="px-5 py-3.5">{row}</div>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </Panel>
-    </div>
+          {all.length === LIMIT ? (
+            <p className="text-xs text-subtle">
+              Showing the latest {LIMIT}. Older notifications are kept but not listed here.
+            </p>
+          ) : null}
+        </div>
+      )}
+    </>
   )
 }
 
