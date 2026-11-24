@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Orbit · Design directions</title>
+<style>
+*{box-sizing:border-box;margin:0}
+body{font-family:system-ui,sans-serif;background:#f6f6f4;color:#111;padding:40px 28px;line-height:1.45}
+h1{font-size:26px;letter-spacing:-.02em}
+p.l{color:#555;margin:6px 0 26px;max-width:62ch}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:22px}
+a.c{display:block;background:#fff;border:1px solid #deded8;border-radius:12px;overflow:hidden;color:inherit;text-decoration:none;transition:transform .18s cubic-bezier(.23,1,.32,1),border-color .18s}
+a.c:hover{transform:translateY(-2px);border-color:#999}
+a.c:focus-visible{outline:2px solid #2563eb;outline-offset:3px}
+.f{height:240px;overflow:hidden;border-bottom:1px solid #deded8;background:#eee}
+iframe{width:1280px;height:960px;border:0;transform:scale(.27);transform-origin:0 0;pointer-events:none}
+.t{padding:14px 16px}
+.t b{font-size:16px}.t span{display:block;color:#555;font-size:13.5px;margin-top:3px}
+</style>
+</head>
+<body>
+<h1>Four directions for the Overview</h1>
+<p class="l">Same screen, same real data, sidebar on the left and data on the right. Open each one full size, then resize the window to see how it folds.</p>
+<div class="g">
+  <a class="c" href="almanac.html"><div class="f"><iframe src="almanac.html" title="Nautical Almanac preview" tabindex="-1"></iframe></div><div class="t"><b>Nautical Almanac</b><span>Navy sidebar, paper ground, ruled tables, tick-strip per workflow.</span></div></a>
+  <a class="c" href="transit.html"><div class="f"><iframe src="transit.html" title="Transit Line Map preview" tabindex="-1"></iframe></div><div class="t"><b>Transit Line Map</b><span>Bold grotesque, workflows drawn as lines with a station per stage.</span></div></a>
+  <a class="c" href="monochrome.html"><div class="f"><iframe src="monochrome.html" title="Monochrome Canon preview" tabindex="-1"></iframe></div><div class="t"><b>Monochrome Canon</b><span>Near-black on near-white, one accent used rarely, hairline frames.</span></div></a>
+  <a class="c" href="saas-standard.html"><div class="f"><iframe src="saas-standard.html" title="SaaS Standard preview" tabindex="-1"></iframe></div><div class="t"><b>SaaS Standard</b><span>Dark sidebar, blue accent, soft cards and pills. The category default, played straight.</span></div></a>
+</div>
+</body>
+</html>
