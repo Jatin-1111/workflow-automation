@@ -67,7 +67,7 @@ export function LoginForm({ next }: { next?: string }) {
       {state.error ? (
         <p
           role="alert"
-          className="rounded-md border border-border bg-accent-soft px-3 py-2 text-sm text-status-overdue"
+          className="rounded-md border border-status-overdue/25 bg-status-overdue-soft px-3 py-2 text-sm text-status-overdue"
         >
           {state.error}
         </p>
@@ -83,7 +83,7 @@ export function LoginForm({ next }: { next?: string }) {
 
       {/* There was no way back from a forgotten password and no hint where
           to look; the owner of the system was stuck on exactly this. There
-          is no email, so no reset link — the honest answer is who can help.
+          is no email, so no reset link. The honest answer is who can help.
           Administrators are not named: this page is open to anybody. Opens
           by itself after a refusal that a forgotten password would cause. */}
       <details ref={help} className="group text-sm">
@@ -92,13 +92,12 @@ export function LoginForm({ next }: { next?: string }) {
         </summary>
         <div className="mt-3 space-y-2 rounded-md border border-border bg-surface-sunken px-3 py-2.5 text-muted">
           <p>
-            Ask an administrator in your organisation to set a new one for you. They do it
-            from <span className="font-medium text-foreground">Admin</span>, beside your name,
-            and it lifts any wait your earlier attempts caused.
+            Ask an administrator to set a new one. They do it from{' '}
+            <span className="font-medium text-foreground">Admin</span>, beside your name, and it
+            clears any wait from earlier attempts.
           </p>
           <p>
-            Once you are in, change it to one only you know: open your profile from the top
-            right of any page — your name, or just its first letter on a phone — then{' '}
+            Once you are in, open your profile (top right) and choose{' '}
             <span className="font-medium text-foreground">Change my password</span>.
           </p>
         </div>

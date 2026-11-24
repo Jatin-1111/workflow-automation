@@ -59,7 +59,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
 
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">{stage.name}</h1>
+          <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">{stage.name}</h1>
           <p className="mt-1 text-sm text-muted">
             {detail.instanceTitle}
             <span className="text-subtle">
@@ -104,7 +104,10 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="space-y-6">
-          {stage.instructions ? (
+          {/* Instructions are for someone who still has to act. On finished or
+              cancelled work they said "Approve it" above a note saying the
+              stage was done. */}
+          {stage.instructions && !task.completedAt && task.status !== 'cancelled' ? (
             <section className="rounded-xl border border-accent-ring bg-accent-soft/60 px-5 py-4">
               <h2 className="text-sm font-semibold text-foreground">
                 What you need to do
@@ -131,8 +134,8 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
                       {prior.name}
                       {prior.completedBy.length > 0 ? (
                         <span className="font-normal text-subtle">
-                          {' '}
-                          &mdash; completed by {prior.completedBy.join(', ')}
+                          {', '}
+                          completed by {prior.completedBy.join(', ')}
                         </span>
                       ) : null}
                     </p>
