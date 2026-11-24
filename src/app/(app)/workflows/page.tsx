@@ -3,12 +3,18 @@
  *
  * This is the list the Workflow Builder hangs off: create a process, see which
  * version is live, and start the next version when one needs changing.
+ *
+ * One row per workflow, in columns that line up down the list: what it is,
+ * which project it belongs to, its versions, how big it is, how much is
+ * running on it, and the one thing you can do to it. Versions are chips in
+ * their own column rather than a nested list under each name, which is what
+ * left the old layout ragged and half empty.
  */
 
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
 import { EmptyRow, Section } from '@/features/management/section'
-import { Pill } from '@/features/ui/primitives'
+import { Pill, tdClass, tdNumClass, theadClass, thClass, thNumClass } from '@/features/ui/primitives'
 import { CreateWorkflowForm } from '@/features/workflows/create-workflow-form'
 import { NewVersionButton } from '@/features/workflows/new-version-button'
 import { listProjects } from '@/lib/db/repositories/projects'
@@ -36,20 +42,20 @@ export default async function WorkflowsPage() {
     ])
   }
 
-  const runningOn = (workflowId: string, version: number) =>
+  /** Runs still going on any version of this workflow. */
+  const runningOn = (workflowId: string) =>
     instances.filter(
       (instance) =>
         instance.workflowId === workflowId &&
-        instance.templateVersion === version &&
         instance.status !== 'completed' &&
         instance.status !== 'cancelled',
     ).length
 
   return (
-    <div className="max-w-5xl">
+    <>
       <div className="mb-6">
-        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">Workflows</h1>
-        <p className="mt-1 text-sm text-muted">
+        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">Workflows</h1>
+        <p className="mt-1.5 max-w-3xl text-sm text-muted">
           Build a process once and the platform runs it. Editing a published
           workflow creates a new version; work already running keeps the version
           it started on.
@@ -57,7 +63,10 @@ export default async function WorkflowsPage() {
       </div>
 
       <div className="space-y-6">
-        <Section title="Create a workflow" description="It starts as a draft, so nothing runs on it until you publish.">
+        <Section
+          title="Create a workflow"
+          description="It starts as a draft, so nothing runs on it until you publish."
+        >
           <CreateWorkflowForm
             projects={projects.map((project) => ({
               projectId: project.projectId,
@@ -68,61 +77,72 @@ export default async function WorkflowsPage() {
 
         <Section title="Workflows" count={byWorkflow.size}>
           {byWorkflow.size === 0 ? (
-            <EmptyRow>No workflows yet.</EmptyRow>
+            <EmptyRow>No workflows yet. Create one above and it will appear here as a draft.</EmptyRow>
           ) : (
-            <ul className="divide-y divide-border">
-              {[...byWorkflow.values()].map((versions) => {
-                const latest = versions[0]
-                return (
-                  <li key={latest.workflowId} className="px-4 py-3">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium">{latest.name}</p>
-                        <p className="text-xs text-muted">
-                          <span className="font-mono">{latest.workflowId}</span>
-                          {latest.projectId
-                            ? ` · ${projectName.get(latest.projectId) ?? ''}`
-                            : ' · not tied to a project'}
-                        </p>
-                      </div>
-                      <NewVersionButton workflowId={latest.workflowId} />
-                    </div>
-
-                    <ul className="mt-2 -mx-2">
-                      {versions.map((version) => {
-                        const running = runningOn(version.workflowId, version.version)
-                        return (
-                          <li
-                            key={version.version}
-                            className="flex flex-wrap items-center gap-3 rounded-md px-2 py-2 text-sm transition-ui hover:bg-surface-sunken"
-                          >
+            <table className="w-full min-w-[44rem] text-sm">
+              <thead>
+                <tr className={theadClass}>
+                  <th scope="col" className={thClass}>Workflow</th>
+                  <th scope="col" className={thClass}>Project</th>
+                  <th scope="col" className={thClass}>Versions</th>
+                  <th scope="col" className={thNumClass}>Stages</th>
+                  <th scope="col" className={thNumClass}>Running</th>
+                  <th scope="col" className={`${thClass} w-44`}>
+                    <span className="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
+                {[...byWorkflow.values()].map((versions) => {
+                  const latest = versions[0]
+                  const running = runningOn(latest.workflowId)
+                  return (
+                    <tr key={latest.workflowId}>
+                      <td className={`${tdClass} min-w-48`}>
+                        <span className="block font-bold [overflow-wrap:anywhere]">{latest.name}</span>
+                        <span className="mt-0.5 block font-mono text-xs text-subtle">
+                          {latest.workflowId}
+                        </span>
+                      </td>
+                      <td className={`${tdClass} min-w-32 text-muted`}>
+                        {latest.projectId
+                          ? (projectName.get(latest.projectId) ?? 'Unknown project')
+                          : 'Not tied to a project'}
+                      </td>
+                      <td className={tdClass}>
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          {versions.map((version) => (
                             <Link
+                              key={version.version}
                               href={`/workflows/${version.workflowId}/${version.version}`}
-                              className="font-medium text-accent underline-offset-4 hover:underline"
+                              className="transition-ui group inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-surface py-0.5 pl-2.5 pr-1 text-xs font-bold hover:border-foreground active:scale-[0.97]"
                             >
-                              Version {version.version}
+                              v{version.version}
+                              <StatusPill status={version.status} />
                             </Link>
-                            <StatusPill status={version.status} />
-                            <span className="text-xs text-muted">
-                              {version.stages.length} {version.stages.length === 1 ? 'stage' : 'stages'}
-                            </span>
-                            {running > 0 ? (
-                              <span className="text-xs text-muted">
-                                {running} running on it
-                              </span>
-                            ) : null}
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </li>
-                )
-              })}
-            </ul>
+                          ))}
+                        </span>
+                      </td>
+                      <td className={tdNumClass}>{latest.stages.length}</td>
+                      <td
+                        className={`${tdNumClass} ${
+                          running > 0 ? 'font-semibold' : 'text-muted'
+                        }`}
+                      >
+                        {running}
+                      </td>
+                      <td className={`${tdClass} text-right`}>
+                        <NewVersionButton workflowId={latest.workflowId} />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           )}
         </Section>
       </div>
-    </div>
+    </>
   )
 }
 

@@ -116,7 +116,7 @@ function Row({
               className={`${controlClass} block w-full max-w-xs`}
             >
               <option value="active">Active</option>
-              <option value="inactive">Inactive — kept, but not offered</option>
+              <option value="inactive">Inactive: kept, but not offered</option>
             </select>
           </label>
 
@@ -240,32 +240,38 @@ export function OrgManager({
   const [state, create, creating] = useActionState(createAction, IDLE)
 
   return (
-    <div className="divide-y divide-border">
-      <ul
-        className={
-          columns
-            ? '-mb-px -mr-px grid sm:grid-cols-2 xl:grid-cols-3 [&>li]:border-b [&>li]:border-r [&>li]:border-border'
-            : 'divide-y divide-border'
-        }
-      >
-        {entities.length === 0 ? (
-          <li className="px-5 py-6 text-center text-sm text-muted">
-            No {label.toLowerCase()} yet.
-          </li>
-        ) : null}
+    <div className="flex min-h-full flex-1 flex-col divide-y divide-border">
+      {/* Cards that wrap grow to fill their row, so a short last row has no
+          empty cell. The negative margins hide the outer borders but overflow
+          the panel by a pixel, and the panel scrolls what overflows, so the
+          wrapper clips it. */}
+      <div className={columns ? 'overflow-hidden' : 'flex flex-1 flex-col'}>
+        <ul
+          className={
+            columns
+              ? '-mb-px -mr-px flex flex-wrap [&>li]:min-w-64 [&>li]:flex-1 [&>li]:basis-72 [&>li]:border-b [&>li]:border-r [&>li]:border-border'
+              : 'flex flex-1 flex-col divide-y divide-border'
+          }
+        >
+          {entities.length === 0 ? (
+            <li className="my-auto px-5 py-6 text-center text-sm text-muted">
+              No {label.toLowerCase()} yet.
+            </li>
+          ) : null}
 
-        {entities.map((entity) => (
-          <Row
-            key={entity.id}
-            entity={entity}
-            label={label}
-            idField={idField}
-            updateAction={updateAction}
-            deleteAction={deleteAction}
-            describable={describable}
-          />
-        ))}
-      </ul>
+          {entities.map((entity) => (
+            <Row
+              key={entity.id}
+              entity={entity}
+              label={label}
+              idField={idField}
+              updateAction={updateAction}
+              deleteAction={deleteAction}
+              describable={describable}
+            />
+          ))}
+        </ul>
+      </div>
 
       <form action={create} className="space-y-3 bg-surface-sunken px-5 py-4">
         <div className="flex flex-wrap items-end gap-3">

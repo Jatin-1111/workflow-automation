@@ -12,7 +12,7 @@ export function NewVersionButton({ workflowId }: { workflowId: string }) {
   const [state, start, working] = useActionState(createVersionAction, IDLE)
 
   return (
-    <form action={start} className="flex items-center gap-2">
+    <form action={start} className="flex items-center justify-end gap-2">
       <input type="hidden" name="workflowId" value={workflowId} />
       <button
         type="submit"

@@ -3,6 +3,10 @@
  *
  * Role assignment is the important part: it is what makes a workflow survive
  * somebody leaving, which is the promise §6 makes.
+ *
+ * Laid out so every row of tiles ends on one line: people and roles run the
+ * full width because they are the long lists; the shorter structure lists
+ * pair up and stretch to the taller of the two, so no tile leaves a gap.
  */
 
 import { requireCapability } from '@/lib/auth/dal'
@@ -66,14 +70,16 @@ export default async function AdminPage() {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-[1.625rem] font-semibold leading-8 tracking-[-0.022em]">Administration</h1>
-        <p className="mt-1 text-sm text-muted">
+        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">Administration</h1>
+        <p className="mt-1.5 text-sm text-muted">
           People, workflow roles, and the organisation structure behind them.
         </p>
       </div>
 
-      <div className="space-y-6">
-        <Section title="People" count={users.length}>
+      {/* An explicit one-column track below `lg`, so a wide control cannot push
+          the page past a phone's edge. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12">
+        <Section className="lg:col-span-12" title="People" count={users.length}>
           <div className="px-5 pt-4">
             <Hint>
               Workflow roles decide what work reaches somebody. Their access level,
@@ -90,11 +96,15 @@ export default async function AdminPage() {
             />
           </div>
 
-          {/* Side by side: one person per full-width row left most of a wide
-              screen empty. The dividers are borders on each person, not a
-              coloured gap between them, so an odd last person leaves white
-              space — it used to leave a grey hole. */}
-          <ul className="-mb-px -mr-px grid border-t border-border lg:grid-cols-2 [&>li]:border-b [&>li]:border-r [&>li]:border-border">
+          {/* One person to a row, in three parts: who they are, which roles they
+              hold, what can be done to them. It was two people to a row, which
+              left a hole whenever the count was odd and squeezed the controls
+              under the name; across the full width every row is full. The columns are
+              fixed shares, never sized by their content: a row with one button
+              fewer (nobody deletes themselves) would otherwise be narrower and
+              pull its neighbours out of line. The container, not the viewport,
+              decides when it goes three-wide. */}
+          <ul className="@container divide-y divide-border border-t border-border">
             {users.map((user) => {
               const roleOptions: RoleOption[] = roles.map((role) => ({
                 roleId: role.roleId,
@@ -108,70 +118,71 @@ export default async function AdminPage() {
               }))
 
               return (
-                <li key={user.userId} className="bg-surface px-5 py-4">
+                <li key={user.userId} className="px-5 py-4">
                   <PersonDeleteScope
                     userId={user.userId}
                     userName={user.name}
                     isSelf={user.userId === admin.userId}
                   >
-                  <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium">
-                        {user.name}
-                        <span className="ml-2 font-mono text-xs text-subtle">
-                          {user.userId}
-                        </span>
-                      </p>
-                      <p className="text-xs text-muted">
-                        {user.email} · {humanise(user.accessLevel)}
-                        {user.departmentId
-                          ? ` · ${
-                              departments.find(
-                                (department) =>
-                                  department.departmentId === user.departmentId,
-                              )?.name ?? ''
-                            }`
-                          : ''}
-                      </p>
+                    <div className="grid items-center gap-x-8 gap-y-3 @3xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_19rem]">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold [overflow-wrap:anywhere]">
+                          {user.name}
+                          <span className="ml-2 font-mono text-xs font-normal text-subtle">
+                            {user.userId}
+                          </span>
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted [overflow-wrap:anywhere]">
+                          {user.email} · {humanise(user.accessLevel)}
+                          {user.departmentId
+                            ? ` · ${
+                                departments.find(
+                                  (department) => department.departmentId === user.departmentId,
+                                )?.name ?? ''
+                              }`
+                            : ''}
+                        </p>
+                      </div>
+
+                      <div className="min-w-0">
+                        <RoleEditor
+                          userId={user.userId}
+                          userName={user.name}
+                          roles={roleOptions}
+                          assigned={user.roleIds}
+                          active={user.status === 'active'}
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <PasswordReset userId={user.userId} userName={user.name} />
+
+                        <form action={toggleUserStatusAction}>
+                          <input type="hidden" name="userId" value={user.userId} />
+                          <input
+                            type="hidden"
+                            name="status"
+                            value={user.status === 'active' ? 'inactive' : 'active'}
+                          />
+                          <button
+                            type="submit"
+                            disabled={user.userId === admin.userId}
+                            title={
+                              user.userId === admin.userId
+                                ? 'You cannot deactivate your own account'
+                                : undefined
+                            }
+                            className={buttonClass('secondary', 'sm')}
+                          >
+                            {user.status === 'active' ? 'Deactivate' : 'Reactivate'}
+                          </button>
+                        </form>
+
+                        <PersonDeleteButton />
+                      </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                    <PasswordReset userId={user.userId} userName={user.name} />
-
-                    <form action={toggleUserStatusAction}>
-                      <input type="hidden" name="userId" value={user.userId} />
-                      <input
-                        type="hidden"
-                        name="status"
-                        value={user.status === 'active' ? 'inactive' : 'active'}
-                      />
-                      <button
-                        type="submit"
-                        disabled={user.userId === admin.userId}
-                        title={
-                          user.userId === admin.userId
-                            ? 'You cannot deactivate your own account'
-                            : undefined
-                        }
-                        className={buttonClass('secondary', 'sm')}
-                      >
-                        {user.status === 'active' ? 'Deactivate' : 'Reactivate'}
-                      </button>
-                    </form>
-
-                    <PersonDeleteButton />
-                    </div>
-                  </div>
-
-                  <PersonDeleteNotice />
-
-                  <RoleEditor
-                    userId={user.userId}
-                    userName={user.name}
-                    roles={roleOptions}
-                    assigned={user.roleIds}
-                    active={user.status === 'active'}
-                  />
+                    <PersonDeleteNotice />
                   </PersonDeleteScope>
                 </li>
               )
@@ -179,81 +190,10 @@ export default async function AdminPage() {
           </ul>
         </Section>
 
-        {/* Departments and teams are short lists and pair well. Everything
-            longer stays full width: pairing a five-row section against a
-            twelve-row one left a column's worth of empty space. */}
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2 lg:items-start">
+        {/* Roles come straight after people: they are two halves of one
+            question, who can do what, and a role nobody holds stalls work. */}
         <Section
-          title="Departments"
-          count={departments.length}
-          description="Delete is refused while anybody or any workflow still points at it. Set it inactive instead to retire it."
-        >
-          <OrgManager
-            label="Department"
-            idField="departmentId"
-            entities={departments.map((department) => ({
-              id: department.departmentId,
-              name: department.name,
-              detail: department.description,
-              description: department.description,
-              status: department.status,
-            }))}
-            createAction={createDepartmentAction}
-            updateAction={updateDepartmentAction}
-            deleteAction={deleteDepartmentAction}
-            describable
-          />
-        </Section>
-
-        <Section title="Teams" count={teams.length}>
-          <OrgManager
-            label="Team"
-            idField="teamId"
-            entities={teams.map((team) => ({
-              id: team.teamId,
-              name: team.name,
-              detail: team.departmentId
-                ? departments.find((d) => d.departmentId === team.departmentId)?.name
-                : undefined,
-              status: team.status,
-            }))}
-            createAction={createTeamAction}
-            updateAction={updateTeamAction}
-            deleteAction={deleteTeamAction}
-            selectField={{
-              name: 'departmentId',
-              label: 'Department',
-              options: departments.map((d) => ({ value: d.departmentId, label: d.name })),
-            }}
-          />
-        </Section>
-
-        </div>
-
-        <Section
-          title="Major Projects"
-          count={projects.length}
-          description="The initiatives workflows run inside. The owner and team show on the project dashboard."
-        >
-          <ProjectManager
-            projects={projects.map((project) => ({
-              projectId: project.projectId,
-              name: project.name,
-              description: project.description,
-              status: project.status,
-              ownerId: project.ownerId,
-              memberIds: project.memberIds,
-              color: project.color,
-            }))}
-            people={users
-              .filter((person) => person.status === 'active')
-              .map((person) => ({ value: person.userId, label: person.name }))}
-          />
-        </Section>
-
-
-
-        <Section
+          className="lg:col-span-12"
           title="Workflow roles"
           count={roles.length}
           description="What a stage is assigned to, and who currently holds it. The key is derived from the name and never changes, because templates refer to it."
@@ -282,7 +222,87 @@ export default async function AdminPage() {
           />
         </Section>
 
+        {/* Structure: two short lists, side by side and the same height. */}
         <Section
+          fill
+          className="lg:col-span-6"
+          title="Departments"
+          count={departments.length}
+          description="Delete is refused while anybody or any workflow still points at it. Set it inactive instead to retire it."
+        >
+          <OrgManager
+            label="Department"
+            idField="departmentId"
+            entities={departments.map((department) => ({
+              id: department.departmentId,
+              name: department.name,
+              detail: department.description,
+              description: department.description,
+              status: department.status,
+            }))}
+            createAction={createDepartmentAction}
+            updateAction={updateDepartmentAction}
+            deleteAction={deleteDepartmentAction}
+            describable
+          />
+        </Section>
+
+        <Section
+          fill
+          className="lg:col-span-6"
+          title="Teams"
+          count={teams.length}
+          description="A team sits inside a department. Delete is refused while anybody still belongs to it."
+        >
+          <OrgManager
+            label="Team"
+            idField="teamId"
+            entities={teams.map((team) => ({
+              id: team.teamId,
+              name: team.name,
+              detail: team.departmentId
+                ? departments.find((d) => d.departmentId === team.departmentId)?.name
+                : undefined,
+              status: team.status,
+            }))}
+            createAction={createTeamAction}
+            updateAction={updateTeamAction}
+            deleteAction={deleteTeamAction}
+            selectField={{
+              name: 'departmentId',
+              label: 'Department',
+              options: departments.map((d) => ({ value: d.departmentId, label: d.name })),
+            }}
+          />
+        </Section>
+
+        {/* What runs: the initiatives, and the processes that run inside them. */}
+        <Section
+          fill
+          className="lg:col-span-7"
+          title="Major Projects"
+          count={projects.length}
+          description="The initiatives workflows run inside. The owner and team show on the project dashboard."
+        >
+          <ProjectManager
+            projects={projects.map((project) => ({
+              projectId: project.projectId,
+              name: project.name,
+              description: project.description,
+              status: project.status,
+              ownerId: project.ownerId,
+              memberIds: project.memberIds,
+              color: project.color,
+            }))}
+            people={users
+              .filter((person) => person.status === 'active')
+              .map((person) => ({ value: person.userId, label: person.name }))}
+          />
+        </Section>
+
+        <Section
+          fill
+          className="lg:col-span-5"
           title="Workflows"
           count={templates.length}
           description="Edit these in the Workflow Builder. A published version is immutable; editing creates the next one."
@@ -291,15 +311,15 @@ export default async function AdminPage() {
             {templates.map((template) => (
               <li
                 key={`${template.workflowId}-${template.version}`}
-                className="flex items-center gap-4 px-5 py-3 text-sm"
+                className="flex items-center gap-4 px-5 py-3.5 text-sm"
               >
                 <span className="min-w-0 flex-1">
-                  <span className="block font-medium">{template.name}</span>
+                  <span className="block font-bold [overflow-wrap:anywhere]">{template.name}</span>
                   <span className="font-mono text-xs text-subtle">
                     {template.workflowId} · v{template.version}
                   </span>
                 </span>
-                <span className="shrink-0 text-xs text-muted">
+                <span className="shrink-0 text-xs font-medium text-muted">
                   {template.stages.length} {template.stages.length === 1 ? 'stage' : 'stages'}
                 </span>
               </li>
