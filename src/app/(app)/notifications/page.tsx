@@ -12,10 +12,11 @@
 
 import Link from 'next/link'
 import { requireUser } from '@/lib/auth/dal'
-import { Empty, PageHeader, Panel } from '@/features/ui/primitives'
+import { PageHeader, Panel } from '@/features/ui/primitives'
 import { LinkPending } from '@/features/ui/link-pending'
 import { listNotificationsForUser } from '@/lib/db/repositories/notifications'
 import { groupByDay } from '@/features/notifications/grouping'
+import { NotificationsEmpty } from '@/features/notifications/empty-state'
 import { MarkAllRead } from '@/features/notifications/mark-all-read'
 import { NotificationRow } from '@/features/notifications/notification-row'
 import { RefreshButton } from '@/features/notifications/refresh-button'
@@ -84,15 +85,7 @@ export default async function NotificationsPage({
       </nav>
 
       {groups.length === 0 ? (
-        <Panel>
-          {onlyUnread ? (
-            <Empty>
-              Nothing unread. <Link href="/notifications" className="font-semibold text-accent underline-offset-4 hover:underline">See everything</Link>.
-            </Empty>
-          ) : (
-            <Empty>Nothing yet. The platform will tell you here when work reaches you.</Empty>
-          )}
-        </Panel>
+        <NotificationsEmpty onlyUnread={onlyUnread} />
       ) : (
         <div className="space-y-6">
           {groups.map((group) => (
