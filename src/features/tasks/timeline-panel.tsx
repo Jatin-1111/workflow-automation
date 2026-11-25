@@ -17,8 +17,8 @@ export function TimelinePanel({
 }) {
   return (
     <section className="panel rounded-xl border border-border bg-surface">
-      <div className="border-b border-border px-4 py-3">
-        <h2 className="text-sm font-semibold">Activity history</h2>
+      <div className="border-b border-border px-5 py-4">
+        <h2 className="text-[0.9375rem] font-bold tracking-[-0.01em]">Activity history</h2>
         {reference ? (
           <p className="mt-0.5 text-xs text-subtle">
             Reference <span className="font-mono">{reference}</span>

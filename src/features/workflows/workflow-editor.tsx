@@ -9,7 +9,7 @@
  * so what the editor shows and what publishing allows never disagree.
  */
 
-import { ArrowDown, ArrowUp, Copy, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, CircleAlert, CircleCheck, Copy, Trash2 } from 'lucide-react'
 import { IconButton, buttonClass } from '@/features/ui/primitives'
 import { useActionState, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -362,8 +362,10 @@ export function WorkflowEditor({
       {problems.length > 0 ? (
         <section
           id="workflow-problems"
-          className="scroll-mt-32 rounded-lg border border-border bg-accent-soft px-4 py-3"
+          className="scroll-mt-32 flex gap-3 rounded-xl border border-status-overdue/30 bg-status-overdue-soft px-5 py-4"
         >
+          <CircleAlert size={16} strokeWidth={1.75} aria-hidden className="mt-0.5 shrink-0 text-status-overdue" />
+          <div className="min-w-0">
           <p className="text-sm font-medium text-status-overdue">
             {problems.length} thing{problems.length === 1 ? '' : 's'} to fix before this can be
             published
@@ -373,15 +375,22 @@ export function WorkflowEditor({
               <li key={index}>{problem.message}</li>
             ))}
           </ul>
+          </div>
         </section>
       ) : (
-        <p className="rounded-xl border border-border bg-surface px-5 py-3 text-sm text-status-complete">
+        <p
+          role="status"
+          className="flex items-center gap-3 rounded-xl border border-status-complete/30 bg-status-complete-soft px-5 py-3 text-sm font-medium text-status-complete"
+        >
+          <CircleCheck size={16} strokeWidth={1.75} aria-hidden className="shrink-0" />
           This workflow is sound and can be published.
         </p>
       )}
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-        <section className="rounded-xl border border-border bg-surface">
+        {/* Sticky: the editor beside it is several screens tall, and the list
+            of stages is how you move between them. */}
+        <section className="self-start rounded-xl border border-border bg-surface lg:sticky lg:top-4">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h2 className="text-sm font-semibold">
               Stages <span className="font-normal text-subtle">{stages.length}</span>
@@ -410,6 +419,7 @@ export function WorkflowEditor({
                     <button
                       type="button"
                       onClick={() => setSelected(index)}
+                      aria-current={index === selected ? 'true' : undefined}
                       className="min-w-0 flex-1 text-left"
                     >
                       <span className="flex items-center gap-2 text-sm font-medium">
@@ -469,7 +479,7 @@ export function WorkflowEditor({
                         <IconButton
                           as={Trash2}
                           label="Delete stage"
-                          tone="danger"
+                          tone={index === selected ? 'danger' : 'quiet'}
                           type="button"
                           onClick={() => removeStage(index)}
                           disabled={stages.length === 1}
@@ -505,7 +515,7 @@ export function WorkflowEditor({
       </div>
 
       {editable ? (
-        <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-border bg-background/95 py-3">
+        <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-border bg-background py-3">
           <form action={save}>
             <input type="hidden" name="workflowId" value={template.workflowId} />
             <input type="hidden" name="version" value={template.version} />

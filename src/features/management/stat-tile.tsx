@@ -112,12 +112,20 @@ export function StatTile({
 
   const body = (
     <>
-      <span className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-muted">{label}</span>
-        {Glyph ? <Glyph aria-hidden size={14} strokeWidth={1.75} className="text-subtle" /> : null}
+      {/* The icon sits on the label's first line: centred, it floated between
+          the two lines of a wrapped label ("Active workflows"). */}
+      <span className="flex items-start justify-between gap-2">
+        <span className="text-xs font-medium leading-4 text-muted">{label}</span>
+        {Glyph ? (
+          <Glyph aria-hidden size={14} strokeWidth={1.75} className="mt-px shrink-0 text-subtle" />
+        ) : null}
       </span>
       <span
-        className={`mt-auto block pt-2.5 ${figureSize} font-semibold leading-none tracking-[-0.025em] tabular-nums ${valueTone}`}
+        // text-box trims the line box to the digits' cap height and baseline.
+        // Without it the space under a figure scales with its font size, so
+        // the 36px, 28px and 22px figures all ended on different lines even
+        // though their boxes were pinned to the same bottom edge.
+        className={`mt-auto block pt-2.5 ${figureSize} font-semibold leading-none tracking-[-0.025em] tabular-nums [text-box:trim-both_cap_alphabetic] ${valueTone}`}
       >
         {shown}
       </span>
@@ -130,7 +138,9 @@ export function StatTile({
       href={href}
       aria-current={selected ? 'true' : undefined}
       className={`${CELL} transition-ui ${
-        selected ? 'bg-accent-soft' : 'hover:bg-surface-sunken'
+        selected
+          ? 'bg-accent-soft'
+          : 'hover:bg-surface-sunken active:bg-accent-soft'
       }`}
     >
       {body}

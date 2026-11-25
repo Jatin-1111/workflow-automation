@@ -30,10 +30,10 @@ export function FilePanel({
 
   return (
     <section className="panel rounded-xl border border-border bg-surface">
-      <h2 className="border-b border-border px-4 py-3 text-sm font-semibold">Files</h2>
+      <h2 className="border-b border-border px-5 py-4 text-[0.9375rem] font-bold tracking-[-0.01em]">Files</h2>
 
       {files.length === 0 ? (
-        <p className="px-4 py-6 text-sm text-muted">
+        <p className="px-5 py-6 text-sm text-muted">
           Nothing has been uploaded to this workflow yet.
         </p>
       ) : (
@@ -68,7 +68,7 @@ export function FilePanel({
       )}
 
       {canUpload ? (
-        <form action={upload} className="space-y-3 border-t border-border px-4 py-3">
+        <form action={upload} className="space-y-3 border-t border-border px-5 py-4">
           <input type="hidden" name="taskId" value={taskId} />
 
           {slots.length > 0 ? (

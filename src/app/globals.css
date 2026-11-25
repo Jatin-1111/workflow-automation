@@ -289,7 +289,6 @@ table,
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
 /* The first thing a keyboard user can reach: a way past the header. It is
@@ -330,7 +329,8 @@ table,
 
 /* The standard transition for anything that reacts to a pointer. */
 .transition-ui {
-  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-property: color, background-color, border-color, box-shadow, opacity,
+    transform, scale;
   transition-duration: var(--duration-fast);
   transition-timing-function: var(--ease);
 }

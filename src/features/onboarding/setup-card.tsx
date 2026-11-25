@@ -29,13 +29,13 @@ export function SetupCard({
       open={done === 0}
       className="group mb-6 rounded-xl border border-accent-ring bg-accent-soft/50"
     >
-      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-5 py-3 transition-ui hover:bg-accent-soft">
+      <summary className="flex cursor-pointer select-none list-none flex-wrap items-center justify-between gap-3 rounded-xl px-5 py-3 transition-ui hover:bg-accent-soft group-open:rounded-b-none">
         <span className="flex min-w-0 items-center gap-2">
           <ChevronRight
             size={16}
             strokeWidth={1.75}
             aria-hidden
-            className="shrink-0 text-muted transition-transform duration-200 group-open:rotate-90"
+            className="shrink-0 text-muted transition-transform duration-200 ease-(--ease) group-open:rotate-90"
           />
           <span className="min-w-0">
             <span className="block text-sm font-semibold text-foreground">
@@ -53,7 +53,7 @@ export function SetupCard({
             className="h-1.5 w-24 overflow-hidden rounded-full bg-surface"
           >
             <span
-              className="block h-full rounded-full bg-status-complete transition-all duration-300"
+              className="block h-full rounded-full bg-status-complete transition-[width] duration-300 ease-(--ease)"
               style={{ width: `${(done / steps.length) * 100}%` }}
             />
           </span>

@@ -79,7 +79,9 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* pt-2 centres the 20px status line on the 36px title line, instead of
+            letting it ride at the top of the header. */}
+        <div className="flex items-center gap-3 pt-2">
           {detail.slaBreached ? <Pill tone="overdue">SLA breached</Pill> : null}
           {/* A cancelled run has no deadline left to meet or miss. */}
           {task.status !== 'cancelled' ? (
@@ -103,14 +105,14 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="space-y-6">
+        <div className="space-y-6 lg:col-start-1 lg:row-start-1">
           {/* Instructions are for someone who still has to act. On finished or
               cancelled work they said "Approve it" above a note saying the
               stage was done. */}
           {stage.instructions && !task.completedAt && task.status !== 'cancelled' ? (
             <section className="rounded-xl border border-accent-ring bg-accent-soft/60 px-5 py-4">
               <h2 className="text-sm font-semibold text-foreground">
-                What you need to do
+                {detail.canOperate ? 'What you need to do' : 'What the assignee needs to do'}
               </h2>
               <p className="mt-1.5 text-sm leading-relaxed text-muted">
                 {stage.instructions}
@@ -155,8 +157,8 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
             </Panel>
           ) : null}
 
-          <section className="rounded-xl border border-border bg-surface p-5">
-            {detail.canOperate ? (
+          {detail.canOperate ? (
+            <section className="rounded-xl border border-border bg-surface p-5">
               <TaskForm
                 taskId={task.taskId}
                 stage={stage}
@@ -166,19 +168,19 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
               outcome={detail.outcome}
               sendBack={detail.sendBack}
               />
-            ) : (
-              <ReadOnlyNotice
-                completed={Boolean(task.completedAt)}
-                assignees={detail.assigneeNames}
-                nowWith={detail.nowWith}
-                runStatus={detail.instanceStatus}
-              />
-            )}
-          </section>
+            </section>
+          ) : (
+            <ReadOnlyNotice
+              completed={Boolean(task.completedAt)}
+              assignees={detail.assigneeNames}
+              nowWith={detail.nowWith}
+              runStatus={detail.instanceStatus}
+            />
+          )}
 
         </div>
 
-        <aside className="rail self-start">
+        <aside className="rail self-start lg:col-start-2 lg:row-span-2 lg:row-start-1">
           {detail.canReassign ? (
             <ReassignPanel
               taskId={task.taskId}
@@ -214,8 +216,15 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
             comments={detail.comments}
             canComment={!task.completedAt}
           />
-          <TimelinePanel events={detail.timeline} reference={detail.instanceId} />
         </aside>
+
+        {/* History sits under the work in the wide column on a desktop, where
+            in the rail it made that column four times the height of this one.
+            Last in the source, so on a phone it still comes after the files
+            and the discussion instead of burying them under a long log. */}
+        <div className="lg:col-start-1 lg:row-start-2">
+          <TimelinePanel events={detail.timeline} reference={detail.instanceId} />
+        </div>
       </div>
     </>
   )
@@ -241,7 +250,7 @@ function ReadOnlyNotice({
 }) {
   if (!completed) {
     return (
-      <p className="text-sm text-muted">
+      <p className="rounded-xl border border-border bg-surface-sunken px-5 py-4 text-sm text-muted">
         This stage is assigned to {assignees.join(', ')}. You can follow it and comment, but
         only an assignee can complete it.
       </p>
@@ -251,7 +260,7 @@ function ReadOnlyNotice({
   return (
     <div
       role="status"
-      className="rounded-lg border border-status-complete/30 bg-status-complete-soft px-4 py-3"
+      className="rounded-xl border border-status-complete/30 bg-status-complete-soft px-5 py-4"
     >
       <p className="text-sm font-medium text-foreground">This stage is done.</p>
       <p className="mt-0.5 text-sm text-muted">

@@ -50,7 +50,7 @@ export function HeaderSearch() {
 
   return (
     <>
-      <Form action="/search" className="relative hidden min-w-0 flex-1 md:block lg:flex-none">
+      <Form action="/search" className="relative hidden min-w-0 flex-1 md:block lg:flex-none lg:group-data-[sidebar=rail]/shell:!hidden">
         <Search
           size={16}
           strokeWidth={1.75}
@@ -82,7 +82,7 @@ export function HeaderSearch() {
       <Link
         href="/search"
         aria-label="Search"
-        className="ml-auto flex size-11 shrink-0 items-center justify-center rounded-md text-muted transition-ui hover:bg-black/[0.045] hover:text-foreground md:hidden"
+        title="Search" className="ml-auto flex size-11 shrink-0 items-center justify-center rounded-md text-muted transition-ui hover:bg-black/[0.045] hover:text-foreground md:hidden lg:group-data-[sidebar=rail]/shell:mx-auto lg:group-data-[sidebar=rail]/shell:!flex"
       >
         <Search size={18} strokeWidth={1.75} aria-hidden />
       </Link>

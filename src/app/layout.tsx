@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
+import { MotionProvider } from "@/features/ui/motion";
 
 // A grotesque with real weight at the heavy end: headings and figures carry
 // the hierarchy on this page, so the weights from 500 to 800 are all loaded.
@@ -31,7 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <a href="#main" className="skip-link">
           Skip to content
         </a>
-        {children}
+        <MotionProvider>{children}</MotionProvider>
       </body>
     </html>
   );

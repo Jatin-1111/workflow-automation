@@ -47,9 +47,9 @@ export function ReassignPanel({
 
   return (
     <section className="panel rounded-xl border border-border bg-surface">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+      <div className="flex items-center justify-between border-b border-border px-5 py-4">
         <div>
-          <h2 className="text-sm font-semibold">Assignment</h2>
+          <h2 className="text-[0.9375rem] font-bold tracking-[-0.01em]">Assignment</h2>
           {stageSource ? (
             <p className="text-xs text-subtle">Normally goes to {stageSource}</p>
           ) : null}
@@ -64,14 +64,14 @@ export function ReassignPanel({
       </div>
 
       {!open ? (
-        <p className="px-4 py-3 text-sm text-muted">
+        <p className="px-5 py-3 text-sm text-muted">
           {people
             .filter((person) => currentAssignees.includes(person.userId))
             .map((person) => person.name)
             .join(', ') || 'Nobody'}
         </p>
       ) : (
-        <form action={reassign} className="space-y-3 px-4 py-3">
+        <form action={reassign} className="space-y-3 px-5 py-4">
           <input type="hidden" name="taskId" value={taskId} />
           {selected.map((userId) => (
             <input key={userId} type="hidden" name="assignees" value={userId} />

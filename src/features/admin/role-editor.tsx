@@ -70,7 +70,7 @@ export function RoleEditor({
             size={14}
             strokeWidth={1.75}
             aria-hidden
-            className="shrink-0 text-subtle transition-transform duration-200 group-open:rotate-90"
+            className="shrink-0 text-subtle transition-transform duration-200 ease-(--ease) group-open:rotate-90"
           />
           <span className="min-w-0 text-muted">
             {heldNames.length === 0 ? (

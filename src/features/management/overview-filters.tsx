@@ -81,7 +81,7 @@ export function OverviewFilterBar({
         open={active > 0}
         className="group rounded-xl border border-border bg-surface"
       >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 transition-ui hover:bg-surface-sunken">
+        <summary className="flex cursor-pointer select-none list-none items-center justify-between gap-4 rounded-xl px-5 py-3 transition-ui hover:bg-surface-sunken group-open:rounded-b-none">
           <span className="flex items-center gap-2">
             <SlidersHorizontal size={16} strokeWidth={1.75} aria-hidden className="text-muted" />
             <span className="text-sm font-semibold text-foreground">
@@ -93,7 +93,7 @@ export function OverviewFilterBar({
             size={16}
             strokeWidth={1.75}
             aria-hidden
-            className="shrink-0 text-muted transition-transform duration-200 group-open:rotate-180"
+            className="shrink-0 text-muted transition-transform duration-200 ease-(--ease) group-open:rotate-180"
           />
         </summary>
 

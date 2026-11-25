@@ -19,6 +19,8 @@
 import { useOptimistic, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { AnimatePresence, motion } from 'motion/react'
+import { DURATION, EASE } from '@/features/ui/motion'
 import {
   CircleAlert,
   LoaderCircle,
@@ -352,19 +354,30 @@ export function BoardView({ board }: { board: Board }) {
         aria-live="polite"
         className="pointer-events-none fixed inset-x-4 bottom-4 z-30 flex justify-center lg:left-[16.5rem]"
       >
+        <AnimatePresence>
         {pending && !problem ? (
-          <p
+          <motion.p
+            key="moving"
             role="status"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: DURATION.fast, ease: EASE }}
             className="pointer-events-auto flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-white shadow-float"
           >
             <LoaderCircle size={14} strokeWidth={2} aria-hidden className="animate-spin" />
             Moving…
-          </p>
+          </motion.p>
         ) : null}
 
         {problem ? (
-          <div
+          <motion.div
+            key="problem"
             role="alert"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: DURATION.slow, ease: EASE }}
             className="pointer-events-auto flex w-full max-w-2xl flex-wrap items-start gap-3 rounded-xl border border-status-overdue/30 bg-surface px-4 py-3 shadow-float"
           >
             <CircleAlert
@@ -422,8 +435,9 @@ export function BoardView({ board }: { board: Board }) {
                 Dismiss
               </button>
             </span>
-          </div>
+          </motion.div>
         ) : null}
+        </AnimatePresence>
       </div>
 
       <div className="rounded-xl border border-border bg-surface-sunken p-3">

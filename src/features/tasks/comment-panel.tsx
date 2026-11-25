@@ -28,16 +28,16 @@ export function CommentPanel({
 
   return (
     <section className="panel rounded-xl border border-border bg-surface">
-      <h2 className="border-b border-border px-4 py-3 text-sm font-semibold">
+      <h2 className="border-b border-border px-5 py-4 text-[0.9375rem] font-bold tracking-[-0.01em]">
         Comments
       </h2>
 
       {comments.length === 0 ? (
-        <p className="px-4 py-6 text-sm text-muted">No comments yet.</p>
+        <p className="px-5 py-6 text-sm text-muted">No comments yet.</p>
       ) : (
         <ul className="divide-y divide-border">
           {comments.map((comment, index) => (
-            <li key={`${comment.createdAt.toISOString()}-${index}`} className="px-4 py-3">
+            <li key={`${comment.createdAt.toISOString()}-${index}`} className="px-5 py-3">
               <p className="text-xs text-subtle">
                 {comment.authorName} ·{' '}
                 {comment.createdAt.toLocaleDateString('en-GB', {
@@ -52,7 +52,7 @@ export function CommentPanel({
       )}
 
       {canComment ? (
-        <form action={post} className="space-y-2 border-t border-border px-4 py-3">
+        <form action={post} className="space-y-2 border-t border-border px-5 py-4">
           <input type="hidden" name="taskId" value={taskId} />
           <textarea
             name="body"

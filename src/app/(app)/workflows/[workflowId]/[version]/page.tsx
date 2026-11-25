@@ -5,7 +5,7 @@
  * work already running is pinned to it (spec §38).
  */
 
-import Link from 'next/link'
+import { Breadcrumbs } from '@/features/ui/primitives'
 import { notFound } from 'next/navigation'
 import { requireCapability } from '@/lib/auth/dal'
 import { WorkflowEditor } from '@/features/workflows/workflow-editor'
@@ -49,15 +49,12 @@ export default async function WorkflowVersionPage({
 
   return (
     <>
-      <nav className="mb-4 text-xs text-subtle">
-        <Link href="/workflows" className="transition hover:text-foreground">
-          Workflows
-        </Link>
-        <span aria-hidden> / </span>
-        <span>
-          {template.name} · v{template.version}
-        </span>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: 'Workflows', href: '/workflows' },
+          { label: `${template.name} · v${template.version}` },
+        ]}
+      />
 
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>

@@ -177,7 +177,7 @@ export function HoldPanel({
         ) : null}
 
         {canCancel ? (
-          <div className="border-t border-border pt-4">
+          <div className={canOperate ? 'border-t border-border pt-4' : undefined}>
             {confirming ? (
               <form action={cancel} className="space-y-3">
                 <input type="hidden" name="instanceId" value={instanceId} />
@@ -222,6 +222,9 @@ export function HoldPanel({
                 type="button"
                 tone="quiet"
                 size="sm"
+                // A quiet button's own padding pushed its label 10px right of
+                // every heading above it; the hit area stays, the text aligns.
+                className="-ml-2.5"
                 onClick={() => setConfirming(true)}
               >
                 Cancel this workflow

@@ -13,6 +13,8 @@
  */
 
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { DURATION, EASE } from '@/features/ui/motion'
 import { completeTourAction } from './actions'
 import { buttonClass } from '@/features/ui/primitives'
 import type { AccessLevel } from '@/lib/types/status'
@@ -100,14 +102,18 @@ export function WelcomeTour({
 
   const [opened, setOpened] = useState(false)
 
-  if (closing) return null
-
   // Offered, not imposed. A modal over somebody's work on their first visit
   // asks them to read before they can see what they came for, and the thing
   // they came for teaches the product better than the tour does.
   if (!opened) {
     return (
-      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-accent-ring bg-accent-soft/50 px-4 py-2.5">
+      <AnimatePresence>
+        {closing ? null : (
+      <motion.div
+        key="offer"
+        exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+        transition={{ duration: DURATION.base, ease: EASE }}
+        className="mb-4 flex overflow-hidden flex-wrap items-center gap-3 rounded-xl border border-accent-ring bg-accent-soft/50 px-4 py-2.5">
         <p className="min-w-0 flex-1 text-sm text-foreground">
           New here? How Business Orbit works, in about a minute.
         </p>
@@ -121,27 +127,45 @@ export function WelcomeTour({
         <button type="button" onClick={finish} className={buttonClass('quiet', 'sm')}>
           No thanks
         </button>
-      </div>
+      </motion.div>
+        )}
+      </AnimatePresence>
     )
   }
 
   return (
-    <div
+    <AnimatePresence>
+      {closing ? null : (
+    <motion.div
+      key="tour"
       role="dialog"
       aria-modal="true"
       aria-labelledby="tour-title"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: DURATION.base, ease: EASE }}
       className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/20 p-4 sm:items-center"
     >
-      <div className="w-full max-w-lg rounded-xl border border-border bg-surface p-6 shadow-lg">
+      {/* Centred modals scale in from near full size, never from nothing. */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.98, y: 4 }}
+        transition={{ duration: DURATION.slow, ease: EASE }}
+        className="w-full max-w-lg rounded-xl border border-border bg-surface p-6 shadow-lg"
+      >
         <div className="mb-4 flex items-center justify-between">
           <span className="flex gap-1.5" aria-hidden>
             {steps.map((_, position) => (
-              <span
-                key={position}
-                className={`h-1 w-7 rounded-full ${
-                  position <= index ? 'bg-accent' : 'bg-border'
-                }`}
-              />
+              <span key={position} className="h-1 w-7 overflow-hidden rounded-full bg-border">
+                <motion.span
+                  className="block h-full origin-left rounded-full bg-accent"
+                  initial={false}
+                  animate={{ scaleX: position <= index ? 1 : 0 }}
+                  transition={{ duration: DURATION.slow, ease: EASE }}
+                />
+              </span>
             ))}
           </span>
           <button
@@ -153,13 +177,22 @@ export function WelcomeTour({
           </button>
         </div>
 
-        <h2 id="tour-title" className="text-lg font-semibold tracking-tight">
-          {step.title}
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{step.body}</p>
-        {step.aside ? (
-          <p className="mt-3 text-xs text-subtle">{step.aside}</p>
-        ) : null}
+        {/* Each card fades up a few pixels, so Next reads as a new card
+            rather than the text silently changing under the reader. */}
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: DURATION.base, ease: EASE }}
+        >
+          <h2 id="tour-title" className="text-lg font-semibold tracking-tight">
+            {step.title}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted">{step.body}</p>
+          {step.aside ? (
+            <p className="mt-3 text-xs text-subtle">{step.aside}</p>
+          ) : null}
+        </motion.div>
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <button
@@ -183,7 +216,9 @@ export function WelcomeTour({
             {last ? 'Start working' : 'Next'}
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

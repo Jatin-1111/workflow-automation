@@ -13,6 +13,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Bell } from 'lucide-react'
+import { motion } from 'motion/react'
+import { DURATION, EASE } from '@/features/ui/motion'
 import { NOTIFICATIONS_CHANGED } from '@/features/notifications/events'
 
 export function NotificationBell({
@@ -55,19 +57,27 @@ export function NotificationBell({
       <Link
         href="/notifications"
         aria-current={here ? 'page' : undefined}
-        className={`transition-ui flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium ${
+        className={`transition-ui relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium active:scale-[0.98] lg:group-data-[sidebar=rail]/shell:justify-center lg:group-data-[sidebar=rail]/shell:px-0 ${
           here
             ? 'bg-sidebar-hover text-foreground'
             : 'text-muted hover:bg-sidebar-hover hover:text-foreground'
         }`}
       >
-        <Bell size={16} strokeWidth={1.75} aria-hidden />
-        Notifications
+        <span aria-hidden className="flex w-3 shrink-0 justify-center lg:group-data-[sidebar=rail]/shell:w-auto [&>svg]:shrink-0">
+          <Bell size={16} strokeWidth={1.75} />
+        </span>
+        <span className="lg:group-data-[sidebar=rail]/shell:sr-only">Notifications</span>
         {unread > 0 ? (
-          <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold tabular-nums text-white">
+          <motion.span
+            key={unread}
+            initial={{ scale: 0.85, opacity: 0.6 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: DURATION.base, ease: EASE }}
+            className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold tabular-nums text-white lg:group-data-[sidebar=rail]/shell:absolute lg:group-data-[sidebar=rail]/shell:right-1 lg:group-data-[sidebar=rail]/shell:top-0.5 lg:group-data-[sidebar=rail]/shell:ml-0 lg:group-data-[sidebar=rail]/shell:h-4 lg:group-data-[sidebar=rail]/shell:min-w-4 lg:group-data-[sidebar=rail]/shell:px-1"
+          >
             <span className="sr-only">{unread} unread</span>
             <span aria-hidden>{unread}</span>
-          </span>
+          </motion.span>
         ) : null}
       </Link>
     )
@@ -84,9 +94,15 @@ export function NotificationBell({
     >
       <Bell size={18} strokeWidth={1.75} aria-hidden />
       {unread > 0 ? (
-        <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-xs font-medium tabular-nums text-white">
+        <motion.span
+          key={unread}
+          initial={{ scale: 0.85, opacity: 0.6 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: DURATION.base, ease: EASE }}
+          className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-xs font-medium tabular-nums text-white"
+        >
           {unread}
-        </span>
+        </motion.span>
       ) : null}
     </Link>
   )
