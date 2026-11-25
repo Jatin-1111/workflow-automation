@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireCapability, requireUser } from '@/lib/auth/dal'
+import { isInvolved } from '@/lib/auth/involvement'
 import { tooLong } from '@/lib/validation/form-text'
 import { nextId } from '@/lib/ids/generate'
 import { insertComment } from '@/lib/db/repositories/comments'
@@ -88,6 +89,12 @@ export async function approveAction(
   formData: FormData,
 ): Promise<TaskActionState> {
   const user = await requireUser()
+
+  // Every other action that takes free text refuses an over-long one here.
+  // Approval carries a comment too, and was the one that did not.
+  const overflow = tooLong(formData, TASK_TEXT_FIELDS)
+  if (overflow) return refuse('too_long', overflow)
+
   const taskId = readTaskId(formData)
   if (!taskId) return refuse('task_not_found', 'That task could not be identified.')
 
@@ -232,10 +239,7 @@ export async function addCommentAction(
   const loaded = await loadTaskContext(taskId)
   if (!loaded) return refuse('task_not_found', 'That task no longer exists.')
 
-  const participates =
-    loaded.instance.initiatedBy === user.userId ||
-    loaded.tasks.some((task) => task.assignees.includes(user.userId))
-  if (!participates) {
+  if (!isInvolved(user.userId, loaded.instance, loaded.tasks)) {
     return refuse('not_assigned', 'You are not part of this workflow.')
   }
 

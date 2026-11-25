@@ -12,11 +12,17 @@ import { timingSafeEqual } from 'node:crypto'
 import { NextResponse, type NextRequest } from 'next/server'
 import { sendDueReminders } from '@/lib/workflow/send-reminders'
 
+/**
+ * The secret, from the Authorization header only.
+ *
+ * Not from the URL: a query string is written into access logs, proxy logs and
+ * browser history, so a secret carried there is a secret printed in several
+ * places nobody guards. A scheduler that cannot send a header should call
+ * `npm run reminders` from a shell instead.
+ */
 function presented(request: NextRequest): string | null {
   const header = request.headers.get('authorization')
-  if (header?.startsWith('Bearer ')) return header.slice('Bearer '.length)
-  // Some schedulers cannot set a header; a query parameter is the fallback.
-  return request.nextUrl.searchParams.get('key')
+  return header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : null
 }
 
 function matches(supplied: string, expected: string): boolean {

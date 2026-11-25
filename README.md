@@ -56,8 +56,10 @@ told, which derived state cannot give you, and the "due soon" warning, which
 is the one thing no screen otherwise says.
 
 `GET /api/cron/reminders` does the work. It authorises against `CRON_SECRET`
-as a bearer token (or a `?key=` parameter for schedulers that cannot set
-headers) and refuses outright when no secret is set, rather than falling open.
+as a bearer token in the `Authorization` header, and refuses outright when no
+secret is set, rather than falling open. There is deliberately no `?key=`
+fallback: a secret in a URL is written to access logs. A scheduler that cannot
+set a header should run `npm run reminders` instead.
 `npm run reminders` does the same thing from a shell. Running it repeatedly is
 harmless: what has already been said is read back before anything is written,
 so nobody is told the same thing twice.

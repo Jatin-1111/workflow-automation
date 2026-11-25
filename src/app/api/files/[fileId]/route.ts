@@ -11,7 +11,9 @@ import { getCurrentUser } from '@/lib/auth/dal'
 import { findFileById } from '@/lib/db/repositories/files'
 import { listTasksForInstance } from '@/lib/db/repositories/tasks'
 import { findInstanceById } from '@/lib/db/repositories/workflow-instances'
+import { isInvolved } from '@/lib/auth/involvement'
 import { can } from '@/lib/auth/permissions'
+import { fileResponseHeaders } from '@/lib/files/file-types'
 import { FileMissing, FileRejected, readStoredFile } from '@/lib/files/storage'
 import { isEntityId } from '@/lib/ids/format'
 
@@ -32,25 +34,21 @@ export async function GET(
   if (!instance) return new NextResponse('Not found', { status: 404 })
 
   const tasks = await listTasksForInstance(instance.instanceId)
-  const involved =
-    instance.initiatedBy === user.userId ||
-    tasks.some((task) => task.assignees.includes(user.userId))
-
-  if (!involved && !can(user.accessLevel, 'instance.view_all')) {
+  if (
+    !isInvolved(user.userId, instance, tasks) &&
+    !can(user.accessLevel, 'instance.view_all')
+  ) {
     // Same answer as a missing file: whether it exists is not theirs to learn.
     return new NextResponse('Not found', { status: 404 })
   }
 
   try {
     const bytes = await readStoredFile(file.storageKey)
+    // The type comes from the file's extension, not from `file.mimeType`: that
+    // value is whatever the uploader's browser claimed, and serving it back
+    // would let an upload name itself into a page on this origin.
     return new NextResponse(new Uint8Array(bytes), {
-      headers: {
-        'Content-Type': file.mimeType,
-        'Content-Length': String(bytes.byteLength),
-        // `inline` lets a PDF preview in the browser; the quoted filename
-        // keeps a comma or quote in the name from breaking the header.
-        'Content-Disposition': `inline; filename="${file.name.replace(/["\\]/g, '')}"`,
-      },
+      headers: fileResponseHeaders(file.name, bytes.byteLength),
     })
   } catch (error) {
     if (error instanceof FileRejected || error instanceof FileMissing) {

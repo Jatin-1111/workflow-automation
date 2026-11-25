@@ -7,34 +7,14 @@
  */
 
 import 'server-only'
-import { extname } from 'node:path'
 import { storeBytes, type StoredFile } from './blob-store'
-
-/** Extensions we will accept, whatever a template's slot asks for (spec §39). */
-const ALLOWED_EXTENSIONS = new Set([
-  'pdf',
-  'doc',
-  'docx',
-  'xls',
-  'xlsx',
-  'csv',
-  'ppt',
-  'pptx',
-  'txt',
-  'png',
-  'jpg',
-  'jpeg',
-  'webp',
-  'gif',
-])
+import { ACCEPTED_EXTENSIONS, extensionOf } from './file-types'
 
 export const MAX_FILE_BYTES = 25 * 1024 * 1024
 
 export class FileRejected extends Error {}
 
-export function extensionOf(fileName: string): string {
-  return extname(fileName).replace('.', '').toLowerCase()
-}
+export { extensionOf }
 
 /** Validate an uploaded file and store it. */
 export async function storeFile(params: {
@@ -52,7 +32,7 @@ export async function storeFile(params: {
   }
 
   const extension = extensionOf(file.name)
-  if (!ALLOWED_EXTENSIONS.has(extension)) {
+  if (!ACCEPTED_EXTENSIONS.has(extension)) {
     throw new FileRejected(`${extension || 'That file type'} is not an accepted file type.`)
   }
 
