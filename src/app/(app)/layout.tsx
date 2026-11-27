@@ -19,11 +19,18 @@
 
 import { AppShell } from '@/features/shell/app-shell'
 import { requireUser } from '@/lib/auth/dal'
+import { readSession } from '@/lib/auth/session'
 import { countUnreadNotifications } from '@/lib/db/repositories/notifications'
 
 export default async function SignedInLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUser()
-  const unread = await countUnreadNotifications(user.userId)
+  // The session cookie already names the user, so the unread count does not
+  // have to wait for the user lookup: both reads go out together instead of
+  // costing two database round trips in a row on every navigation.
+  const session = await readSession()
+  const [user, unread] = await Promise.all([
+    requireUser(),
+    session ? countUnreadNotifications(session.userId) : Promise.resolve(0),
+  ])
 
   return (
     <AppShell user={user} unread={unread}>
