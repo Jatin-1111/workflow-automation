@@ -202,7 +202,7 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
 
-  --font-sans: var(--font-hanken);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 
   /* Shadows are tinted with the canvas's own hue, not black, and used only
@@ -219,6 +219,24 @@ body {
   /* Steadier letterforms at the small sizes a dense interface relies on. */
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Inter's alternates for an interface: cv05 gives the lowercase l a tail and
+     cv08 gives the capital I serifs, so 1, I and l can be told apart in IDs. */
+  font-feature-settings: "cv05", "cv08";
+}
+
+/* A page must never scroll sideways as a whole; wide tables and the board
+   scroll inside their own containers. `clip` does not create a scroll
+   container, so sticky elements keep working. */
+body {
+  overflow-x: clip;
+}
+
+/* iOS Safari zooms the page when a field under 16px takes focus. On touch
+   screens, fields are 16px so tapping one does not shift the layout. */
+@media (pointer: coarse) {
+  :where(input, select, textarea):not([type="checkbox"], [type="radio"]) {
+    font-size: 16px;
+  }
 }
 
 /* Headings break evenly instead of leaving one word on the last line, and
@@ -236,6 +254,29 @@ p {
 /* Hash links and keyboard focus land clear of the sticky header. */
 html {
   scroll-padding-top: 8rem;
+}
+
+/* Everything is sized in rem, so scaling the root scales type, spacing and
+   controls together. 16px up to a laptop; larger on big monitors, where the
+   same 14px body text is small at arm's length. Percentages, not pixels, so
+   a browser or OS text-size setting still applies on top. Media queries use
+   the browser's own 16px rem, so the breakpoints do not move with this. */
+@media (min-width: 96rem) {
+  html {
+    font-size: 112.5%;
+  }
+}
+
+@media (min-width: 120rem) {
+  html {
+    font-size: 125%;
+  }
+}
+
+/* Stop phones inflating text on rotate; the type scale is already set. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* Selecting text should look like it belongs to the brand. */

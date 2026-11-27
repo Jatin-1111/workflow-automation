@@ -34,7 +34,13 @@ export default async function SignedInLayout({ children }: { children: React.Rea
 
   return (
     <AppShell user={user} unread={unread}>
-      <main id="main" className="w-full max-w-[84rem] px-4 py-6 sm:px-8 sm:py-9 lg:px-10">
+      {/* Phones get a 16px gutter; the cap and gutters then grow with the
+          screen, and past 120rem the whole column centres so an ultrawide
+          monitor is not left with an empty right half. */}
+      <main
+        id="main"
+        className="w-full max-w-[84rem] px-4 py-6 sm:px-8 sm:py-9 lg:px-10 2xl:max-w-[100rem] 2xl:px-14 min-[120rem]:mx-auto min-[120rem]:max-w-[110rem]"
+      >
         {children}
       </main>
     </AppShell>

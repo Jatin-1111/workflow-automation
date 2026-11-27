@@ -75,12 +75,12 @@ export default async function ProfilePage({ searchParams }: PageProps<'/profile'
       <header className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-3">
         <span
           aria-hidden
-          className="flex size-16 shrink-0 items-center justify-center rounded-full bg-accent text-2xl font-extrabold text-white"
+          className="flex size-16 shrink-0 items-center justify-center rounded-full bg-accent text-2xl font-bold text-white"
         >
           {user.name.slice(0, 1).toUpperCase()}
         </span>
         <div className="min-w-0">
-          <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em] [overflow-wrap:anywhere]">
+          <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em] [overflow-wrap:anywhere]">
             {user.name}
           </h1>
           <p className="mt-1 text-sm text-muted [overflow-wrap:anywhere]">

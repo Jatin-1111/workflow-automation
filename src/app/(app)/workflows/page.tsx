@@ -54,7 +54,7 @@ export default async function WorkflowsPage() {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">Workflows</h1>
+        <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">Workflows</h1>
         <p className="mt-1.5 max-w-3xl text-sm text-muted">
           Build a process once and the platform runs it. Editing a published
           workflow creates a new version; work already running keeps the version

@@ -69,7 +69,7 @@ export async function AppShell({
         <div className="flex items-center gap-2 lg:flex-col lg:items-stretch lg:gap-5">
           <Link
             href="/my-work"
-            className="transition-ui flex shrink-0 items-center gap-2.5 rounded-lg px-2 text-[1.0625rem] font-extrabold tracking-[-0.02em] text-foreground lg:group-data-[sidebar=rail]/shell:justify-center lg:group-data-[sidebar=rail]/shell:px-0"
+            className="transition-ui flex shrink-0 items-center gap-2.5 rounded-lg px-2 text-[1.0625rem] font-bold tracking-[-0.02em] text-foreground lg:group-data-[sidebar=rail]/shell:justify-center lg:group-data-[sidebar=rail]/shell:px-0"
           >
             <span
               aria-hidden

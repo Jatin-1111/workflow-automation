@@ -29,7 +29,7 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">Search</h1>
+        <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">Search</h1>
         <p className="mt-1 text-sm text-muted">
           People, projects, workflows, work, stages and files. Paste an ID to go
           straight to it.

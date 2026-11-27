@@ -29,7 +29,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<'/project
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">Projects</h1>
+        <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">Projects</h1>
         <p className="mt-1.5 text-sm text-muted">
           Major Projects, and the workflows running inside them. Click a heading to sort.
         </p>

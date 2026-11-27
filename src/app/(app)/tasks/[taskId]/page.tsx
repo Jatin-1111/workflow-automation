@@ -59,7 +59,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
 
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">{stage.name}</h1>
+          <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">{stage.name}</h1>
           <p className="mt-1 text-sm text-muted">
             {detail.instanceTitle}
             <span className="text-subtle">

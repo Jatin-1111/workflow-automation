@@ -172,7 +172,7 @@ export default async function BreakPage({ searchParams }: PageProps<'/dev/break'
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-6 py-8 pb-24">
-      <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">
+      <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">
         Break test: {FIXTURES.find((f) => f.id === which)?.label}
       </h1>
 

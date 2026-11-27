@@ -31,7 +31,7 @@ export default async function TeamPage({ searchParams }: PageProps<'/team'>) {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">Team</h1>
+        <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">Team</h1>
         <p className="mt-1.5 max-w-2xl text-sm text-muted">
           Open work per person, across every project. Anyone carrying overdue work comes
           first; click a heading to sort.

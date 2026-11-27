@@ -36,7 +36,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
     <>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">Reports</h1>
+          <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">Reports</h1>
           <p className="mt-1.5 text-sm text-muted">
             {REPORT_RANGES[range]}
             {range === 'all'

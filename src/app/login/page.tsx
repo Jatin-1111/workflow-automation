@@ -23,7 +23,7 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
           >
             <Orbit size={26} strokeWidth={1.75} />
           </span>
-          <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">Business Orbit</h1>
+          <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">Business Orbit</h1>
           <p className="mt-1.5 text-sm text-muted">Sign in to see what needs you.</p>
         </div>
 

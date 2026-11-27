@@ -34,7 +34,7 @@ export default async function ProjectPage({ params }: PageProps<'/projects/[proj
       </nav>
 
       <header className="mb-6">
-        <h1 className="text-[2rem] font-extrabold leading-9 tracking-[-0.03em]">{project.name}</h1>
+        <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">{project.name}</h1>
         <p className="mt-1 text-sm text-muted">
           {project.description}
           {project.ownerName ? ` · Owner: ${project.ownerName}` : ''}

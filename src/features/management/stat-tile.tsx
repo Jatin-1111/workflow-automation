@@ -70,9 +70,9 @@ export function StatStrip({
 export type StatSize = 'lead' | 'base' | 'quiet'
 
 const SIZES: Record<StatSize, string> = {
-  lead: 'text-[2.25rem]',
-  base: 'text-[1.75rem]',
-  quiet: 'text-[1.375rem]',
+  lead: 'text-[1.75rem] sm:text-[2.25rem]',
+  base: 'text-[1.5rem] sm:text-[1.75rem]',
+  quiet: 'text-[1.25rem] sm:text-[1.375rem]',
 }
 
 export function StatTile({
