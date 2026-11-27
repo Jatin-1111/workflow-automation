@@ -11,6 +11,7 @@
     "db:down": "docker compose --env-file .env.local down",
     "db:logs": "docker compose --env-file .env.local logs -f mongo",
     "db:indexes": "tsx --env-file=.env.local src/scripts/db-indexes.ts",
+    "db:inspect": "tsx --env-file-if-exists=.env.local src/scripts/inspect-db.ts",
     "notifications:settle": "tsx --env-file=.env.local src/scripts/settle-notifications.ts",
     "seed": "tsx --env-file=.env.local src/scripts/seed.ts",
     "reminders": "tsx --env-file=.env.local src/scripts/send-reminders.ts",

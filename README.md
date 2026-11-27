@@ -36,7 +36,13 @@ npm run walkthrough  # replays a proposal end to end and prints its timeline
 npm run reminders    # sends deadline and overdue notices (see below)
 npm run seed -- --reset
 npm run db:down
+npm run db:inspect   # read-only: collections, document counts, newest activity
 ```
+
+`db:inspect` reads `MONGODB_URI` and prints counts and dates only, never any
+document's contents, and shows the host but never the credentials. To look at
+a deployed database, set the address in your own shell for that one run:
+`$env:MONGODB_URI = '<connection string>'; npm run db:inspect`.
 
 ### Scheduling the reminders
 
