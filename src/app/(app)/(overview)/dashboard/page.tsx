@@ -171,8 +171,8 @@ export default async function ManagementDashboardPage({
           row and stretch to the taller, so neither leaves a gap. */}
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12">
         <Section
-          fill={overview.stuck.length > 0}
-          className={`lg:col-span-8 ${overview.stuck.length === 0 ? 'lg:self-start' : ''}`}
+          fill
+          className="lg:col-span-8"
           title="Stuck work"
           count={overview.stuck.length}
           description="Past its deadline or past the time its stage allows."
