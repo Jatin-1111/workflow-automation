@@ -377,7 +377,9 @@ export function WorkflowEditor({
           </ul>
           </div>
         </section>
-      ) : (
+      ) : editable ? (
+        // Only a draft is waiting to be published; saying a live version "can
+        // be published" contradicted the page header beside it.
         <p
           role="status"
           className="flex items-center gap-3 rounded-2xl border border-status-complete/30 bg-status-complete-soft px-5 py-3 text-sm font-medium text-status-complete"
@@ -385,7 +387,7 @@ export function WorkflowEditor({
           <CircleCheck size={16} strokeWidth={1.75} aria-hidden className="shrink-0" />
           This workflow is sound and can be published.
         </p>
-      )}
+      ) : null}
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         {/* Sticky: the editor beside it is several screens tall, and the list

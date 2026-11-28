@@ -129,7 +129,7 @@ export function WorkFilters({
       {/* next/form: a plain GET form reloaded the whole window. */}
       <Form
         action="/my-work"
-        className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5"
+        className="mt-2 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-surface px-3 py-2.5"
       >
         <input type="hidden" name="view" value={filters.view} />
 

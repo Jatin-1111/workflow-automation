@@ -17,6 +17,7 @@ import {
   listVersionsOf,
   replaceTemplateVersion,
   retireOtherVersions,
+  retireWorkflow,
   setTemplateStatus,
 } from '@/lib/db/repositories/workflow-templates'
 import { listInstances } from '@/lib/db/repositories/workflow-instances'
@@ -296,16 +297,34 @@ export async function createVersionAction(
   redirect(`/workflows/${workflowId}/${version}`)
 }
 
-/** Take a workflow out of use without deleting its history. */
-export async function retireWorkflowAction(formData: FormData): Promise<void> {
+/**
+ * Take a workflow out of use without deleting its history.
+ *
+ * What a workflow that has run work is offered in place of Delete. Nothing new
+ * can be started on it, while work already running stays pinned to the version
+ * it began on and carries on to the end.
+ */
+export async function retireWorkflowAction(
+  _previous: BuilderState,
+  formData: FormData,
+): Promise<BuilderState> {
   await requireCapability('admin.manage_workflows')
 
   const workflowId = String(formData.get('workflowId') ?? '')
-  const version = Number(formData.get('version') ?? 0)
-  if (!isEntityId(workflowId, 'workflowTemplate')) return
+  if (!isEntityId(workflowId, 'workflowTemplate')) {
+    return fail('That workflow could not be identified.')
+  }
 
-  await setTemplateStatus(workflowId as WorkflowTemplateId, version, 'inactive')
+  const versions = await listVersionsOf(workflowId as WorkflowTemplateId)
+  if (versions.length === 0) return fail('That workflow no longer exists.')
+  if (!versions.some((version) => version.status === 'active')) {
+    return fail(`${versions[0].name} is already retired.`)
+  }
+
+  await retireWorkflow(workflowId as WorkflowTemplateId)
   revalidatePath('/workflows')
+  revalidatePath(`/workflows/${workflowId}`, 'layout')
+  return { ok: true, message: `${versions[0].name} retired.` }
 }
 
 /**

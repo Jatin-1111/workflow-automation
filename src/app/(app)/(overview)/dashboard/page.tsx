@@ -111,7 +111,7 @@ export default async function ManagementDashboardPage({
         <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">
           Management Overview
         </h1>
-        <p className="mt-1.5 text-sm text-muted">
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">
           Business Orbit operations at{" "}
           {now.toLocaleTimeString("en-GB", {
             hour: "2-digit",
@@ -171,8 +171,8 @@ export default async function ManagementDashboardPage({
           row and stretch to the taller, so neither leaves a gap. */}
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12">
         <Section
-          fill
-          className="lg:col-span-8"
+          fill={overview.stuck.length > 0}
+          className={`lg:col-span-8 ${overview.stuck.length === 0 ? 'lg:self-start' : ''}`}
           title="Stuck work"
           count={overview.stuck.length}
           description="Past its deadline or past the time its stage allows."

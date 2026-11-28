@@ -3,14 +3,14 @@
 /**
  * Throw away a draft nothing runs on.
  *
- * Asks first. It deleted on one click, sitting at the top of the page
- * where the eye goes, while deleting a person or a project — both easier
- * to recreate than a workflow somebody spent an hour building — already
- * asked "Yes, delete / Keep". This uses the same pair, so every
- * destructive control in the product behaves the same way.
+ * Asks first. It deleted on one click, sitting at the top of the page where
+ * the eye goes, while a workflow somebody spent an hour building is harder to
+ * recreate than a person or a project, which already asked. It uses the same
+ * dialog, so every destructive control in the product behaves the same way.
  */
 
 import { useState } from 'react'
+import { ConfirmDialog } from '@/features/ui/confirm-dialog'
 import { buttonClass } from '@/features/ui/primitives'
 import { discardDraftAction } from './actions'
 
@@ -21,37 +21,33 @@ export function DiscardDraftButton({
   workflowId: string
   version: number
 }) {
-  const [confirming, setConfirming] = useState(false)
+  const [open, setOpen] = useState(false)
 
-  if (!confirming) {
-    return (
+  return (
+    <>
       <button
         type="button"
-        onClick={() => setConfirming(true)}
-        className={buttonClass('quiet', 'sm')}
+        onClick={() => setOpen(true)}
+        className={buttonClass('quiet', 'md')}
       >
         Discard draft
       </button>
-    )
-  }
-
-  return (
-    <form action={discardDraftAction} className="flex flex-wrap items-center gap-2">
-      <input type="hidden" name="workflowId" value={workflowId} />
-      <input type="hidden" name="version" value={version} />
-      <span className="text-xs text-muted">
-        Discard version {version}? Everything in this draft is lost.
-      </span>
-      <button type="submit" className={buttonClass('danger', 'sm')}>
-        Yes, discard
-      </button>
-      <button
-        type="button"
-        onClick={() => setConfirming(false)}
-        className={buttonClass('quiet', 'sm')}
+      <ConfirmDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title={`Discard version ${version}?`}
+        confirmLabel="Discard draft"
+        pendingLabel="Discarding…"
+        action={discardDraftAction}
+        fields={
+          <>
+            <input type="hidden" name="workflowId" value={workflowId} />
+            <input type="hidden" name="version" value={version} />
+          </>
+        }
       >
-        Keep
-      </button>
-    </form>
+        Everything in this draft is lost. Live versions are not affected.
+      </ConfirmDialog>
+    </>
   )
 }

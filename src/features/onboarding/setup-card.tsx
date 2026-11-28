@@ -27,9 +27,9 @@ export function SetupCard({
       // new organisation while the work below it is the reason people open the
       // page. Open it by default only while nothing has been set up at all.
       open={done === 0}
-      className="group mb-6 rounded-xl border border-accent-ring bg-accent-soft/50"
+      className="group mb-6 rounded-2xl border border-accent-ring bg-accent-soft/50"
     >
-      <summary className="flex cursor-pointer select-none list-none flex-wrap items-center justify-between gap-3 rounded-xl px-5 py-3 transition-ui hover:bg-accent-soft group-open:rounded-b-none">
+      <summary className="flex cursor-pointer select-none list-none flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-3 transition-ui hover:bg-accent-soft group-open:rounded-b-none">
         <span className="flex min-w-0 items-center gap-2">
           <ChevronRight
             size={16}

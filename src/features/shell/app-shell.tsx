@@ -90,6 +90,13 @@ export async function AppShell({
           <div className="ml-auto flex items-center gap-0.5 lg:hidden">
             <NotificationBell initialUnread={unread} />
             <Link
+              href="/help"
+              aria-label="How this works"
+              className="transition-ui flex size-11 items-center justify-center rounded-lg text-muted hover:bg-sidebar-hover hover:text-foreground"
+            >
+              <CircleHelp size={18} strokeWidth={1.75} aria-hidden />
+            </Link>
+            <Link
               href="/profile"
               aria-label="Your profile"
               className="transition-ui flex size-11 items-center justify-center rounded-md hover:bg-sidebar-hover"

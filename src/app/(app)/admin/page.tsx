@@ -34,7 +34,8 @@ import {
   updateTeamAction,
 } from '@/features/admin/org-actions'
 import { humanise } from '@/features/my-work/format'
-import { Hint, buttonClass } from '@/features/ui/primitives'
+import Link from 'next/link'
+import { Hint, buttonClass, rowLinkClass } from '@/features/ui/primitives'
 import { listDepartments } from '@/lib/db/repositories/departments'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listRoles } from '@/lib/db/repositories/roles'
@@ -71,7 +72,7 @@ export default async function AdminPage() {
     <>
       <div className="mb-6">
         <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">Administration</h1>
-        <p className="mt-1.5 text-sm text-muted">
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">
           People, workflow roles, and the organisation structure behind them.
         </p>
       </div>
@@ -172,7 +173,7 @@ export default async function AdminPage() {
                                 ? 'You cannot deactivate your own account'
                                 : undefined
                             }
-                            className={buttonClass('secondary', 'sm')}
+                            className={buttonClass('quiet', 'sm')}
                           >
                             {user.status === 'active' ? 'Deactivate' : 'Reactivate'}
                           </button>
@@ -305,16 +306,21 @@ export default async function AdminPage() {
           className="lg:col-span-5"
           title="Workflows"
           count={templates.length}
-          description="Edit these in the Workflow Builder. A published version is immutable; editing creates the next one."
+          description="Open one to edit it in the Workflow Builder. A published version is immutable; editing creates the next one."
         >
           <ul className="divide-y divide-border">
             {templates.map((template) => (
               <li
                 key={`${template.workflowId}-${template.version}`}
-                className="flex items-center gap-4 px-5 py-3.5 text-sm"
+                className="transition-ui relative flex items-center gap-4 px-5 py-3.5 text-sm hover:bg-surface-sunken"
               >
                 <span className="min-w-0 flex-1">
-                  <span className="block font-bold [overflow-wrap:anywhere]">{template.name}</span>
+                  <Link
+                    href={`/workflows/${template.workflowId}/${template.version}`}
+                    className={`block font-bold underline-offset-4 hover:text-accent hover:underline [overflow-wrap:anywhere] ${rowLinkClass}`}
+                  >
+                    {template.name}
+                  </Link>
                   <span className="font-mono text-xs text-subtle">
                     {template.workflowId} · v{template.version}
                   </span>

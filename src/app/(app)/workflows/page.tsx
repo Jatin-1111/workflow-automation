@@ -18,6 +18,7 @@ import { Pill, rowLinkClass, tbodyClass, tdClass, tdNumClass, theadClass, thClas
 import { CreateWorkflowForm } from '@/features/workflows/create-workflow-form'
 import { DeleteWorkflowButton } from '@/features/workflows/delete-workflow-button'
 import { NewVersionButton } from '@/features/workflows/new-version-button'
+import { RetireWorkflowButton } from '@/features/workflows/retire-workflow-button'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listAllTemplates } from '@/lib/db/repositories/workflow-templates'
 import { listInstances } from '@/lib/db/repositories/workflow-instances'
@@ -60,7 +61,7 @@ export default async function WorkflowsPage() {
     <>
       <div className="mb-6">
         <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">Workflows</h1>
-        <p className="mt-1.5 max-w-3xl text-sm text-muted">
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">
           Build a process once and the platform runs it. Editing a published
           workflow creates a new version; work already running keeps the version
           it started on.
@@ -144,13 +145,23 @@ export default async function WorkflowsPage() {
                       <td className={`${tdClass} relative text-right`}>
                         <div className="flex flex-wrap items-center justify-end gap-1">
                           <NewVersionButton workflowId={latest.workflowId} />
+                          {versions.some((version) => version.status === 'active') ? (
+                            <RetireWorkflowButton
+                              workflowId={latest.workflowId}
+                              name={latest.name}
+                            />
+                          ) : (
+                            <IconSlot />
+                          )}
                           {everRunOn(latest.workflowId) === 0 ? (
                             <DeleteWorkflowButton
                               workflowId={latest.workflowId}
                               name={latest.name}
                               versionCount={versions.length}
                             />
-                          ) : null}
+                          ) : (
+                            <IconSlot />
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -163,6 +174,15 @@ export default async function WorkflowsPage() {
       </div>
     </>
   )
+}
+
+/**
+ * The space an icon action would take, when it does not apply to this row.
+ * Retire and Delete each appear only when they make sense, and without a
+ * placeholder the pencil slid sideways from row to row.
+ */
+function IconSlot() {
+  return <span aria-hidden className="size-8 shrink-0 max-sm:size-11" />
 }
 
 function StatusPill({ status }: { status: WorkflowTemplate['status'] }) {

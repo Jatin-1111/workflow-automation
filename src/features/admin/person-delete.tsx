@@ -21,6 +21,7 @@
  */
 
 import { createContext, useActionState, useContext, useState } from 'react'
+import { ConfirmDialog } from '@/features/ui/confirm-dialog'
 import { buttonClass } from '@/features/ui/primitives'
 import { deleteUserAction } from './org-actions'
 import type { AdminActionState } from './actions'
@@ -82,13 +83,13 @@ export function PersonDeleteScope({
 
 /** Delete, and its confirmation, beside the other account controls. */
 export function PersonDeleteButton() {
-  const { userId, userName, isSelf, remove, removing, confirming, setConfirming } = useScope()
+  const { userId, userName, isSelf, remove, confirming, setConfirming } = useScope()
 
   // The same rule as Deactivate: removing yourself leaves nobody to undo it.
   if (isSelf) return null
 
-  if (!confirming) {
-    return (
+  return (
+    <>
       <button
         type="button"
         onClick={() => setConfirming(true)}
@@ -96,24 +97,19 @@ export function PersonDeleteButton() {
       >
         Delete
       </button>
-    )
-  }
-
-  return (
-    <form action={remove} className="flex items-center gap-2">
-      <input type="hidden" name="userId" value={userId} />
-      <span className="text-xs text-muted">Delete {userName}?</span>
-      <button type="submit" disabled={removing} className={buttonClass('danger', 'sm')}>
-        {removing ? 'Checking…' : 'Yes, delete'}
-      </button>
-      <button
-        type="button"
-        onClick={() => setConfirming(false)}
-        className={buttonClass('quiet', 'sm')}
+      <ConfirmDialog
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        title={`Delete ${userName}?`}
+        confirmLabel="Delete person"
+        pendingLabel="Checking…"
+        action={remove}
+        fields={<input type="hidden" name="userId" value={userId} />}
       >
-        Keep
-      </button>
-    </form>
+        This removes their account for good. Anyone who has worked on something cannot
+        be deleted, and you will be told to deactivate them instead.
+      </ConfirmDialog>
+    </>
   )
 }
 

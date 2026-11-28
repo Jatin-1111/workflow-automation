@@ -37,7 +37,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">Reports</h1>
-          <p className="mt-1.5 text-sm text-muted">
+          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">
             {REPORT_RANGES[range]}
             {range === 'all'
               ? ''
@@ -51,14 +51,14 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <nav
             aria-label="Period"
-            className="flex max-w-full items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex max-w-full flex-wrap items-center gap-1"
           >
             {(Object.keys(REPORT_RANGES) as ReportRange[]).map((option) => (
               <Link
                 key={option}
                 href={`/reports?range=${option}`}
                 aria-current={option === range ? 'page' : undefined}
-                className={`transition-ui relative shrink-0 whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-semibold active:scale-[0.97] max-sm:min-h-11 max-sm:py-3 ${
+                className={`transition-ui relative shrink-0 whitespace-nowrap inline-flex h-8 items-center rounded-lg px-3.5 text-xs font-semibold active:scale-[0.97] max-sm:min-h-11 ${
                   option === range
                     ? 'bg-foreground text-white'
                     : 'text-muted hover:bg-sidebar hover:text-foreground'

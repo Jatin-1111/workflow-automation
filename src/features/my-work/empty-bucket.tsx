@@ -65,7 +65,7 @@ export function EmptyBucket({
   // explaining the section would be beside the point.
   if (filtered) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-surface px-5 py-12 text-center">
+      <div className="rounded-2xl border border-dashed border-border bg-surface px-5 py-12 text-center">
         <p className="text-sm text-muted">Nothing matches what you searched for.</p>
         <p className="mt-1 text-xs text-subtle">
           Clear the filters to see everything in this section.
@@ -80,7 +80,7 @@ export function EmptyBucket({
     view === 'needs_action' && elsewhere ? nothingDueToday(elsewhere) : null
   if (busyElsewhere) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-surface px-5 py-12 text-center">
+      <div className="rounded-2xl border border-dashed border-border bg-surface px-5 py-12 text-center">
         <p className="text-sm font-medium text-foreground">{busyElsewhere.headline}</p>
         <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">
           {busyElsewhere.detail}
@@ -104,7 +104,7 @@ export function EmptyBucket({
   const offerPractice = view === 'needs_action' || view === 'all'
 
   return (
-    <div className="rounded-xl border border-dashed border-border bg-surface px-5 py-12 text-center">
+    <div className="rounded-2xl border border-dashed border-border bg-surface px-5 py-12 text-center">
       <p className="text-sm font-medium text-foreground">{headline}</p>
       <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted">
         {detail}

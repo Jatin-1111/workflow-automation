@@ -22,6 +22,7 @@ import { SetupCard } from '@/features/onboarding/setup-card'
 import { WelcomeTour } from '@/features/onboarding/welcome-tour'
 import { EmptyBucket } from '@/features/my-work/empty-bucket'
 import { StartWorkflow } from '@/features/instances/start-workflow'
+import { can } from '@/lib/auth/permissions'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listActiveTemplates } from '@/lib/db/repositories/workflow-templates'
 
@@ -69,6 +70,7 @@ export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>
         }
         actions={
           <StartWorkflow
+            canBuild={can(user.accessLevel, 'admin.manage_workflows')}
             workflows={templates.map((template) => ({
               workflowId: template.workflowId,
               name: template.name,
@@ -106,7 +108,7 @@ export default async function MyWorkPage({ searchParams }: PageProps<'/my-work'>
                   <Count value={group.items.length} />
                 </h2>
               ) : null}
-              <ul className="overflow-hidden rounded-xl border border-border bg-surface">
+              <ul className="overflow-hidden rounded-2xl border border-border bg-surface">
                 {group.items.map((item) => (
                   <WorkRow key={item.taskId} item={item} now={now} />
                 ))}

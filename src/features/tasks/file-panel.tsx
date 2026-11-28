@@ -29,7 +29,7 @@ export function FilePanel({
   const [state, upload, uploading] = useActionState(uploadFileAction, IDLE)
 
   return (
-    <section className="panel rounded-xl border border-border bg-surface">
+    <section className="panel rounded-2xl border border-border bg-surface">
       <h2 className="border-b border-border px-5 py-4 text-[0.9375rem] font-bold tracking-[-0.01em]">Files</h2>
 
       {files.length === 0 ? (
@@ -95,7 +95,7 @@ export function FilePanel({
             type="file"
             name="file"
             required
-            className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border file:border-border-strong file:bg-surface file:px-3 file:py-1.5 file:text-sm file:font-medium"
+            className="block w-full text-sm text-muted file:mr-3 file:rounded-lg file:border file:border-border-strong file:bg-surface file:px-3 file:py-1.5 file:text-sm file:font-medium"
           />
 
           {state.ok === false ? (

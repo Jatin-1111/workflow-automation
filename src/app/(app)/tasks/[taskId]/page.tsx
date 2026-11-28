@@ -97,7 +97,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
         </div>
       </header>
 
-      <div className="mb-6 rounded-xl border border-border bg-surface px-5 py-4">
+      <div className="mb-6 rounded-2xl border border-border bg-surface px-5 py-4">
         <StageProgressBar
           stages={detail.progress}
           finished={Boolean(task.completedAt)}
@@ -110,7 +110,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
               cancelled work they said "Approve it" above a note saying the
               stage was done. */}
           {stage.instructions && !task.completedAt && task.status !== 'cancelled' ? (
-            <section className="rounded-xl border border-accent-ring bg-accent-soft/60 px-5 py-4">
+            <section className="rounded-2xl border border-accent-ring bg-accent-soft/60 px-5 py-4">
               <h2 className="text-sm font-semibold text-foreground">
                 {detail.canOperate ? 'What you need to do' : 'What the assignee needs to do'}
               </h2>
@@ -158,7 +158,7 @@ export default async function TaskPage({ params }: PageProps<'/tasks/[taskId]'>)
           ) : null}
 
           {detail.canOperate ? (
-            <section className="rounded-xl border border-border bg-surface p-5">
+            <section className="rounded-2xl border border-border bg-surface p-5">
               <TaskForm
                 taskId={task.taskId}
                 stage={stage}
@@ -250,7 +250,7 @@ function ReadOnlyNotice({
 }) {
   if (!completed) {
     return (
-      <p className="rounded-xl border border-border bg-surface-sunken px-5 py-4 text-sm text-muted">
+      <p className="rounded-2xl border border-border bg-surface-sunken px-5 py-4 text-sm text-muted">
         This stage is assigned to {assignees.join(', ')}. You can follow it and comment, but
         only an assignee can complete it.
       </p>
@@ -260,7 +260,7 @@ function ReadOnlyNotice({
   return (
     <div
       role="status"
-      className="rounded-xl border border-status-complete/30 bg-status-complete-soft px-5 py-4"
+      className="rounded-2xl border border-status-complete/30 bg-status-complete-soft px-5 py-4"
     >
       <p className="text-sm font-medium text-foreground">This stage is done.</p>
       <p className="mt-0.5 text-sm text-muted">

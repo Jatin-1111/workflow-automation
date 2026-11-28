@@ -15,6 +15,8 @@ import { listActiveTemplates } from '@/lib/db/repositories/workflow-templates'
 import { listInstances } from '@/lib/db/repositories/workflow-instances'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { StartWorkflow } from '@/features/instances/start-workflow'
+import { NoWorkflowNotice } from '@/features/workflows/no-workflow-notice'
+import { can } from '@/lib/auth/permissions'
 
 export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
   // A board shows every run of a workflow, including titles that name
@@ -52,8 +54,10 @@ export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
         <PageHeader title="Board" />
         <Panel>
           <Empty>
-            No workflow has been published yet. Build one under Workflows and
-            publish it, then its runs appear here.
+            <NoWorkflowNotice
+              canBuild={can(user.accessLevel, 'admin.manage_workflows')}
+              after="Its runs will appear here."
+            />
           </Empty>
         </Panel>
       </>
@@ -77,6 +81,7 @@ export default async function BoardPage({ searchParams }: PageProps<'/board'>) {
         actions={
           <div className="flex flex-wrap items-center gap-3">
             <StartWorkflow
+              canBuild={can(user.accessLevel, 'admin.manage_workflows')}
               workflows={[
                 {
                   workflowId: template.workflowId,

@@ -12,6 +12,7 @@ import { WorkflowEditor } from '@/features/workflows/workflow-editor'
 import { DiscardDraftButton } from '@/features/workflows/discard-draft-button'
 import { DeleteWorkflowButton } from '@/features/workflows/delete-workflow-button'
 import { NewVersionButton } from '@/features/workflows/new-version-button'
+import { RetireWorkflowButton } from '@/features/workflows/retire-workflow-button'
 import { listDepartments } from '@/lib/db/repositories/departments'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listRoles } from '@/lib/db/repositories/roles'
@@ -98,6 +99,10 @@ export default async function WorkflowVersionPage({
                   : 'Edit as new version'
               }
             />
+          ) : null}
+
+          {versions.some((candidate) => candidate.status === 'active') ? (
+            <RetireWorkflowButton workflowId={template.workflowId} name={template.name} />
           ) : null}
 
           {hasHistory ? null : (

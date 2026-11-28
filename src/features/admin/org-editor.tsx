@@ -17,11 +17,11 @@
 import { useActionState, useState } from 'react'
 import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { Pencil, Trash2, TriangleAlert } from 'lucide-react'
+import { ConfirmDialog } from '@/features/ui/confirm-dialog'
 import {
   Button,
   IconButton,
   Pill,
-  buttonClass,
   controlClass,
   fieldClass,
 } from '@/features/ui/primitives'
@@ -78,7 +78,15 @@ function Row({
 }) {
   const [editing, setEditing] = useState(false)
   const [confirming, setConfirming] = useState(false)
-  const [removeState, remove, removing] = useActionState(deleteAction, IDLE)
+  // A refusal closes the question and is shown on the row, where it stays.
+  const [removeState, remove] = useActionState(
+    async (previous: AdminActionState, formData: FormData) => {
+      const result = await deleteAction(previous, formData)
+      if (result.ok === false) setConfirming(false)
+      return result
+    },
+    IDLE,
+  )
 
   if (editing) {
     return (
@@ -169,35 +177,31 @@ function Row({
 
       {entity.status === 'inactive' ? <Pill tone="neutral">Inactive</Pill> : null}
 
-      {confirming ? (
-        <form action={remove} className="flex shrink-0 items-center gap-2">
-          <input type="hidden" name={idField} value={entity.id} />
-          <span className="text-xs text-muted">Delete {entity.name}?</span>
-          <button type="submit" disabled={removing} className={buttonClass('danger', 'sm')}>
-            {removing ? 'Deleting…' : 'Yes, delete'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setConfirming(false)}
-            className={buttonClass('quiet', 'sm')}
-          >
-            Keep
-          </button>
-        </form>
-      ) : (
-        <span className="flex shrink-0 items-center gap-2">
-          <IconButton
-            as={Pencil}
-            label={`Edit ${entity.name}`}
-            onClick={() => setEditing(true)}
-          />
-          <IconButton
-            as={Trash2}
-            label={`Delete ${entity.name}`}
-            onClick={() => setConfirming(true)}
-          />
-        </span>
-      )}
+      <span className="flex shrink-0 items-center gap-1">
+        <IconButton
+          as={Pencil}
+          label={`Edit ${entity.name}`}
+          onClick={() => setEditing(true)}
+        />
+        <IconButton
+          as={Trash2}
+          label={`Delete ${entity.name}`}
+          onClick={() => setConfirming(true)}
+        />
+      </span>
+
+      <ConfirmDialog
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        title={`Delete ${entity.name}?`}
+        confirmLabel={`Delete ${label.toLowerCase()}`}
+        pendingLabel="Deleting…"
+        action={remove}
+        fields={<input type="hidden" name={idField} value={entity.id} />}
+      >
+        This removes it for good. If anything still points at it, you will be told
+        what, and nothing is deleted.
+      </ConfirmDialog>
     </li>
   )
 }

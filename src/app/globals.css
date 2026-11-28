@@ -219,6 +219,16 @@
   --shadow-lift: 0 1px 2px rgb(12 26 27 / 0.05), 0 4px 12px -4px rgb(12 26 27 / 0.12);
 }
 
+/* A modal <dialog> is centred by its auto margins, which the reset above
+   zeroes for every element. Restoring them here, once, centres every dialog
+   in the product rather than each one carrying a utility class that, if it is
+   missing from the compiled stylesheet, leaves the dialog in the corner. */
+@layer base {
+  dialog {
+    margin: auto;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -390,7 +400,7 @@ table,
 .rail {
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 1rem; /* the container radius (rounded-2xl), like every panel */
   background: var(--surface);
 }
 

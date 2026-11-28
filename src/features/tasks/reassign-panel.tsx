@@ -46,7 +46,7 @@ export function ReassignPanel({
     )
 
   return (
-    <section className="panel rounded-xl border border-border bg-surface">
+    <section className="panel rounded-2xl border border-border bg-surface">
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
         <div>
           <h2 className="text-[0.9375rem] font-bold tracking-[-0.01em]">Assignment</h2>

@@ -27,7 +27,7 @@ export function CommentPanel({
   const [state, post, posting] = useActionState(addCommentAction, IDLE)
 
   return (
-    <section className="panel rounded-xl border border-border bg-surface">
+    <section className="panel rounded-2xl border border-border bg-surface">
       <h2 className="border-b border-border px-5 py-4 text-[0.9375rem] font-bold tracking-[-0.01em]">
         Comments
       </h2>

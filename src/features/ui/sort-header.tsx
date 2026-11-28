@@ -41,7 +41,7 @@ export function SortHeader<Key extends string>({
       <Link
         href={`${path}?sort=${next.key}&dir=${next.direction}`}
         scroll={false}
-        className={`transition-ui inline-flex items-center gap-1 rounded hover:text-foreground ${
+        className={`transition-ui inline-flex items-center gap-1 rounded-md hover:text-foreground ${
           numeric ? 'flex-row-reverse' : ''
         } ${active ? 'text-foreground' : ''}`}
       >

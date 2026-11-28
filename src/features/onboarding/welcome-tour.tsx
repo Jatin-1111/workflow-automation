@@ -113,8 +113,8 @@ export function WelcomeTour({
         key="offer"
         exit={{ opacity: 0, height: 0, marginBottom: 0 }}
         transition={{ duration: DURATION.base, ease: EASE }}
-        className="mb-4 flex overflow-hidden flex-wrap items-center gap-3 rounded-xl border border-accent-ring bg-accent-soft/50 px-4 py-2.5">
-        <p className="min-w-0 flex-1 text-sm text-foreground">
+        className="mb-4 flex overflow-hidden flex-wrap items-center gap-3 rounded-2xl border border-accent-ring bg-accent-soft/50 px-4 py-2.5">
+        <p className="min-w-[14rem] flex-1 text-sm text-foreground">
           New here? How Business Orbit works, in about a minute.
         </p>
         <button
@@ -153,7 +153,7 @@ export function WelcomeTour({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98, y: 4 }}
         transition={{ duration: DURATION.slow, ease: EASE }}
-        className="w-full max-w-lg rounded-xl border border-border bg-surface p-6 shadow-float"
+        className="w-full max-w-lg rounded-2xl border border-border bg-surface p-6 shadow-float"
       >
         <div className="mb-4 flex items-center justify-between">
           <span className="flex gap-1.5" aria-hidden>

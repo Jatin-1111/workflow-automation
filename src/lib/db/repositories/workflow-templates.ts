@@ -89,6 +89,15 @@ export async function retireOtherVersions(
   )
 }
 
+/** Take every live version of a workflow out of use. Running work is unaffected. */
+export async function retireWorkflow(workflowId: WorkflowTemplateId): Promise<number> {
+  const result = await (await templates()).updateMany(
+    { workflowId, status: 'active' },
+    { $set: { status: 'inactive', updatedAt: new Date() } },
+  )
+  return result.modifiedCount
+}
+
 export async function highestVersion(
   workflowId: WorkflowTemplateId,
 ): Promise<number> {

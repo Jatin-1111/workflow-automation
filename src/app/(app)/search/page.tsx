@@ -27,10 +27,10 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
   }
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <div className="mb-6">
         <h1 className="text-[1.625rem] font-bold leading-8 sm:text-[2rem] sm:leading-9 tracking-[-0.02em]">Search</h1>
-        <p className="mt-1 text-sm text-muted">
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">
           People, projects, workflows, work, stages and files. Paste an ID to go
           straight to it.
         </p>
@@ -47,7 +47,7 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
           defaultValue={results.parsed.term}
           autoFocus
           placeholder="Client, person, stage, file, or an ID like BO-TSK-00001"
-          className={`flex-1 ${fieldClass}`}
+          className={`h-9 flex-1 ${fieldClass}`}
         />
         <button
           type="submit"
@@ -59,13 +59,13 @@ export default async function SearchPage({ searchParams }: PageProps<'/search'>)
       </div>
 
       {!results.parsed.usable ? (
-        <p className="rounded-xl border border-dashed border-border bg-surface px-4 py-10 text-center text-sm text-muted">
+        <p className="rounded-2xl border border-dashed border-border bg-surface px-4 py-10 text-center text-sm text-muted">
           {results.parsed.term.length === 0
             ? 'Type something to search for.'
             : `Use at least ${MIN_SEARCH_LENGTH} characters.`}
         </p>
       ) : results.total === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-surface px-4 py-10 text-center">
+        <div className="rounded-2xl border border-dashed border-border bg-surface px-4 py-10 text-center">
           <p className="text-sm text-muted">
             Nothing matches “{results.parsed.term}” in what you can see.
           </p>

@@ -19,7 +19,7 @@ export function WaitingList({ items }: { items: WaitingItem[] }) {
         <Count value={items.length} />
       </h2>
 
-      <ul className="overflow-hidden rounded-xl border border-border bg-surface">
+      <ul className="overflow-hidden rounded-2xl border border-border bg-surface">
         {items.map((item) => (
           <li
             key={item.instanceId}

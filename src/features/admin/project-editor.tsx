@@ -12,12 +12,12 @@
 import { useActionState, useState } from 'react'
 import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { Pencil, Trash2 } from 'lucide-react'
+import { ConfirmDialog } from '@/features/ui/confirm-dialog'
 import {
   Button,
   IconButton,
   Pill,
   ProjectBar,
-  buttonClass,
   controlClass,
   fieldClass,
 } from '@/features/ui/primitives'
@@ -152,7 +152,15 @@ function ProjectRowItem({
 }) {
   const [editing, setEditing] = useState(false)
   const [confirming, setConfirming] = useState(false)
-  const [removeState, remove, removing] = useActionState(deleteProjectAction, IDLE)
+  // A refusal closes the question and is shown on the row, where it stays.
+  const [removeState, remove] = useActionState(
+    async (previous: typeof IDLE, formData: FormData) => {
+      const result = await deleteProjectAction(previous, formData)
+      if (result.ok === false) setConfirming(false)
+      return result
+    },
+    IDLE,
+  )
   const ownerName = people.find((person) => person.value === project.ownerId)?.label
 
   if (editing) {
@@ -246,28 +254,24 @@ function ProjectRowItem({
         onClick={() => setEditing(true)}
       />
 
-      {confirming ? (
-        <form action={remove} className="flex shrink-0 items-center gap-2">
-          <input type="hidden" name="projectId" value={project.projectId} />
-          <span className="text-xs text-muted">Delete {project.name}?</span>
-          <button type="submit" disabled={removing} className={buttonClass('danger', 'sm')}>
-            {removing ? 'Deleting…' : 'Yes, delete'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setConfirming(false)}
-            className={buttonClass('quiet', 'sm')}
-          >
-            Keep
-          </button>
-        </form>
-      ) : (
-        <IconButton
-          as={Trash2}
-          label={`Delete ${project.name}`}
-          onClick={() => setConfirming(true)}
-        />
-      )}
+      <IconButton
+        as={Trash2}
+        label={`Delete ${project.name}`}
+        onClick={() => setConfirming(true)}
+      />
+
+      <ConfirmDialog
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        title={`Delete ${project.name}?`}
+        confirmLabel="Delete project"
+        pendingLabel="Deleting…"
+        action={remove}
+        fields={<input type="hidden" name="projectId" value={project.projectId} />}
+      >
+        This removes the project for good. If a workflow or run still belongs to it,
+        you will be told, and nothing is deleted.
+      </ConfirmDialog>
     </li>
   )
 }

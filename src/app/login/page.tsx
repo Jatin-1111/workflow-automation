@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
           <p className="mt-1.5 text-sm text-muted">Sign in to see what needs you.</p>
         </div>
 
-        <div className="rounded-xl border border-border bg-surface p-6 shadow-lift">
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-lift">
           <LoginForm next={nextPath} />
         </div>
       </div>

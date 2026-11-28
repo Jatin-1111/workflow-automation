@@ -12,6 +12,7 @@
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { Button, Panel, controlClass, fieldClass } from '@/features/ui/primitives'
+import { NoWorkflowNotice } from '@/features/workflows/no-workflow-notice'
 import { startWorkflowAction, type StartActionState } from './actions'
 
 const IDLE: StartActionState = { ok: null }
@@ -31,9 +32,12 @@ export interface ProjectChoice {
 export function StartWorkflow({
   workflows,
   projects,
+  canBuild,
 }: {
   workflows: WorkflowChoice[]
   projects: ProjectChoice[]
+  /** Whether this person may open Workflows, which decides who they are told to ask. */
+  canBuild: boolean
 }) {
   const [state, start, starting] = useActionState(startWorkflowAction, IDLE)
   const [open, setOpen] = useState(false)
@@ -69,8 +73,7 @@ export function StartWorkflow({
     return (
       <Panel title="Start a workflow">
         <p className="px-5 py-4 text-sm text-muted">
-          No workflow has been published yet. Build one under Workflows, then
-          publish it. A draft cannot carry work.
+          <NoWorkflowNotice canBuild={canBuild} after="A draft cannot carry work." />
         </p>
       </Panel>
     )
