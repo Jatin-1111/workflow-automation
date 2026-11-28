@@ -10,6 +10,8 @@
  */
 
 import { ArrowDown, ArrowUp, CircleAlert, CircleCheck, Copy, Trash2 } from 'lucide-react'
+import { motion } from 'motion/react'
+import { DURATION, EASE } from '@/features/ui/motion'
 import { IconButton, Pill, buttonClass } from '@/features/ui/primitives'
 import { useActionState, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -412,7 +414,17 @@ export function WorkflowEditor({
             {stages.map((candidate, index) => {
               const issues = problemsFor(candidate.key).length
               return (
-                <li key={`${candidate.key}-${index}`}>
+                // Keyed by the stage itself, not its slot, so moving a stage
+                // moves its row instead of rewriting whichever row is there;
+                // that is what lets the move be seen. Stage keys are unique
+                // (toKey makes them so). Position only, never scale, and no
+                // animation on first paint.
+                <motion.li
+                  key={candidate.key}
+                  layout="position"
+                  initial={false}
+                  transition={{ duration: DURATION.base, ease: EASE }}
+                >
                   <div
                     className={`flex items-center gap-2 px-3 py-2 ${
                       index === selected ? 'bg-accent-soft' : ''
@@ -490,7 +502,7 @@ export function WorkflowEditor({
                       </span>
                     ) : null}
                   </div>
-                </li>
+                </motion.li>
               )
             })}
           </ol>

@@ -14,10 +14,18 @@
  * and the top layer without a library. The caller owns `open`; the form inside
  * posts to `action`, and the confirm button shows its own pending state from
  * the form, so a double click cannot send it twice.
+ *
+ * It arrives and leaves rather than blinking in: the box fades and settles
+ * from 97% over 200ms, and leaves in 150ms, on the product's own easing. The
+ * dialog is mounted only while open so that Motion can play the exit before
+ * the element goes; the dim behind it is a pseudo-element Motion cannot reach,
+ * so that fade lives in globals.css and follows `data-closing`.
  */
 
+import { AnimatePresence, motion, useIsPresent } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { useFormStatus } from 'react-dom'
+import { DURATION, EASE } from './motion'
 import { Button } from './primitives'
 
 function ConfirmSubmit({ label, pendingLabel }: { label: string; pendingLabel: string }) {
@@ -26,6 +34,49 @@ function ConfirmSubmit({ label, pendingLabel }: { label: string; pendingLabel: s
     <Button type="submit" tone="danger" disabled={pending}>
       {pending ? pendingLabel : label}
     </Button>
+  )
+}
+
+/** The <dialog> itself, present only while the question is open. */
+function DialogShell({
+  onClose,
+  children,
+}: {
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  const dialog = useRef<HTMLDialogElement>(null)
+  const isPresent = useIsPresent()
+
+  // A native dialog has to be told to open as a modal; mounting alone leaves
+  // it in the page flow without a backdrop or a focus trap.
+  useEffect(() => {
+    dialog.current?.showModal()
+  }, [])
+
+  return (
+    <motion.dialog
+      ref={dialog}
+      data-closing={isPresent ? undefined : ''}
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98, transition: { duration: DURATION.fast, ease: EASE } }}
+      transition={{ duration: DURATION.base, ease: EASE }}
+      // Escape would close the native dialog on the spot and skip the exit;
+      // it asks the caller to close instead, and the caller's `open` does it.
+      onCancel={(event) => {
+        event.preventDefault()
+        onClose()
+      }}
+      onClick={(event) => {
+        // The backdrop is the dialog element itself; a click on its content
+        // lands on a child.
+        if (event.target === event.currentTarget) onClose()
+      }}
+      className="w-[calc(100%-2rem)] max-w-md rounded-2xl border border-border bg-surface p-0 text-left text-foreground shadow-float"
+    >
+      {children}
+    </motion.dialog>
   )
 }
 
@@ -52,49 +103,33 @@ export function ConfirmDialog({
   fields: React.ReactNode
   error?: string
 }) {
-  const dialog = useRef<HTMLDialogElement>(null)
-
-  // The dialog is an outside system with its own open state; this keeps it in
-  // step with the caller's.
-  useEffect(() => {
-    const element = dialog.current
-    if (!element) return
-    if (open && !element.open) element.showModal()
-    if (!open && element.open) element.close()
-  }, [open])
-
   return (
-    <dialog
-      ref={dialog}
-      onClose={onClose}
-      onClick={(event) => {
-        // The backdrop is the dialog element itself; a click on its content
-        // lands on a child.
-        if (event.target === event.currentTarget) onClose()
-      }}
-      className="w-[calc(100%-2rem)] max-w-md rounded-2xl border border-border bg-surface p-0 text-left text-foreground shadow-float backdrop:bg-foreground/40"
-    >
-      <form action={action} className="space-y-4 p-6">
-        {fields}
+    <AnimatePresence>
+      {open ? (
+        <DialogShell key="confirm" onClose={onClose}>
+          <form action={action} className="space-y-4 p-6">
+            {fields}
 
-        <div className="space-y-1.5">
-          <h2 className="text-base font-bold tracking-[-0.01em]">{title}</h2>
-          <div className="text-sm leading-relaxed text-muted">{children}</div>
-        </div>
+            <div className="space-y-1.5">
+              <h2 className="text-base font-bold tracking-[-0.01em]">{title}</h2>
+              <div className="text-sm leading-relaxed text-muted">{children}</div>
+            </div>
 
-        {error ? (
-          <p role="alert" className="text-sm text-status-overdue">
-            {error}
-          </p>
-        ) : null}
+            {error ? (
+              <p role="alert" className="text-sm text-status-overdue">
+                {error}
+              </p>
+            ) : null}
 
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button type="button" tone="quiet" onClick={onClose} autoFocus>
-            Cancel
-          </Button>
-          <ConfirmSubmit label={confirmLabel} pendingLabel={pendingLabel} />
-        </div>
-      </form>
-    </dialog>
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button type="button" tone="quiet" onClick={onClose} autoFocus>
+                Cancel
+              </Button>
+              <ConfirmSubmit label={confirmLabel} pendingLabel={pendingLabel} />
+            </div>
+          </form>
+        </DialogShell>
+      ) : null}
+    </AnimatePresence>
   )
 }

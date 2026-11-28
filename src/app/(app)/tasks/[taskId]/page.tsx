@@ -260,7 +260,7 @@ function ReadOnlyNotice({
   return (
     <div
       role="status"
-      className="rounded-2xl border border-status-complete/30 bg-status-complete-soft px-5 py-4"
+      className="rise rounded-2xl border border-status-complete/30 bg-status-complete-soft px-5 py-4"
     >
       <p className="text-sm font-medium text-foreground">This stage is done.</p>
       <p className="mt-0.5 text-sm text-muted">

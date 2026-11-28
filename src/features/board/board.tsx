@@ -198,7 +198,17 @@ function Card({
   )
 
   return (
-    <li
+    // The list item is what travels between columns: it keeps one identity
+    // across them, so a move is seen as a move instead of a card vanishing
+    // and another appearing. The draggable box sits inside it, because on a
+    // Motion element onDragStart is Motion's own gesture and would replace
+    // the browser's drag events.
+    <motion.li
+      layoutId={card.instanceId}
+      layout="position"
+      transition={{ duration: DURATION.base, ease: EASE }}
+    >
+    <div
       draggable={card.mine && Boolean(card.taskId)}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
@@ -269,7 +279,8 @@ function Card({
           ) : null}
         </div>
       ) : null}
-    </li>
+    </div>
+    </motion.li>
   )
 }
 
