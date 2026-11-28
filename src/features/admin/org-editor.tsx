@@ -16,9 +16,10 @@
 
 import { useActionState, useState } from 'react'
 import { TEXT_LIMITS } from '@/lib/validation/bounds'
-import { TriangleAlert } from 'lucide-react'
+import { Pencil, Trash2, TriangleAlert } from 'lucide-react'
 import {
   Button,
+  IconButton,
   Pill,
   buttonClass,
   controlClass,
@@ -185,20 +186,16 @@ function Row({
         </form>
       ) : (
         <span className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
+          <IconButton
+            as={Pencil}
+            label={`Edit ${entity.name}`}
             onClick={() => setEditing(true)}
-            className={buttonClass('quiet', 'sm')}
-          >
-            Edit
-          </button>
-          <button
-            type="button"
+          />
+          <IconButton
+            as={Trash2}
+            label={`Delete ${entity.name}`}
             onClick={() => setConfirming(true)}
-            className={buttonClass('quiet', 'sm')}
-          >
-            Delete
-          </button>
+          />
         </span>
       )}
     </li>

@@ -65,7 +65,7 @@ export default async function NotificationsPage({
             key={tab.label}
             href={tab.href}
             aria-current={tab.active ? 'page' : undefined}
-            className={`transition-ui relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold active:scale-[0.97] max-sm:min-h-11 ${
+            className={`transition-ui relative flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-semibold active:scale-[0.97] max-sm:min-h-11 ${
               tab.active
                 ? 'bg-foreground text-white'
                 : 'text-muted hover:bg-sidebar hover:text-foreground'

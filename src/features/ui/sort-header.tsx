@@ -36,7 +36,7 @@ export function SortHeader<Key extends string>({
     <th
       scope="col"
       aria-sort={active ? (current.direction === 'asc' ? 'ascending' : 'descending') : undefined}
-      className={`px-5 py-2.5 font-bold ${numeric ? 'text-right' : 'text-left'} ${className}`}
+      className={`px-5 py-2.5 font-semibold ${numeric ? 'text-right' : 'text-left'} ${className}`}
     >
       <Link
         href={`${path}?sort=${next.key}&dir=${next.direction}`}

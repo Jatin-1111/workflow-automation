@@ -11,8 +11,10 @@
 
 import { useActionState, useState } from 'react'
 import { TEXT_LIMITS } from '@/lib/validation/bounds'
+import { Pencil, Trash2 } from 'lucide-react'
 import {
   Button,
+  IconButton,
   Pill,
   ProjectBar,
   buttonClass,
@@ -238,13 +240,11 @@ function ProjectRowItem({
 
       {project.status === 'inactive' ? <Pill tone="neutral">Inactive</Pill> : null}
 
-      <button
-        type="button"
+      <IconButton
+        as={Pencil}
+        label={`Edit ${project.name}`}
         onClick={() => setEditing(true)}
-        className={buttonClass('quiet', 'sm')}
-      >
-        Edit
-      </button>
+      />
 
       {confirming ? (
         <form action={remove} className="flex shrink-0 items-center gap-2">
@@ -262,13 +262,11 @@ function ProjectRowItem({
           </button>
         </form>
       ) : (
-        <button
-          type="button"
+        <IconButton
+          as={Trash2}
+          label={`Delete ${project.name}`}
           onClick={() => setConfirming(true)}
-          className={buttonClass('quiet', 'sm')}
-        >
-          Delete
-        </button>
+        />
       )}
     </li>
   )

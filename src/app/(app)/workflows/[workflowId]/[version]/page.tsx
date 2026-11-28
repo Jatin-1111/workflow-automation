@@ -10,11 +10,13 @@ import { notFound } from 'next/navigation'
 import { requireCapability } from '@/lib/auth/dal'
 import { WorkflowEditor } from '@/features/workflows/workflow-editor'
 import { DiscardDraftButton } from '@/features/workflows/discard-draft-button'
+import { DeleteWorkflowButton } from '@/features/workflows/delete-workflow-button'
+import { NewVersionButton } from '@/features/workflows/new-version-button'
 import { listDepartments } from '@/lib/db/repositories/departments'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listRoles } from '@/lib/db/repositories/roles'
 import { listUsers } from '@/lib/db/repositories/users'
-import { findTemplateVersion } from '@/lib/db/repositories/workflow-templates'
+import { findTemplateVersion, listVersionsOf } from '@/lib/db/repositories/workflow-templates'
 import { listInstances } from '@/lib/db/repositories/workflow-instances'
 import { isEntityId } from '@/lib/ids/format'
 
@@ -31,13 +33,21 @@ export default async function WorkflowVersionPage({
   const template = await findTemplateVersion(workflowId, versionNumber)
   if (!template) notFound()
 
-  const [roles, users, projects, departments, instances] = await Promise.all([
+  const [roles, users, projects, departments, instances, versions] = await Promise.all([
     listRoles(),
     listUsers(),
     listProjects(),
     listDepartments(),
     listInstances(),
+    listVersionsOf(workflowId),
   ])
+
+  // A workflow has at most one draft. Editing a published version continues
+  // it rather than starting a second.
+  const openDraft = versions.find((candidate) => candidate.status === 'draft')
+
+  // A workflow can only be deleted while nothing has ever run on it.
+  const hasHistory = instances.some((instance) => instance.workflowId === workflowId)
 
   const running = instances.filter(
     (instance) =>
@@ -70,12 +80,34 @@ export default async function WorkflowVersionPage({
           </p>
         </div>
 
-        {template.status === 'draft' && running === 0 ? (
-          <DiscardDraftButton
-            workflowId={template.workflowId}
-            version={template.version}
-          />
-        ) : null}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {template.status === 'draft' && running === 0 ? (
+            <DiscardDraftButton
+              workflowId={template.workflowId}
+              version={template.version}
+            />
+          ) : null}
+
+          {template.status !== 'draft' ? (
+            <NewVersionButton
+              workflowId={template.workflowId}
+              labeled
+              label={
+                openDraft
+                  ? `Continue editing draft v${openDraft.version}`
+                  : 'Edit as new version'
+              }
+            />
+          ) : null}
+
+          {hasHistory ? null : (
+            <DeleteWorkflowButton
+              workflowId={template.workflowId}
+              name={template.name}
+              versionCount={versions.length}
+            />
+          )}
+        </div>
       </header>
 
       <WorkflowEditor

@@ -153,7 +153,7 @@ export function WelcomeTour({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98, y: 4 }}
         transition={{ duration: DURATION.slow, ease: EASE }}
-        className="w-full max-w-lg rounded-xl border border-border bg-surface p-6 shadow-lg"
+        className="w-full max-w-lg rounded-xl border border-border bg-surface p-6 shadow-float"
       >
         <div className="mb-4 flex items-center justify-between">
           <span className="flex gap-1.5" aria-hidden>

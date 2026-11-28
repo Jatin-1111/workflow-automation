@@ -7,7 +7,7 @@
  * the question the rest explain.
  */
 
-import { buttonClass, tdClass, tdNumClass, theadClass, thClass, thNumClass } from '@/features/ui/primitives'
+import { buttonClass, tbodyClass, tdClass, tdNumClass, theadClass, thClass, thNumClass } from '@/features/ui/primitives'
 import Link from 'next/link'
 import { LinkPending } from '@/features/ui/link-pending'
 import { requireCapability } from '@/lib/auth/dal'
@@ -58,7 +58,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                 key={option}
                 href={`/reports?range=${option}`}
                 aria-current={option === range ? 'page' : undefined}
-                className={`transition-ui relative shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold active:scale-[0.97] max-sm:min-h-11 max-sm:py-3 ${
+                className={`transition-ui relative shrink-0 whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-semibold active:scale-[0.97] max-sm:min-h-11 max-sm:py-3 ${
                   option === range
                     ? 'bg-foreground text-white'
                     : 'text-muted hover:bg-sidebar hover:text-foreground'
@@ -136,7 +136,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                   <th scope="col" className={thNumClass}>Late</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
+              <tbody className={tbodyClass}>
                 {report.stages.map((stage) => (
                   <tr key={`${stage.workflowId}-${stage.stageKey}`}>
                     <td className={`${tdClass} min-w-36 font-bold [overflow-wrap:anywhere]`}>{stage.stageName}</td>
@@ -192,7 +192,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                 <th scope="col" className={thNumClass}>On time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
+            <tbody className={tbodyClass}>
               {report.workflows.map((workflow) => (
                 <tr key={workflow.workflowId}>
                   <td className={`${tdClass} min-w-36 font-bold [overflow-wrap:anywhere]`}>{workflow.name}</td>
@@ -227,7 +227,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                     <th scope="col" className={thNumClass}>Median</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
+                <tbody className={tbodyClass}>
                   {report.people.map((person) => (
                     <tr key={person.userId}>
                       <td className={`${tdClass} min-w-36 font-bold [overflow-wrap:anywhere]`}>{person.name}</td>
@@ -256,7 +256,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                   <th scope="col" className={thNumClass}>Completed</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
+              <tbody className={tbodyClass}>
                 {report.projects.map((project) => (
                   <tr key={project.name}>
                     <td className={`${tdClass} min-w-36 font-bold [overflow-wrap:anywhere]`}>{project.name}</td>

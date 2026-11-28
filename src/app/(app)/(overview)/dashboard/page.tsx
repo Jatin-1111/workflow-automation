@@ -45,7 +45,7 @@ import {
 import type { StatSize, StatTone } from "@/features/management/stat-tile";
 import { WorkloadList } from "@/features/management/workload-list";
 import { RunLine } from "@/features/ui/run-line";
-import { tdClass, tdNumClass, theadClass, thClass, thNumClass } from "@/features/ui/primitives";
+import { rowLinkClass, tbodyClass, tdClass, tdNumClass, theadClass, thClass, thNumClass } from "@/features/ui/primitives";
 import { formatWaiting } from "@/lib/workflow/metrics";
 import type { LucideIcon } from "lucide-react";
 
@@ -304,13 +304,13 @@ export default async function ManagementDashboardPage({
                 <th scope="col" className={thNumClass}>Completed</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
+            <tbody className={tbodyClass}>
               {overview.projects.map((project) => (
                 <tr key={project.projectId}>
                   <td className={`${tdClass} min-w-40`}>
                     <Link
                       href={`/projects/${project.projectId}`}
-                      className="font-bold text-foreground underline-offset-4 hover:text-accent hover:underline [overflow-wrap:anywhere]"
+                      className={`font-bold text-foreground underline-offset-4 hover:text-accent hover:underline [overflow-wrap:anywhere] ${rowLinkClass}`}
                     >
                       {project.name}
                     </Link>

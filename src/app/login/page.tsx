@@ -19,7 +19,7 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
         <div className="mb-8 flex flex-col items-center text-center">
           <span
             aria-hidden
-            className="mb-4 flex size-12 items-center justify-center rounded-xl bg-accent text-white shadow-sm"
+            className="mb-4 flex size-12 items-center justify-center rounded-xl bg-accent text-white shadow-lift"
           >
             <Orbit size={26} strokeWidth={1.75} />
           </span>

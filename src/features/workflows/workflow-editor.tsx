@@ -10,7 +10,7 @@
  */
 
 import { ArrowDown, ArrowUp, CircleAlert, CircleCheck, Copy, Trash2 } from 'lucide-react'
-import { IconButton, buttonClass } from '@/features/ui/primitives'
+import { IconButton, Pill, buttonClass } from '@/features/ui/primitives'
 import { useActionState, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { StageForm } from './stage-form'
@@ -293,7 +293,7 @@ export function WorkflowEditor({
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-3 rounded-xl border border-border bg-surface p-4 sm:grid-cols-3">
+      <section className="grid gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-3">
         <label className="flex flex-col gap-1 sm:col-span-1">
           <span className="text-xs font-medium text-muted">
             Workflow name
@@ -362,7 +362,7 @@ export function WorkflowEditor({
       {problems.length > 0 ? (
         <section
           id="workflow-problems"
-          className="scroll-mt-32 flex gap-3 rounded-xl border border-status-overdue/30 bg-status-overdue-soft px-5 py-4"
+          className="scroll-mt-32 flex gap-3 rounded-2xl border border-status-overdue/30 bg-status-overdue-soft px-5 py-4"
         >
           <CircleAlert size={16} strokeWidth={1.75} aria-hidden className="mt-0.5 shrink-0 text-status-overdue" />
           <div className="min-w-0">
@@ -380,7 +380,7 @@ export function WorkflowEditor({
       ) : (
         <p
           role="status"
-          className="flex items-center gap-3 rounded-xl border border-status-complete/30 bg-status-complete-soft px-5 py-3 text-sm font-medium text-status-complete"
+          className="flex items-center gap-3 rounded-2xl border border-status-complete/30 bg-status-complete-soft px-5 py-3 text-sm font-medium text-status-complete"
         >
           <CircleCheck size={16} strokeWidth={1.75} aria-hidden className="shrink-0" />
           This workflow is sound and can be published.
@@ -390,7 +390,7 @@ export function WorkflowEditor({
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         {/* Sticky: the editor beside it is several screens tall, and the list
             of stages is how you move between them. */}
-        <section className="self-start rounded-xl border border-border bg-surface lg:sticky lg:top-4">
+        <section className="self-start overflow-hidden rounded-2xl border border-border bg-surface lg:sticky lg:top-4">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h2 className="text-sm font-semibold">
               Stages <span className="font-normal text-subtle">{stages.length}</span>
@@ -422,25 +422,22 @@ export function WorkflowEditor({
                       aria-current={index === selected ? 'true' : undefined}
                       className="min-w-0 flex-1 text-left"
                     >
-                      <span className="flex items-center gap-2 text-sm font-medium">
+                      {/* The tags wrap under the name rather than pushing the
+                          row's buttons out of a narrow panel. */}
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium">
                         <span className="tabular-nums text-subtle">{index + 1}</span>
-                        {candidate.name || candidate.key}
+                        <span className="[overflow-wrap:anywhere]">
+                          {candidate.name || candidate.key}
+                        </span>
                         {candidate.key === initialStageKey ? (
-                          <span className="rounded border border-border px-1 text-xs text-muted">
-                            start
-                          </span>
+                          <Pill tone="neutral">Start</Pill>
                         ) : null}
                         {candidate.requiresApproval ? (
-                          <span className="rounded border border-border px-1 text-xs text-status-action">
-                            approval
-                          </span>
+                          <Pill tone="action">Approval</Pill>
                         ) : null}
                         {candidate.conditions && candidate.conditions.length > 0 ? (
-                          <span
-                            title="Only runs when its conditions hold"
-                            className="rounded border border-border px-1 text-xs text-muted"
-                          >
-                            conditional
+                          <span title="Only runs when its conditions hold">
+                            <Pill tone="neutral">Conditional</Pill>
                           </span>
                         ) : null}
                       </span>
@@ -478,9 +475,13 @@ export function WorkflowEditor({
                         />
                         <IconButton
                           as={Trash2}
-                          label="Delete stage"
-                          tone={index === selected ? 'danger' : 'quiet'}
+                          label={
+                            stages.length === 1
+                              ? 'A workflow needs at least one stage'
+                              : 'Delete stage'
+                          }
                           type="button"
+                          className="hover:bg-status-overdue-soft hover:text-status-overdue"
                           onClick={() => removeStage(index)}
                           disabled={stages.length === 1}
                         />
@@ -493,7 +494,7 @@ export function WorkflowEditor({
           </ol>
         </section>
 
-        <section id="stage-editor" className="scroll-mt-32 rounded-xl border border-border bg-surface p-4">
+        <section id="stage-editor" className="scroll-mt-32 rounded-2xl border border-border bg-surface p-4">
           {stage ? (
             editable ? (
               <StageForm
@@ -596,9 +597,10 @@ export function WorkflowEditor({
           )}
         </div>
       ) : (
-        <p className="rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted">
-          This version is published, so it cannot be changed. Work already running is
-          following it. Create a new version to make changes.{' '}
+        <p className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-muted">
+          This version is published, so it cannot be changed: work already running is
+          following it. Use the edit button at the top of the page to make a new
+          version and change that instead.{' '}
           <Link href="/workflows" className="text-accent underline-offset-4 hover:underline">
             Back to workflows
           </Link>

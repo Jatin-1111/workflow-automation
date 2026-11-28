@@ -38,6 +38,10 @@
 
   --border: #dbe4e4;
   --border-strong: #bccaca;
+  /* The divider between table rows: quieter than the edge of the table it is
+     inside, as in Notion and Mintlify, so a dense table reads as rows rather
+     than as a grid of boxes. */
+  --border-soft: #e8eff0;
 
   /**
    * The brand.
@@ -157,6 +161,7 @@
   --color-subtle: var(--subtle);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-border-soft: var(--border-soft);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-strong: var(--accent-strong);
@@ -205,11 +210,13 @@
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 
-  /* Shadows are tinted with the canvas's own hue, not black, and used only
-     where something floats above the page: a menu, a dialog, a dragged card.
-     Resting panels have a hairline and nothing else. */
-  --shadow-float: 0 1px 2px rgb(15 20 35 / 0.06), 0 8px 24px -6px rgb(15 20 35 / 0.14);
-  --shadow-lift: 0 1px 2px rgb(15 20 35 / 0.05), 0 4px 12px -4px rgb(15 20 35 / 0.12);
+  /* Shadows are tinted with the ink's own hue (--foreground, rgb 12 26 27),
+     not black and not the navy they used to carry, and used only where
+     something floats above the page: a menu, a dialog, a dragged card.
+     Resting panels have a hairline and nothing else. Two layers each, a tight
+     contact shadow under a wide soft one, which is what reads as height. */
+  --shadow-float: 0 1px 2px rgb(12 26 27 / 0.06), 0 8px 24px -6px rgb(12 26 27 / 0.14);
+  --shadow-lift: 0 1px 2px rgb(12 26 27 / 0.05), 0 4px 12px -4px rgb(12 26 27 / 0.12);
 }
 
 body {

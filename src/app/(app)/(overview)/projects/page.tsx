@@ -6,7 +6,7 @@ import { getManagementOverview } from '@/features/management/queries'
 import { Section } from '@/features/management/section'
 import { parseSort, sortRows } from '@/features/ui/sort'
 import { SortHeader } from '@/features/ui/sort-header'
-import { theadClass } from '@/features/ui/primitives'
+import { rowLinkClass, tbodyClass, theadClass } from '@/features/ui/primitives'
 
 const COLUMNS = ['name', 'active', 'approvals', 'overdue', 'completed'] as const
 type Column = (typeof COLUMNS)[number]
@@ -44,12 +44,12 @@ export default async function ProjectsPage({ searchParams }: PageProps<'/project
               <SortHeader label="Approvals" field="approvals" current={sort} path="/projects" numeric firstDirection="desc" />
               <SortHeader label="Overdue" field="overdue" current={sort} path="/projects" numeric firstDirection="desc" />
               <SortHeader label="Completed" field="completed" current={sort} path="/projects" numeric firstDirection="desc" />
-              <th scope="col" className="w-40 px-5 py-2.5 text-left font-bold">
+              <th scope="col" className="w-40 px-5 py-2.5 text-left font-semibold">
                 Share finished
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
+          <tbody className={tbodyClass}>
             {rows.map((project) => {
               const total = project.activeInstances + project.completedInstances
               const share = total === 0 ? 0 : Math.round((project.completedInstances / total) * 100)
@@ -58,7 +58,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<'/project
                   <td className="min-w-40 px-5 py-3.5">
                     <Link
                       href={`/projects/${project.projectId}`}
-                      className="font-bold text-foreground underline-offset-4 hover:text-accent hover:underline [overflow-wrap:anywhere]"
+                      className={`font-bold text-foreground underline-offset-4 hover:text-accent hover:underline [overflow-wrap:anywhere] ${rowLinkClass}`}
                     >
                       {project.name}
                     </Link>

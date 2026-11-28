@@ -79,9 +79,9 @@ export function OverviewFilterBar({
           selects between a manager and their numbers is the wrong default. */}
       <details
         open={active > 0}
-        className="group rounded-xl border border-border bg-surface"
+        className="group rounded-2xl border border-border bg-surface"
       >
-        <summary className="flex cursor-pointer select-none list-none items-center justify-between gap-4 rounded-xl px-5 py-3 transition-ui hover:bg-surface-sunken group-open:rounded-b-none">
+        <summary className="flex cursor-pointer select-none list-none items-center justify-between gap-4 rounded-2xl px-5 py-3 transition-ui hover:bg-surface-sunken group-open:rounded-b-none">
           <span className="flex items-center gap-2">
             <SlidersHorizontal size={16} strokeWidth={1.75} aria-hidden className="text-muted" />
             <span className="text-sm font-semibold text-foreground">

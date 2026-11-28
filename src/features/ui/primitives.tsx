@@ -14,17 +14,18 @@ import { fallbackColor, type LabelColor } from '@/lib/types/label'
 /* -------------------------------------------------------------------------
  * The shared rules
  *
- * Radius says what a thing is: `md` for anything you operate (buttons,
- * inputs, chips), `xl` for anything that contains (panels, cards). Nothing
- * else, so the interface reads as one set of parts.
+ * Radius says what a thing is: `lg` (8px) for what you press and what you
+ * type into, so a button beside a field matches it; a full pill only for
+ * status and counts, which are tinted and borderless and so never read as
+ * buttons; `2xl` for what contains (panels, cards, tiles). Nothing else, so
+ * the interface reads as one set of parts.
  *
  * Focus is `focus-visible` only. A ring on every mouse click is noise, and
  * globals.css already draws the keyboard outline — components add a ring on
  * top of it only where the outline alone is hard to see.
  * ---------------------------------------------------------------------- */
 
-export const RADIUS_CONTROL = 'rounded-md'
-export const RADIUS_CONTAINER = 'rounded-2xl'
+const RADIUS_CONTAINER = 'rounded-2xl'
 
 /** Icons come in three sizes and one stroke, aligned to the text beside them. */
 export const ICON_SIZES = { sm: 14, md: 16, lg: 20 } as const
@@ -53,6 +54,17 @@ export function Skeleton({ className = '' }: { className?: string }) {
   return <span aria-hidden className={`skeleton block ${className}`} />
 }
 
+/**
+ * Make a whole table row open its record.
+ *
+ * Put it on the row's name link and give the `<tbody>` `[&>tr]:relative`: the
+ * link then stretches over the row, so a click anywhere opens it while the
+ * link stays the one real, keyboard-reachable control. Anything else in the
+ * row that must stay clickable (a button, another link) needs `relative` so it
+ * sits above the stretched area.
+ */
+export const rowLinkClass = 'after:absolute after:inset-0'
+
 /* -------------------------------------------------------------------------
  * Buttons
  * ---------------------------------------------------------------------- */
@@ -61,7 +73,7 @@ type ButtonTone = 'primary' | 'secondary' | 'quiet' | 'danger'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 const BUTTON_BASE =
-  'inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-ui ' +
+  'inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-ui ' +
   // Touch needs 44px; a pointer does not, so the floor lifts only on small
   // screens rather than making every desktop toolbar chunky.
   'max-sm:min-h-11 ' +
@@ -318,13 +330,27 @@ export function Breadcrumbs({
  * ---------------------------------------------------------------------- */
 
 export const tableClass = 'w-full text-sm'
+
+/*
+ * The table kit, after Notion, Stripe and Mintlify: a hairline under a quiet,
+ * tinted header with small muted labels, so the data is what you read first;
+ * rows divided by a still quieter hairline than the table's own edge; numbers
+ * tabular and right-aligned. The header used to be a 2px near-black rule,
+ * which made every table look like a form and out-shouted the rows beneath.
+ */
 export const theadClass =
-  'border-b-2 border-foreground/80 bg-surface text-left text-xs font-bold text-muted'
-export const thClass = 'px-5 py-2.5 font-medium'
-export const thNumClass = 'px-5 py-2.5 text-right font-medium'
-export const tdClass = 'px-5 py-3 align-middle'
-export const tdNumClass = 'px-5 py-3 text-right align-middle tabular-nums'
-export const trClass = 'border-b border-border last:border-b-0 hover:bg-surface-sunken'
+  'border-b border-border bg-surface-sunken text-left text-xs font-semibold text-muted'
+export const thClass = 'px-5 py-2.5 font-semibold'
+export const thNumClass = 'px-5 py-2.5 text-right font-semibold'
+export const tdClass = 'px-5 py-3.5 align-middle'
+export const tdNumClass = 'px-5 py-3.5 text-right align-middle tabular-nums'
+
+/**
+ * The `<tbody>` every table shares, so a row looks and reacts the same
+ * everywhere. `relative` lets a row's name link stretch over it (rowLinkClass).
+ */
+export const tbodyClass =
+  'divide-y divide-border-soft [&>tr]:relative [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken'
 
 /**
  * An explanation of something genuinely confusing.

@@ -6,7 +6,7 @@ import { getManagementOverview, type WorkloadRow } from '@/features/management/q
 import { Section } from '@/features/management/section'
 import { parseSort, sortRows } from '@/features/ui/sort'
 import { SortHeader } from '@/features/ui/sort-header'
-import { theadClass } from '@/features/ui/primitives'
+import { rowLinkClass, tbodyClass, theadClass } from '@/features/ui/primitives'
 
 const COLUMNS = ['name', 'roles', 'active', 'dueToday', 'overdue', 'approvals'] as const
 type Column = (typeof COLUMNS)[number]
@@ -44,7 +44,7 @@ export default async function TeamPage({ searchParams }: PageProps<'/team'>) {
             <tr className={theadClass}>
               <SortHeader label="Person" field="name" current={sort} path="/team" />
               <SortHeader label="Roles" field="roles" current={sort} path="/team" numeric firstDirection="desc" />
-              <th scope="col" className="w-40 px-5 py-2.5 text-left font-bold">
+              <th scope="col" className="w-40 px-5 py-2.5 text-left font-semibold">
                 Load
               </th>
               <SortHeader label="Open" field="active" current={sort} path="/team" numeric firstDirection="desc" />
@@ -53,13 +53,13 @@ export default async function TeamPage({ searchParams }: PageProps<'/team'>) {
               <SortHeader label="To approve" field="approvals" current={sort} path="/team" numeric firstDirection="desc" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
+          <tbody className={tbodyClass}>
             {rows.map((person) => (
               <tr key={person.userId}>
                 <td className="min-w-40 px-5 py-3.5">
                   <Link
                     href={`/team/${person.userId}`}
-                    className="font-bold text-foreground underline-offset-4 hover:text-accent hover:underline [overflow-wrap:anywhere]"
+                    className={`font-bold text-foreground underline-offset-4 hover:text-accent hover:underline [overflow-wrap:anywhere] ${rowLinkClass}`}
                   >
                     {person.name}
                   </Link>

@@ -14,8 +14,9 @@
 import Link from 'next/link'
 import { requireCapability } from '@/lib/auth/dal'
 import { EmptyRow, Section } from '@/features/management/section'
-import { Pill, tdClass, tdNumClass, theadClass, thClass, thNumClass } from '@/features/ui/primitives'
+import { Pill, rowLinkClass, tbodyClass, tdClass, tdNumClass, theadClass, thClass, thNumClass } from '@/features/ui/primitives'
 import { CreateWorkflowForm } from '@/features/workflows/create-workflow-form'
+import { DeleteWorkflowButton } from '@/features/workflows/delete-workflow-button'
 import { NewVersionButton } from '@/features/workflows/new-version-button'
 import { listProjects } from '@/lib/db/repositories/projects'
 import { listAllTemplates } from '@/lib/db/repositories/workflow-templates'
@@ -50,6 +51,10 @@ export default async function WorkflowsPage() {
         instance.status !== 'completed' &&
         instance.status !== 'cancelled',
     ).length
+
+  /** Every run ever started on this workflow, finished or not. */
+  const everRunOn = (workflowId: string) =>
+    instances.filter((instance) => instance.workflowId === workflowId).length
 
   return (
     <>
@@ -92,14 +97,19 @@ export default async function WorkflowsPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border [&>tr]:transition-ui [&>tr:hover]:bg-surface-sunken">
+              <tbody className={tbodyClass}>
                 {[...byWorkflow.values()].map((versions) => {
                   const latest = versions[0]
                   const running = runningOn(latest.workflowId)
                   return (
                     <tr key={latest.workflowId}>
                       <td className={`${tdClass} min-w-48`}>
-                        <span className="block font-bold [overflow-wrap:anywhere]">{latest.name}</span>
+                        <Link
+                          href={`/workflows/${latest.workflowId}/${latest.version}`}
+                          className={`block font-bold underline-offset-4 hover:text-accent hover:underline [overflow-wrap:anywhere] ${rowLinkClass}`}
+                        >
+                          {latest.name}
+                        </Link>
                         <span className="mt-0.5 block font-mono text-xs text-subtle">
                           {latest.workflowId}
                         </span>
@@ -115,7 +125,7 @@ export default async function WorkflowsPage() {
                             <Link
                               key={version.version}
                               href={`/workflows/${version.workflowId}/${version.version}`}
-                              className="transition-ui group inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-surface py-0.5 pl-2.5 pr-1 text-xs font-bold hover:border-foreground active:scale-[0.97]"
+                              className="transition-ui group relative inline-flex items-center gap-1.5 rounded-md border border-border-strong bg-surface py-0.5 pl-2.5 pr-1 text-xs font-bold hover:border-foreground active:scale-[0.97]"
                             >
                               v{version.version}
                               <StatusPill status={version.status} />
@@ -131,8 +141,17 @@ export default async function WorkflowsPage() {
                       >
                         {running}
                       </td>
-                      <td className={`${tdClass} text-right`}>
-                        <NewVersionButton workflowId={latest.workflowId} />
+                      <td className={`${tdClass} relative text-right`}>
+                        <div className="flex flex-wrap items-center justify-end gap-1">
+                          <NewVersionButton workflowId={latest.workflowId} />
+                          {everRunOn(latest.workflowId) === 0 ? (
+                            <DeleteWorkflowButton
+                              workflowId={latest.workflowId}
+                              name={latest.name}
+                              versionCount={versions.length}
+                            />
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   )

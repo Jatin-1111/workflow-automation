@@ -53,7 +53,7 @@ export function StatStrip({
 }) {
   return (
     <div
-      className={`rise overflow-hidden rounded-xl border border-border bg-surface ${className}`}
+      className={`rise overflow-hidden rounded-2xl border border-border bg-surface ${className}`}
     >
       {/* The negative margin hides the last column's and row's dividers
           behind the frame, so the strip needs no special-casing at its end. */}

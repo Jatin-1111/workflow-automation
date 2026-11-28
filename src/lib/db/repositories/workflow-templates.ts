@@ -106,6 +106,19 @@ export async function deleteTemplateVersion(
   await (await templates()).deleteOne({ workflowId, version, status: 'draft' })
 }
 
+/**
+ * Remove every version of one workflow.
+ *
+ * Callers must have checked that no instance was ever started on it; this does
+ * not look.
+ */
+export async function deleteWorkflowTemplates(
+  workflowId: WorkflowTemplateId,
+): Promise<number> {
+  const result = await (await templates()).deleteMany({ workflowId })
+  return result.deletedCount
+}
+
 export async function searchTemplates(
   pattern: RegExp,
   limit = 10,

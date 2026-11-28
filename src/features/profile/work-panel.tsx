@@ -90,7 +90,7 @@ export function WorkPanel({
             href={candidate === 'active' ? '/profile' : `/profile?tab=${candidate}`}
             scroll={false}
             aria-current={candidate === tab ? 'page' : undefined}
-            className={`transition-ui flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold active:scale-[0.97] max-sm:min-h-11 ${
+            className={`transition-ui flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-sm font-semibold active:scale-[0.97] max-sm:min-h-11 ${
               candidate === tab
                 ? 'bg-foreground text-white'
                 : 'text-muted hover:bg-sidebar hover:text-foreground'

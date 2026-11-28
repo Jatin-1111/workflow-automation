@@ -10,6 +10,7 @@ import { TEXT_LIMITS } from '@/lib/validation/bounds'
 import { listRoles } from '@/lib/db/repositories/roles'
 import {
   deleteTemplateVersion,
+  deleteWorkflowTemplates,
   findTemplateVersion,
   highestVersion,
   insertTemplate,
@@ -19,6 +20,7 @@ import {
   setTemplateStatus,
 } from '@/lib/db/repositories/workflow-templates'
 import { listInstances } from '@/lib/db/repositories/workflow-instances'
+import { workflowDeletionBlocker } from './deletion'
 import { validateTemplate } from '@/lib/workflow/template-validation'
 import {
   asStageDefinitions,
@@ -328,5 +330,39 @@ export async function discardDraftAction(formData: FormData): Promise<void> {
 
   await deleteTemplateVersion(workflowId as WorkflowTemplateId, version)
   revalidatePath('/workflows')
+  redirect('/workflows')
+}
+
+/**
+ * Delete a workflow and every version of it.
+ *
+ * Refused once any work has run on any version, finished or not: instances and
+ * their timeline events point at the workflow, and that history has to stay
+ * readable. Retiring is the way to take a used workflow out of service.
+ */
+export async function deleteWorkflowAction(
+  _previous: BuilderState,
+  formData: FormData,
+): Promise<BuilderState> {
+  await requireCapability('admin.manage_workflows')
+
+  const workflowId = String(formData.get('workflowId') ?? '')
+  if (!isEntityId(workflowId, 'workflowTemplate')) {
+    return fail('That workflow could not be identified.')
+  }
+
+  const versions = await listVersionsOf(workflowId as WorkflowTemplateId)
+  if (versions.length === 0) return fail('That workflow no longer exists.')
+
+  const runs = (await listInstances()).filter(
+    (instance) => instance.workflowId === workflowId,
+  ).length
+  const blocker = workflowDeletionBlocker(versions[0].name, runs)
+  if (blocker) return fail(blocker)
+
+  await deleteWorkflowTemplates(workflowId as WorkflowTemplateId)
+  revalidatePath('/workflows')
+  // From the list the row simply disappears; from the workflow's own page
+  // there is nothing left to show, so both land on the list.
   redirect('/workflows')
 }
