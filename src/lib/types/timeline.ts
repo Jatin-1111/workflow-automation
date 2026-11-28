@@ -38,6 +38,9 @@ export const TIMELINE_ACTIONS = [
 ] as const
 export type TimelineAction = (typeof TIMELINE_ACTIONS)[number]
 
+/** What the metrics need of an event: which kind, and when. */
+export type MetricsEvent = Pick<TimelineEvent, 'action' | 'at'>
+
 export interface TimelineEvent {
   eventId: TimelineEventId
   instanceId: WorkflowInstanceId

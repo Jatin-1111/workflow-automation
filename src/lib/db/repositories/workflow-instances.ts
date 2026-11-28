@@ -3,7 +3,7 @@
 import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { ProjectId, UserId, WorkflowInstanceId } from '@/lib/types/ids'
-import type { WorkflowInstance } from '@/lib/types/instance'
+import type { MetricsInstance, WorkflowInstance } from '@/lib/types/instance'
 
 async function instances() {
   return getCollection<WorkflowInstance>(COLLECTIONS.workflowInstances)
@@ -59,6 +59,31 @@ export async function listInstances(filter?: {
   return (await instances())
     .find({ ...filter }, WITHOUT_ID)
     .sort({ startedAt: -1 })
+    .toArray()
+}
+
+/**
+ * Every instance, but only the fields a report reads.
+ *
+ * An instance also carries every field value its stages collected, which no
+ * metric looks at.
+ */
+export async function listInstancesForMetrics(): Promise<MetricsInstance[]> {
+  return (await instances())
+    .find<MetricsInstance>(
+      {},
+      {
+        projection: {
+          _id: 0,
+          instanceId: 1,
+          workflowId: 1,
+          projectId: 1,
+          status: 1,
+          startedAt: 1,
+          completedAt: 1,
+        },
+      },
+    )
     .toArray()
 }
 

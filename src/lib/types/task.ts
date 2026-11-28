@@ -30,6 +30,25 @@ export interface ChecklistItemState {
   checkedAt?: Date
 }
 
+/**
+ * The few fields the metrics read. A task also carries its field values, its
+ * checklist and its files, which are the bulk of it and none of which a report
+ * looks at, so a report asks the database for these alone.
+ */
+export type MetricsTask = Pick<
+  Task,
+  | 'instanceId'
+  | 'workflowId'
+  | 'stageKey'
+  | 'stageName'
+  | 'completedBy'
+  | 'revisionRound'
+  | 'activatedAt'
+  | 'dueAt'
+  | 'slaBreachAt'
+  | 'completedAt'
+>
+
 export interface Task {
   taskId: TaskId
   instanceId: WorkflowInstanceId

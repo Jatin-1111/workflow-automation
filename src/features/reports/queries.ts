@@ -7,10 +7,10 @@
 
 import 'server-only'
 import { listProjects } from '@/lib/db/repositories/projects'
-import { listAllTasks } from '@/lib/db/repositories/tasks'
-import { listAllTimelineEvents } from '@/lib/db/repositories/timeline-events'
+import { listTasksForMetrics } from '@/lib/db/repositories/tasks'
+import { listEventsInWindow } from '@/lib/db/repositories/timeline-events'
 import { listUsers } from '@/lib/db/repositories/users'
-import { listInstances } from '@/lib/db/repositories/workflow-instances'
+import { listInstancesForMetrics } from '@/lib/db/repositories/workflow-instances'
 import { listAllTemplates } from '@/lib/db/repositories/workflow-templates'
 import {
   computeMetrics,
@@ -47,16 +47,20 @@ export async function getReport(
   range: ReportRange,
   now = new Date(),
 ): Promise<Report> {
+  const { from, to } = rangeWindow(range, now)
+
+  // One wave, as before, but each read now asks for only what a report uses:
+  // a few fields of each task and instance, and only the rejections inside the
+  // period rather than the whole timeline.
   const [instances, tasks, events, templates, users, projects] = await Promise.all([
-    listInstances(),
-    listAllTasks(),
-    listAllTimelineEvents(),
+    listInstancesForMetrics(),
+    listTasksForMetrics(),
+    listEventsInWindow('changes_requested', from, to),
     listAllTemplates(),
     listUsers(),
     listProjects(),
   ])
 
-  const { from, to } = rangeWindow(range, now)
   const metrics = computeMetrics({ instances, tasks, events, from, to })
 
   // A workflow has one name across its versions.

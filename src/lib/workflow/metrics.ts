@@ -10,17 +10,17 @@
  * without a database and the same figures back both the page and its export.
  */
 
-import type { WorkflowInstance } from '@/lib/types/instance'
-import type { Task } from '@/lib/types/task'
-import type { TimelineEvent } from '@/lib/types/timeline'
+import type { MetricsInstance } from '@/lib/types/instance'
+import type { MetricsTask } from '@/lib/types/task'
+import type { MetricsEvent } from '@/lib/types/timeline'
 
 const HOUR = 3_600_000
 
 export interface MetricsInput {
-  instances: WorkflowInstance[]
-  tasks: Task[]
+  instances: MetricsInstance[]
+  tasks: MetricsTask[]
   /** Rejections, which is how often work was sent back (spec §29). */
-  events: TimelineEvent[]
+  events: MetricsEvent[]
   /** Only work touched inside this window is counted. */
   from: Date
   to: Date
@@ -95,7 +95,7 @@ function within(at: Date | undefined, from: Date, to: Date): boolean {
 }
 
 /** A finished task that missed the deadline it was given. */
-function wasLate(task: Task): boolean {
+function wasLate(task: MetricsTask): boolean {
   return Boolean(task.completedAt && task.dueAt && task.completedAt > task.dueAt)
 }
 
@@ -116,7 +116,7 @@ export function computeMetrics(input: MetricsInput): Metrics {
     (instance) => instance.status === 'active' || instance.status === 'pending_approval',
   )
 
-  const tasksByInstance = new Map<string, Task[]>()
+  const tasksByInstance = new Map<string, MetricsTask[]>()
   for (const task of tasks) {
     tasksByInstance.set(task.instanceId, [
       ...(tasksByInstance.get(task.instanceId) ?? []),
@@ -125,7 +125,7 @@ export function computeMetrics(input: MetricsInput): Metrics {
   }
 
   /** An instance is on time when no stage of it ever missed its deadline. */
-  const ranOnTime = (instance: WorkflowInstance) =>
+  const ranOnTime = (instance: MetricsInstance) =>
     (tasksByInstance.get(instance.instanceId) ?? []).every((task) => !wasLate(task))
 
   const cycleHours = completedInRange.map((instance) =>
@@ -288,7 +288,7 @@ export interface ThroughputPoint {
  * Pure.
  */
 export function throughput(
-  instances: WorkflowInstance[],
+  instances: MetricsInstance[],
   from: Date,
   to: Date,
 ): ThroughputPoint[] {

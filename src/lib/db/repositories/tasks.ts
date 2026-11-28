@@ -3,7 +3,7 @@
 import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { ProjectId, TaskId, UserId, WorkflowInstanceId } from '@/lib/types/ids'
-import type { Task } from '@/lib/types/task'
+import type { MetricsTask, Task } from '@/lib/types/task'
 
 async function tasks() {
   return getCollection<Task>(COLLECTIONS.tasks)
@@ -71,6 +71,36 @@ export async function listOpenTasksForProject(projectId: ProjectId): Promise<Tas
 /** Every task, for reporting over completed work as well as open. */
 export async function listAllTasks(): Promise<Task[]> {
   return (await tasks()).find({}, WITHOUT_ID).toArray()
+}
+
+/**
+ * Every task, but only the fields a report reads.
+ *
+ * A task also carries its field values, checklist and files, which are most
+ * of its size and which no metric looks at; a report that loaded them all
+ * paid for the whole history on every view.
+ */
+export async function listTasksForMetrics(): Promise<MetricsTask[]> {
+  return (await tasks())
+    .find<MetricsTask>(
+      {},
+      {
+        projection: {
+          _id: 0,
+          instanceId: 1,
+          workflowId: 1,
+          stageKey: 1,
+          stageName: 1,
+          completedBy: 1,
+          revisionRound: 1,
+          activatedAt: 1,
+          dueAt: 1,
+          slaBreachAt: 1,
+          completedAt: 1,
+        },
+      },
+    )
+    .toArray()
 }
 
 /** Open tasks across the organisation, for the management views. */

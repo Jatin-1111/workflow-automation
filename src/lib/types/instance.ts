@@ -11,6 +11,15 @@ import type { InstanceStatus, Priority } from './status'
 /** Value captured from a template-defined field. */
 export type FieldValue = string | number | boolean | Date | null
 
+/**
+ * The few fields the metrics read. An instance also carries every field value
+ * its stages collected, which a report never looks at.
+ */
+export type MetricsInstance = Pick<
+  WorkflowInstance,
+  'instanceId' | 'workflowId' | 'projectId' | 'status' | 'startedAt' | 'completedAt'
+>
+
 export interface WorkflowInstance {
   instanceId: WorkflowInstanceId
   workflowId: WorkflowTemplateId

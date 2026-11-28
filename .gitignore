@@ -49,3 +49,7 @@ next-env.d.ts
 # tutorial captures — regenerate with docs/tutorial/README.md
 /docs/tutorial/shots
 /.tutorial
+
+# Crash dumps from Git Bash. Untracked, and a locked one made Turbopack panic
+# while Tailwind scanned the tree, which left the dev server serving stale CSS.
+*.stackdump

@@ -3,7 +3,7 @@
 import { getCollection, WITHOUT_ID } from '../collection'
 import { COLLECTIONS } from '../collections'
 import type { UserId, WorkflowInstanceId } from '@/lib/types/ids'
-import type { TimelineEvent } from '@/lib/types/timeline'
+import type { MetricsEvent, TimelineAction, TimelineEvent } from '@/lib/types/timeline'
 
 async function events() {
   return getCollection<TimelineEvent>(COLLECTIONS.timelineEvents)
@@ -15,9 +15,25 @@ export async function appendTimelineEvents(docs: TimelineEvent[]): Promise<void>
   await (await events()).insertMany(docs)
 }
 
-/** Every event, for reporting. Read only by the metrics layer. */
-export async function listAllTimelineEvents(): Promise<TimelineEvent[]> {
-  return (await events()).find({}, WITHOUT_ID).toArray()
+/**
+ * The events of one kind inside a window, for reporting.
+ *
+ * The timeline is append-only and grows with every state change, so a report
+ * must never read all of it: it counts one kind of event inside its period,
+ * and the database can answer exactly that. This used to load the whole
+ * history to count a handful.
+ */
+export async function listEventsInWindow(
+  action: TimelineAction,
+  from: Date,
+  to: Date,
+): Promise<MetricsEvent[]> {
+  return (await events())
+    .find<MetricsEvent>(
+      { action, at: { $gte: from, $lte: to } },
+      { projection: { _id: 0, action: 1, at: 1 } },
+    )
+    .toArray()
 }
 
 export async function listTimelineForInstance(
